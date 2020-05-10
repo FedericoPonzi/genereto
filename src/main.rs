@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 use std::fs::File;
 use crate::formats::Config;
-use genereto::build;
+use genereto::{run};
 
 mod formats;
 
@@ -18,13 +18,6 @@ fn main() {
         .filter("GENERETO_LOG")
         .write_style("GENERETO_LOG_STYLE");
     env_logger::init_from_env(env);
-
     let opts = Opts::from_args();
-    let project_path = opts.project_path;
-    let config_path = project_path.join("config.yml");
-    let config: Config = serde_yaml::from_reader(&File::open(config_path).unwrap()).unwrap();
-    let components = project_path.join("components");
-    let template = project_path.join("template").join(config.template);
-
-    build(components, template).expect("Error");
+    run(opts.project_path).expect("Error");
 }
