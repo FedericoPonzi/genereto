@@ -1,15 +1,11 @@
+use genereto::run;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use std::fs::File;
-use crate::formats::Config;
-use genereto::{run};
-
-mod formats;
 
 #[derive(StructOpt, Debug)]
 #[structopt(author, about)]
-struct Opts{
-    project_path: PathBuf
+struct Opts {
+    project_path: PathBuf,
 }
 
 fn main() {
