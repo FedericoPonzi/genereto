@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::path::Path;
 
+pub struct MarkdownFile<'a>(pub(crate) &'a str);
+
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub template: String,

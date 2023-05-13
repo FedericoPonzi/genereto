@@ -8,8 +8,9 @@ edition = "2018"
 
 [dependencies]
 log = "0.4.8"
-env_logger = "0.7.1"
+env_logger = "~0.10"
 structopt = "~0.3"
-pulldown-cmark = "0.7.1"
+pulldown-cmark = "~0.9"
 serde = {version = "~1.0", features = ["derive"] }
 serde_yaml = "0.8"
+regex = "1"
