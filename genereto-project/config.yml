@@ -1,1 +1,2 @@
 template: 'main'
+output_dirname: 'output'

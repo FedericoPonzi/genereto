@@ -1,5 +1,6 @@
 use genereto::run;
 use std::path::PathBuf;
+use env_logger::Env;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -10,10 +11,7 @@ struct Opts {
 
 fn main() {
     println!("Hello, world!");
-    let env = env_logger::Env::new()
-        .filter("GENERETO_LOG")
-        .write_style("GENERETO_LOG_STYLE");
-    env_logger::init_from_env(env);
+    env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
     let opts = Opts::from_args();
     run(opts.project_path).expect("Error");
 }
