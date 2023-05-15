@@ -62,7 +62,7 @@ fn build(content_dir: PathBuf, template: PathBuf, output_dir: PathBuf) -> anyhow
 fn build_index_page(template: &Path, file_list: Vec<String>, out_page: PathBuf) -> anyhow::Result<()> {
     debug!("Gonna build index page for {} with template {} and out_page {}", file_list.join(", "), template.display(), out_page.display());
     let mut links = "".to_string();
-    for i in file_list {
+    for i in file_list.into_iter().filter(|el| el != "error.html") {
         links.push_str(&format!("<li><a href=\"{}\">{}</a></li>", i, i));
     }
     let mut template_view = fs::read_to_string(template)?;
