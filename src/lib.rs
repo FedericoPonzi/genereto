@@ -3,24 +3,21 @@ extern crate log;
 
 use std::path::{Path, PathBuf};
 
-use config::GeneretoConfig;
-use std::{fs};
 use anyhow::Context;
+use config::GeneretoConfig;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::fs;
 
 mod config;
 
 const START_PATTERN: &str = "<!-- start_content -->";
 const END_PATTERN: &str = "<!-- end_content -->";
 
-const OUTPUT_DIR: &str = "output";
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct PageMetadata {
     title: String,
 }
-
 
 /// project: path to the project.
 pub fn run(project_path: PathBuf) -> anyhow::Result<()> {
@@ -34,32 +31,66 @@ pub fn run(project_path: PathBuf) -> anyhow::Result<()> {
     }
     fs::create_dir_all(&genereto_config.output_dir_path)?;
 
-    build(genereto_config.content_path, genereto_config.template_dir_path, genereto_config.output_dir_path)?;
+    build(
+        genereto_config.content_path,
+        genereto_config.template_dir_path,
+        genereto_config.output_dir_path,
+    )?;
     Ok(())
 }
 
 fn build(content_dir: PathBuf, template: PathBuf, output_dir: PathBuf) -> anyhow::Result<()> {
-    debug!("Gonna build for {} with template {} and out_page {}", content_dir.display(), template.display(), output_dir.display());
+    debug!(
+        "Gonna build for {} with template {} and out_page {}",
+        content_dir.display(),
+        template.display(),
+        output_dir.display()
+    );
     // iterate on all files in content folder, and call build_page
     let mut file_list = vec![];
     for entry in fs::read_dir(content_dir)? {
         debug!("Entry: {:?}", entry);
         let entry_path = entry?.path();
-        let filename = entry_path.file_name().unwrap().to_str().unwrap().to_string().replace(".md", ".html");
+        let filename = entry_path
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string()
+            .replace(".md", ".html");
 
         // assume entry is a file (for now?)
-        build_page(&template.join("blog.html"), entry_path, output_dir.join(&filename)).context("Failed to build page.")?;
+        build_page(
+            &template.join("blog.html"),
+            entry_path,
+            output_dir.join(&filename),
+        )
+        .context("Failed to build page.")?;
         file_list.push(filename);
     }
 
     // Create an index.html
-    build_index_page(&template.join("index.html"), file_list, output_dir.join("index.html")).context("Failed to build index page.")?;
+    build_index_page(
+        &template.join("index.html"),
+        file_list,
+        output_dir.join("index.html"),
+    )
+    .context("Failed to build index page.")?;
 
     Ok(())
 }
 
-fn build_index_page(template: &Path, file_list: Vec<String>, out_page: PathBuf) -> anyhow::Result<()> {
-    debug!("Gonna build index page for {} with template {} and out_page {}", file_list.join(", "), template.display(), out_page.display());
+fn build_index_page(
+    template: &Path,
+    file_list: Vec<String>,
+    out_page: PathBuf,
+) -> anyhow::Result<()> {
+    debug!(
+        "Gonna build index page for {} with template {} and out_page {}",
+        file_list.join(", "),
+        template.display(),
+        out_page.display()
+    );
     let mut links = "".to_string();
     for i in file_list.into_iter().filter(|el| el != "error.html") {
         links.push_str(&format!("<li><a href=\"{}\">{}</a></li>", i, i));
@@ -76,16 +107,22 @@ fn build_index_page(template: &Path, file_list: Vec<String>, out_page: PathBuf) 
 }
 
 fn build_page(template: &Path, in_page: PathBuf, out_page: PathBuf) -> anyhow::Result<()> {
-    debug!("Gonna build page for {} with template {} and out_page {}", in_page.display(), template.display(), out_page.display());
+    debug!(
+        "Gonna build page for {} with template {} and out_page {}",
+        in_page.display(),
+        template.display(),
+        out_page.display()
+    );
     // 1 read in_page.
     let page = fs::read_to_string(in_page)?;
     let pattern = Regex::new(r"---+\n").unwrap();
     let mut fields: Vec<&str> = pattern.splitn(&page, 2).collect();
     let (metadata, content) = (fields.remove(0), fields.remove(0));
     debug!("Metadata: {:?}", metadata);
-    debug!("Content: {}",content);
+    debug!("Content: {}", content);
 
-    let metadata: PageMetadata = serde_yaml::from_str(metadata).expect("Failed to deserialize metadata");
+    let metadata: PageMetadata =
+        serde_yaml::from_str(metadata).expect("Failed to deserialize metadata");
     let mut final_page = fs::read_to_string(template)?;
     let html_content = load_markdown(content);
     let start = final_page.find(START_PATTERN).unwrap();
@@ -105,7 +142,6 @@ fn apply_variables(metadata: PageMetadata, mut final_page: String) -> String {
     }
     final_page
 }
-
 
 fn load_markdown(markdown_input: &str) -> String {
     use pulldown_cmark::{html, Options, Parser};

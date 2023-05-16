@@ -1,13 +1,13 @@
-use std::fs;
+use anyhow::bail;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::path::{Path, PathBuf};
-use anyhow::bail;
-use crate::OUTPUT_DIR;
+
+const OUTPUT_DIR: &str = "output";
 
 const CONFIG_FILENAME: &str = "config.yml";
 // folder name for the markdown files with the content of the generated website
-const CONTENT :&str = "content";
+const CONTENT: &str = "content";
 // Template folder name
 const TEMPLATES: &str = "templates";
 
@@ -23,19 +23,19 @@ pub struct GeneretoConfig {
     pub template_dir_path: PathBuf,
     pub output_dir_path: PathBuf,
     pub project_path: PathBuf,
-    pub content_path: PathBuf
+    pub content_path: PathBuf,
 }
 
 impl GeneretoConfig {
-
     pub fn validate_project_folders(project_path: &Path) -> anyhow::Result<()> {
         if !project_path.exists() {
             bail!("Project path {} does not exist", project_path.display());
         }
-        let paths: [PathBuf; 4] = [project_path.to_path_buf(),
+        let paths: [PathBuf; 4] = [
+            project_path.to_path_buf(),
             project_path.join(CONFIG_FILENAME),
             project_path.join(TEMPLATES),
-            project_path.join(CONTENT)
+            project_path.join(CONTENT),
         ];
         for p in paths {
             if !p.exists() {
@@ -47,11 +47,12 @@ impl GeneretoConfig {
 
     pub fn load_from_path<P: AsRef<Path>>(project_path: P) -> anyhow::Result<Self> {
         let project_path = project_path.as_ref();
-        let config_file: ConfigFile = serde_yaml::from_reader(&File::open(project_path.join(CONFIG_FILENAME))?)?;
+        let config_file: ConfigFile =
+            serde_yaml::from_reader(&File::open(project_path.join(CONFIG_FILENAME))?)?;
         Ok(Self {
             template_dir_path: project_path.join(TEMPLATES).join(&config_file.template),
             output_dir_path: project_path.join(OUTPUT_DIR),
-            content_path:  project_path.join(CONTENT),
+            content_path: project_path.join(CONTENT),
             project_path: project_path.to_path_buf(),
             config_file,
         })

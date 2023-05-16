@@ -1,8 +1,7 @@
+use clap::Parser;
+use env_logger::Env;
 use genereto::run;
 use std::path::PathBuf;
-use env_logger::Env;
-use clap::Parser;
-
 
 /// Genereto is a super simple static site generator.
 #[derive(Parser, Debug)]
