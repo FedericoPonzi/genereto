@@ -17,6 +17,8 @@ const END_PATTERN: &str = "<!-- end_content -->";
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct PageMetadata {
     title: String,
+    publish_date: Option<String>,
+    read_time_minutes: Option<u16>,
 }
 
 /// project: path to the project.
@@ -137,7 +139,17 @@ fn build_page(template: &Path, in_page: PathBuf, out_page: PathBuf) -> anyhow::R
 
 // Apply variables to the final page.
 fn apply_variables(metadata: PageMetadata, mut final_page: String) -> String {
-    for i in [("$GENRETO['title']", metadata.title)] {
+    for i in [
+        ("$GENERETO['title']", metadata.title),
+        (
+            "$GENERETO['publish_date']",
+            metadata.publish_date.unwrap_or_else(|| "".to_string()),
+        ),
+        (
+            "$GENERETO['read_time_minutes']",
+            metadata.read_time_minutes.unwrap_or(0).to_string(),
+        ),
+    ] {
         final_page = final_page.replace(i.0, &i.1);
     }
     final_page

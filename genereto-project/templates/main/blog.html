@@ -6,12 +6,28 @@
     <title>$GENERETO['title']</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /** Matching Gradient https://mycolor.space/?hex=%23FFFBFE&sub=1 **/
+            --snow: #fffbfeff;
+            --light-gray: #dcd9e3;
+            --gray: #dcd9e3;
+            /*--background: #565254ff;*/
+            --white: #ffffffff;
+            --page-background: #fffbfeff;
+            --container-background: #fffbfeff;
+            --navbar-title: #5b8285;
+            --navbar-links: #3f665a;
+            --navbar-background: #fffbfeff;
+            --post-title: #3f665a;
+            --post-meta: #5b8285;
+        }
+
         html {
             box-sizing: border-box;
             font-size: 16px;
             font-family: 'Nunito', sans-serif;
-            letter-spacing: 1.3px;
-            background-color: #efefefef;
+            letter-spacing: 1px;
+            background-color: var(--page-background);
         }
 
         *, *:before, *:after {
@@ -27,36 +43,44 @@
         .navbar {
             position: sticky;
             top: 0;
-            background-color: #f1f1f1;
-            padding: 10px;
+            background-color: var(--navbar-background);
+            color: var(--white);
+            padding: 20px;
+            height: 80px; /* Adjust the height as desired */
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             z-index: 100;
+            border-bottom: 1px solid black;
+            opacity: 95%;
         }
 
         .navbar-title {
             font-size: 24px;
-            color: #333;
+            font-weight: bold;
+            color: var(--navbar-title);
+            margin-right: 20px; /* Add margin-right to create spacing */
         }
 
         .navbar-links {
             display: flex;
             align-items: center;
+            margin-left: 20px; /* Add margin-left to create spacing */
         }
 
         .navbar-links a {
             margin-left: 10px;
             text-decoration: none;
-            color: #333;
+            color: var(--navbar-links);
             font-size: 16px;
         }
 
         .container {
             max-width: 800px;
-            margin: 0 auto;
             padding: 20px;
-            margin-top: 60px; /* Adjust the margin-top value to account for navbar height */
+            /* Adjust the margin-top value to account for navbar height */
+            margin: 60px auto 0;
+            background-color: var(--container-background);
         }
 
         @media only screen and (max-width: 600px) {
@@ -66,11 +90,23 @@
         }
 
         article {
-            padding: 100px 50px;
+            padding: 30px 50px;
             width: auto;
             box-sizing: border-box;
             position: relative;
             margin: 0 auto;
+        }
+
+        .post-title {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: var(--post-title)
+        }
+
+        .post-meta {
+            font-size: 14px;
+            color: var(--post-meta);
+            margin-bottom: 20px;
         }
 
         p {
@@ -102,9 +138,9 @@
 </div>
 
 <div class="container">
-
-    <h1>$GENERETO['title']</h1>
     <article>
+        <h1 class="post-title">$GENERETO['title']</h1>
+        <p class="post-meta">Published on $GENERETO['publish_date'] | $GENERETO['read_time_minutes'] min read</p>
         <!-- start_content -->
         <small>This will be hidden in the final output.</small>
         <h1>Hello world!</h1>
@@ -136,6 +172,6 @@
 
 <div class="blog-post">
 
-        </div>
-    </body>
+</div>
+</body>
 </html>
