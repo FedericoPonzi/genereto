@@ -7,6 +7,7 @@ use config::GeneretoConfig;
 use std::{fs};
 use anyhow::Context;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 
 mod config;
 
@@ -14,6 +15,12 @@ const START_PATTERN: &str = "<!-- start_content -->";
 const END_PATTERN: &str = "<!-- end_content -->";
 
 const OUTPUT_DIR: &str = "output";
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct PageMetadata {
+    title: String,
+}
+
 
 /// project: path to the project.
 pub fn run(project_path: PathBuf) -> anyhow::Result<()> {
@@ -27,14 +34,6 @@ pub fn run(project_path: PathBuf) -> anyhow::Result<()> {
     }
     fs::create_dir_all(&genereto_config.output_dir_path)?;
 
-
-    /*// iterate on all folders inside content
-    for entry in fs::read_dir(&content)? {
-        let path = entry?.path();
-        let entry_name = path.file_name().unwrap().to_str().unwrap().to_string();
-        let template_file = template_dir.join(&format!("{entry_name}.html"));
-        build(content.join(entry_name), template_file, output_dir.clone())?;
-    }*/
     build(genereto_config.content_path, genereto_config.template_dir_path, genereto_config.output_dir_path)?;
     Ok(())
 }
@@ -83,18 +82,28 @@ fn build_page(template: &Path, in_page: PathBuf, out_page: PathBuf) -> anyhow::R
     let pattern = Regex::new(r"---+\n").unwrap();
     let mut fields: Vec<&str> = pattern.splitn(&page, 2).collect();
     let (metadata, content) = (fields.remove(0), fields.remove(0));
-    debug!("Metadata: {}", metadata);
+    debug!("Metadata: {:?}", metadata);
     debug!("Content: {}",content);
-    let mut template_view = fs::read_to_string(template)?;
+
+    let metadata: PageMetadata = serde_yaml::from_str(metadata).expect("Failed to deserialize metadata");
+    let mut final_page = fs::read_to_string(template)?;
     let html_content = load_markdown(content);
-    let start = template_view.find(START_PATTERN).unwrap();
-    let end = template_view.find(END_PATTERN).unwrap();
+    let start = final_page.find(START_PATTERN).unwrap();
+    let end = final_page.find(END_PATTERN).unwrap();
 
-    template_view.replace_range(start..end + END_PATTERN.len(), &html_content);
+    final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
+    let final_page = apply_variables(metadata, final_page);
 
-    //println!("Result:\n {}", template_view);
-    fs::write(out_page, template_view).context("Failed writing to output page")?;
+    fs::write(out_page, final_page).context("Failed writing to output page")?;
     Ok(())
+}
+
+// Apply variables to the final page.
+fn apply_variables(metadata: PageMetadata, mut final_page: String) -> String {
+    for i in [("$GENRETO['title']", metadata.title)] {
+        final_page = final_page.replace(i.0, &i.1);
+    }
+    final_page
 }
 
 

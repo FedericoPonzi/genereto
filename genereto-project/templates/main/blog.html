@@ -1,13 +1,141 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>$GENERETO['title']</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
+    <style>
+        html {
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: 'Nunito', sans-serif;
+            letter-spacing: 1.3px;
+            background-color: #efefefef;
+        }
+
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body, h1, h2, h3, h4, h5, h6, p, ol, ul {
+            margin: 0;
+            padding: 0;
+            font-weight: normal;
+        }
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            background-color: #f1f1f1;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .navbar-title {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-links a {
+            margin-left: 10px;
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            margin-top: 60px; /* Adjust the margin-top value to account for navbar height */
+        }
+
+        @media only screen and (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+        }
+
+        article {
+            padding: 100px 50px;
+            width: auto;
+            box-sizing: border-box;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        p {
+            padding-bottom: 10px;
+            padding-top: 10px;
+        }
+
+        h1 {
+            font-size: 2em;
+        }
+
+        h2 {
+            font-size: 1.6em;
+        }
+
+        ul {
+            padding-left: 25px;
+            padding-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
-<div style="text-align: center">
-    <!-- start_content -->
-    Hello world! This will be hidden in the result!
+<div class="navbar">
+    <h1 class="navbar-title">Federico Ponzi's Blog</h1>
+    <div class="navbar-links">
+        <a href="index.html">Home</a>
+        <a href="blog.html">Blog</a>
+    </div>
+</div>
 
-    <!-- end_content -->
+<div class="container">
+
+    <h1>$GENERETO['title']</h1>
+    <article>
+        <!-- start_content -->
+        <small>This will be hidden in the final output.</small>
+        <h1>Hello world!</h1>
+        <p>This is the first blog entry.</p>
+        <pre><code class="language-java">var this = is_some_code();
+        </code></pre>
+        <h1>h1 title</h1>
+        <h2>h2 title</h2>
+        <h3>h3 title</h3>
+        <p>CloudFront functions also allow updating HTTP responses. We could write a function to add important HTTP security headers to each response, but a better way would be to configure and use a response header policy. Using a response header policy is declarative and requires no additional code.</p>
+        <p>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</p>
+        <p>CloudFront functions also allow updating HTTP responses. We could write a function to add important HTTP security headers to each response, but a better way would be to configure and use a response header policy. Using a response header policy is declarative and requires no additional code.</p>
+        <p>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</p>
+        <p>CloudFront functions also allow updating HTTP responses. We could write a function to add important HTTP security headers to each response, but a better way would be to configure and use a response header policy. Using a response header policy is declarative and requires no additional code.</p>
+        <p>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</p>
+        <p>CloudFront functions also allow updating HTTP responses. We could write a function to add important HTTP security headers to each response, but a better way would be to configure and use a response header policy. Using a response header policy is declarative and requires no additional code.</p>
+        <p>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</p>
+        <ul>
+            <li>List item 1</li>
+            <li>List item 2</li>
+            <li>List item 3</li>
+        </ul>
+        <!-- end_content -->
+
+    </article>
 </div>
 </body>
+</html>
+
+<div class="blog-post">
+
+        </div>
+    </body>
 </html>
