@@ -16,9 +16,15 @@ const END_PATTERN: &str = "<!-- end_content -->";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct PageMetadata {
+    /// Title of the page
     title: String,
+    /// Publish date as string
     publish_date: Option<String>,
+    /// Read time in minutes, will eventually be automated.
     read_time_minutes: Option<u16>,
+    /// Defaults to false. If true this article will not be processed.
+    #[serde(default = "bool::default")]
+    is_draft: bool,
 }
 
 /// project: path to the project.
