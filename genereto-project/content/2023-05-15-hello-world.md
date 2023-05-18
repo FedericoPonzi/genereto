@@ -23,6 +23,7 @@ Check out the quotes:
 > This is a quote! (TODO: this are wrapped to one line but are two lines)
 > Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tempor ex a malesuada scelerisque. Aenean rhoncus finibus pellentesque. Ut nunc nisi, mollis et dui eu, finibus auctor nisl. Nunc sagittis dolor a velit lacinia, sagittis vestibulum orci elementum. Integer sagittis congue neque sed tincidunt. Fusce quis ultrices elit. Vivamus tincidunt dignissim vulputate. Donec arcu tortor, porta sed turpis et, efficitur auctor tellus. Cras nec tortor eu elit lacinia mattis. Maecenas et libero turpis.
 
+![rustacean.png](2023-05-15-hello-world/rustacean.png)
 
 # H1 title.
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus tempor ex a malesuada scelerisque. Aenean rhoncus finibus pellentesque. Ut nunc nisi, mollis et dui eu, finibus auctor nisl. Nunc sagittis dolor a velit lacinia, sagittis vestibulum orci elementum. Integer sagittis congue neque sed tincidunt. Fusce quis ultrices elit. Vivamus tincidunt dignissim vulputate. Donec arcu tortor, porta sed turpis et, efficitur auctor tellus. Cras nec tortor eu elit lacinia mattis. Maecenas et libero turpis.

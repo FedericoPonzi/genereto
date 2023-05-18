@@ -67,14 +67,17 @@ fn build(content_dir: PathBuf, template: PathBuf, output_dir: PathBuf) -> anyhow
             .to_string()
             .replace(".md", ".html");
 
-        // assume entry is a file (for now?)
-        build_page(
-            &template.join("blog.html"),
-            entry_path,
-            output_dir.join(&filename),
-        )
-        .context("Failed to build page.")?;
-        file_list.push(filename);
+        if entry_path.is_file() {
+            build_page(
+                &template.join("blog.html"),
+                entry_path,
+                output_dir.join(&filename),
+            )
+            .context("Failed to build page.")?;
+            file_list.push(filename);
+        } else if entry_path.is_dir() {
+            copy_directory_recursively(entry_path, output_dir.join(&filename))?;
+        }
     }
 
     // Create an index.html
@@ -85,6 +88,32 @@ fn build(content_dir: PathBuf, template: PathBuf, output_dir: PathBuf) -> anyhow
     )
     .context("Failed to build index page.")?;
 
+    Ok(())
+}
+
+fn copy_directory_recursively<P: AsRef<Path>, Q: AsRef<Path>>(
+    src: P,
+    dest: Q,
+) -> std::io::Result<()> {
+    let src = src.as_ref();
+    let dest = dest.as_ref();
+
+    if src.is_file() {
+        fs::copy(src, dest)?;
+    } else if src.is_dir() {
+        if !dest.exists() {
+            fs::create_dir_all(dest)?;
+        }
+
+        let entries = fs::read_dir(src)?;
+        for entry in entries {
+            let entry = entry?;
+            let entry_path = entry.path();
+            let dest_path = dest.join(entry.file_name());
+
+            copy_directory_recursively(&entry_path, &dest_path)?;
+        }
+    }
     Ok(())
 }
 
