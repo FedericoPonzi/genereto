@@ -148,10 +148,11 @@ fn build_index_page(
     let mut links = "".to_string();
     for i in file_list.into_iter().filter(|el| el.0 != "error.html") {
         links.push_str(&format!(
-            "<li>{}: <a href=\"{}\">{}</a></li>",
-            i.1.publish_date.unwrap(),
-            i.0,
+            "<li><a href=\"{}\">{}</a> - {} ({})</li>",
             i.1.title
+            i.0,
+            i.1.publish_date.unwrap(),
+            i.1.key_words.join(", "),
         ));
     }
     let mut template_view = fs::read_to_string(template)?;
