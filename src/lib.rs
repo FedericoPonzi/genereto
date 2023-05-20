@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate log;
 
+use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
@@ -25,6 +26,11 @@ struct PageMetadata {
     /// Defaults to false. If true this article will not be processed.
     #[serde(default = "bool::default")]
     is_draft: bool,
+}
+impl Display for PageMetadata {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Title: {}", self.title)
+    }
 }
 
 /// project: path to the project.
@@ -68,13 +74,13 @@ fn build(content_dir: PathBuf, template: PathBuf, output_dir: PathBuf) -> anyhow
             .replace(".md", ".html");
 
         if entry_path.is_file() {
-            build_page(
+            let metadata = build_page(
                 &template.join("blog.html"),
                 entry_path,
                 output_dir.join(&filename),
             )
             .context("Failed to build page.")?;
-            file_list.push(filename);
+            file_list.push((filename, metadata));
         } else if entry_path.is_dir() {
             copy_directory_recursively(entry_path, output_dir.join(&filename))?;
         }
@@ -119,18 +125,17 @@ fn copy_directory_recursively<P: AsRef<Path>, Q: AsRef<Path>>(
 
 fn build_index_page(
     template: &Path,
-    file_list: Vec<String>,
+    file_list: Vec<(String, PageMetadata)>,
     out_page: PathBuf,
 ) -> anyhow::Result<()> {
-    debug!(
-        "Gonna build index page for {} with template {} and out_page {}",
-        file_list.join(", "),
-        template.display(),
-        out_page.display()
-    );
     let mut links = "".to_string();
-    for i in file_list.into_iter().filter(|el| el != "error.html") {
-        links.push_str(&format!("<li><a href=\"{}\">{}</a></li>", i, i));
+    for i in file_list.into_iter().filter(|el| el.0 != "error.html") {
+        links.push_str(&format!(
+            "<li>{}: <a href=\"{}\">{}</a></li>",
+            i.1.publish_date.unwrap(),
+            i.0,
+            i.1.title
+        ));
     }
     let mut template_view = fs::read_to_string(template)?;
     let html_content = links;
@@ -143,7 +148,11 @@ fn build_index_page(
     Ok(())
 }
 
-fn build_page(template: &Path, in_page: PathBuf, out_page: PathBuf) -> anyhow::Result<()> {
+fn build_page(
+    template: &Path,
+    in_page: PathBuf,
+    out_page: PathBuf,
+) -> anyhow::Result<PageMetadata> {
     debug!(
         "Gonna build page for {} with template {} and out_page {}",
         in_page.display(),
@@ -166,10 +175,10 @@ fn build_page(template: &Path, in_page: PathBuf, out_page: PathBuf) -> anyhow::R
     let end = final_page.find(END_PATTERN).unwrap();
 
     final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
-    let final_page = apply_variables(metadata, final_page);
+    let final_page = apply_variables(metadata.clone(), final_page);
 
     fs::write(out_page, final_page).context("Failed writing to output page")?;
-    Ok(())
+    Ok(metadata)
 }
 
 // Apply variables to the final page.
