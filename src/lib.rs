@@ -20,12 +20,14 @@ struct PageMetadata {
     /// Title of the page
     title: String,
     /// Publish date as string
-    publish_date: Option<String>,
+    publish_date: String,
     /// Read time in minutes, will eventually be automated.
-    read_time_minutes: Option<u16>,
+    read_time_minutes: u16,
     /// Defaults to false. If true this article will not be processed.
     #[serde(default = "bool::default")]
     is_draft: bool,
+    /// Keywords for this article
+    keywords: String,
 }
 
 impl PartialOrd for PageMetadata {
@@ -149,10 +151,7 @@ fn build_index_page(
     for i in file_list.into_iter().filter(|el| el.0 != "error.html") {
         links.push_str(&format!(
             "<li><a href=\"{}\">{}</a> - {} ({})</li>",
-            i.1.title
-            i.0,
-            i.1.publish_date.unwrap(),
-            i.1.key_words.join(", "),
+            i.1.title, i.0, i.1.publish_date, i.1.keywords,
         ));
     }
     let mut template_view = fs::read_to_string(template)?;
@@ -203,13 +202,10 @@ fn build_page(
 fn apply_variables(metadata: PageMetadata, mut final_page: String) -> String {
     for i in [
         ("$GENERETO['title']", metadata.title),
-        (
-            "$GENERETO['publish_date']",
-            metadata.publish_date.unwrap_or_else(|| "".to_string()),
-        ),
+        ("$GENERETO['publish_date']", metadata.publish_date),
         (
             "$GENERETO['read_time_minutes']",
-            metadata.read_time_minutes.unwrap_or(0).to_string(),
+            metadata.read_time_minutes.to_string(),
         ),
     ] {
         final_page = final_page.replace(i.0, &i.1);
