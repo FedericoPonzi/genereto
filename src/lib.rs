@@ -1,54 +1,20 @@
 #[macro_use]
 extern crate log;
 
-use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 use config::GeneretoConfig;
 use regex::Regex;
-use serde::{Deserialize, Serialize};
 use std::fs;
 
 mod config;
+mod page_metadata;
+
+use page_metadata::PageMetadata;
 
 const START_PATTERN: &str = "<!-- start_content -->";
 const END_PATTERN: &str = "<!-- end_content -->";
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct PageMetadata {
-    /// Title of the page
-    title: String,
-    /// Publish date as string
-    publish_date: String,
-    /// Read time in minutes, will eventually be automated.
-    read_time_minutes: u16,
-    /// Defaults to false. If true this article will not be processed.
-    #[serde(default = "bool::default")]
-    is_draft: bool,
-    /// Keywords for this article
-    keywords: String,
-}
-
-impl PartialOrd for PageMetadata {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.publish_date.cmp(&other.publish_date).reverse())
-    }
-}
-
-impl PartialEq for PageMetadata {
-    fn eq(&self, other: &Self) -> bool {
-        self.publish_date == other.publish_date
-    }
-}
-
-impl Eq for PageMetadata {}
-
-impl Display for PageMetadata {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Title: {}", self.title)
-    }
-}
 
 /// project: path to the project.
 pub fn run(project_path: PathBuf) -> anyhow::Result<()> {
@@ -151,7 +117,7 @@ fn build_index_page(
     for i in file_list.into_iter().filter(|el| el.0 != "error.html") {
         links.push_str(&format!(
             "<li><a href=\"{}\">{}</a> - {} ({})</li>",
-            i.1.title, i.0, i.1.publish_date, i.1.keywords,
+            i.0, i.1.title, i.1.publish_date, i.1.keywords,
         ));
     }
     let mut template_view = fs::read_to_string(template)?;
@@ -187,25 +153,36 @@ fn build_page(
     let metadata: PageMetadata =
         serde_yaml::from_str(metadata).expect("Failed to deserialize metadata");
     let mut final_page = fs::read_to_string(template)?;
+    let estimation_reading_time_minutes = page_metadata::estimate_reading_time(&content);
+
     let html_content = load_markdown(content);
     let start = final_page.find(START_PATTERN).unwrap();
     let end = final_page.find(END_PATTERN).unwrap();
 
     final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
-    let final_page = apply_variables(metadata.clone(), final_page);
+
+    let final_page = apply_variables(
+        metadata.clone(),
+        final_page,
+        estimation_reading_time_minutes,
+    );
 
     fs::write(out_page, final_page).context("Failed writing to output page")?;
     Ok(metadata)
 }
 
 // Apply variables to the final page.
-fn apply_variables(metadata: PageMetadata, mut final_page: String) -> String {
+fn apply_variables(
+    metadata: PageMetadata,
+    mut final_page: String,
+    estimation_reading_time_minutes: u16,
+) -> String {
     for i in [
         ("$GENERETO['title']", metadata.title),
         ("$GENERETO['publish_date']", metadata.publish_date),
         (
             "$GENERETO['read_time_minutes']",
-            metadata.read_time_minutes.to_string(),
+            estimation_reading_time_minutes.to_string(),
         ),
     ] {
         final_page = final_page.replace(i.0, &i.1);
