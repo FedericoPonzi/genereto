@@ -27,6 +27,21 @@ struct PageMetadata {
     #[serde(default = "bool::default")]
     is_draft: bool,
 }
+
+impl PartialOrd for PageMetadata {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.publish_date.cmp(&other.publish_date).reverse())
+    }
+}
+
+impl PartialEq for PageMetadata {
+    fn eq(&self, other: &Self) -> bool {
+        self.publish_date == other.publish_date
+    }
+}
+
+impl Eq for PageMetadata {}
+
 impl Display for PageMetadata {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Title: {}", self.title)
@@ -85,6 +100,8 @@ fn build(content_dir: PathBuf, template: PathBuf, output_dir: PathBuf) -> anyhow
             copy_directory_recursively(entry_path, output_dir.join(&filename))?;
         }
     }
+
+    file_list.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
 
     // Create an index.html
     build_index_page(
