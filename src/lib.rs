@@ -11,6 +11,7 @@ use std::fs;
 mod config;
 mod page_metadata;
 
+use crate::page_metadata::GeneretoMetadata;
 use page_metadata::PageMetadata;
 
 const START_PATTERN: &str = "<!-- start_content -->";
@@ -110,15 +111,19 @@ fn copy_directory_recursively<P: AsRef<Path>, Q: AsRef<Path>>(
 
 fn build_index_page(
     template: &Path,
-    file_list: Vec<(String, PageMetadata)>,
+    file_list: Vec<(String, GeneretoMetadata)>,
     out_page: PathBuf,
 ) -> anyhow::Result<()> {
     let mut links = "".to_string();
     for i in file_list.into_iter().filter(|el| el.0 != "error.html") {
-        links.push_str(&format!(
-            "<li><a href=\"{}\">{}</a> - {} ({})</li>",
-            i.0, i.1.title, i.1.publish_date, i.1.keywords,
-        ));
+        let li_entry = &format!(
+            "<li><a href=\"https://blog.fponzi.me/{}\">{}</a> - {} ({})</li>",
+            i.1.file_name,
+            i.1.page_metadata.title,
+            i.1.page_metadata.publish_date,
+            i.1.page_metadata.keywords,
+        );
+        links.push_str(li_entry);
     }
     let mut template_view = fs::read_to_string(template)?;
     let html_content = links;
@@ -126,7 +131,6 @@ fn build_index_page(
     let end = template_view.find(END_PATTERN).unwrap();
     template_view.replace_range(start..end + END_PATTERN.len(), &html_content);
 
-    //println!("Result:\n {}", template_view);
     fs::write(out_page, template_view).context("Failed writing to output page")?;
     Ok(())
 }
@@ -135,7 +139,7 @@ fn build_page(
     template: &Path,
     in_page: PathBuf,
     out_page: PathBuf,
-) -> anyhow::Result<PageMetadata> {
+) -> anyhow::Result<GeneretoMetadata> {
     let file_name = out_page.file_name().unwrap().to_str().unwrap().to_string();
     debug!(
         "Gonna build page for {} with template {} and out_page {}",
@@ -154,62 +158,21 @@ fn build_page(
     let metadata: PageMetadata =
         serde_yaml::from_str(metadata).expect("Failed to deserialize metadata");
     let mut final_page = fs::read_to_string(template)?;
-    let estimation_reading_time_minutes = page_metadata::estimate_reading_time(&content);
-    let description = truncate_text(content, 150);
-
     let html_content = load_markdown(content);
     let start = final_page.find(START_PATTERN).unwrap();
     let end = final_page.find(END_PATTERN).unwrap();
 
     final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
-
-    let final_page = apply_variables(
-        metadata.clone(),
-        final_page,
-        estimation_reading_time_minutes,
-        file_name,
-        description,
-    );
+    let genereto_metadata = GeneretoMetadata::new(metadata, content, file_name);
+    let final_page = apply_variables(&genereto_metadata, final_page);
 
     fs::write(out_page, final_page).context("Failed writing to output page")?;
-    Ok(metadata)
-}
-
-fn truncate_text(article: &str, limit: usize) -> String {
-    let mut truncated = String::from(article);
-
-    if truncated.chars().count() > limit {
-        truncated.truncate(limit);
-
-        if let Some(last_space) = truncated.rfind(' ') {
-            truncated.truncate(last_space);
-        }
-
-        truncated.push_str("...");
-    }
-
-    truncated
+    Ok(genereto_metadata)
 }
 
 // Apply variables to the final page.
-fn apply_variables(
-    metadata: PageMetadata,
-    mut final_page: String,
-    estimation_reading_time_minutes: u16,
-    file_name: String,
-    short_description: String,
-) -> String {
-    for i in [
-        ("$GENERETO['title']", metadata.title),
-        ("$GENERETO['publish_date']", metadata.publish_date),
-        (
-            "$GENERETO['read_time_minutes']",
-            estimation_reading_time_minutes.to_string(),
-        ),
-        ("$GENERETO['keywords']", metadata.keywords),
-        ("$GENERETO['description']", short_description),
-        ("$GENERETO['file_name']", file_name),
-    ] {
+fn apply_variables(metadata: &GeneretoMetadata, mut final_page: String) -> String {
+    for i in metadata.get_variables() {
         final_page = final_page.replace(i.0, &i.1);
     }
     final_page
