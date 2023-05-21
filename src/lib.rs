@@ -136,6 +136,7 @@ fn build_page(
     in_page: PathBuf,
     out_page: PathBuf,
 ) -> anyhow::Result<PageMetadata> {
+    let file_name = out_page.file_name().unwrap().to_str().unwrap().to_string();
     debug!(
         "Gonna build page for {} with template {} and out_page {}",
         in_page.display(),
@@ -154,6 +155,7 @@ fn build_page(
         serde_yaml::from_str(metadata).expect("Failed to deserialize metadata");
     let mut final_page = fs::read_to_string(template)?;
     let estimation_reading_time_minutes = page_metadata::estimate_reading_time(&content);
+    let description = truncate_text(content, 150);
 
     let html_content = load_markdown(content);
     let start = final_page.find(START_PATTERN).unwrap();
@@ -165,10 +167,28 @@ fn build_page(
         metadata.clone(),
         final_page,
         estimation_reading_time_minutes,
+        file_name,
+        description,
     );
 
     fs::write(out_page, final_page).context("Failed writing to output page")?;
     Ok(metadata)
+}
+
+fn truncate_text(article: &str, limit: usize) -> String {
+    let mut truncated = String::from(article);
+
+    if truncated.chars().count() > limit {
+        truncated.truncate(limit);
+
+        if let Some(last_space) = truncated.rfind(' ') {
+            truncated.truncate(last_space);
+        }
+
+        truncated.push_str("...");
+    }
+
+    truncated
 }
 
 // Apply variables to the final page.
@@ -176,6 +196,8 @@ fn apply_variables(
     metadata: PageMetadata,
     mut final_page: String,
     estimation_reading_time_minutes: u16,
+    file_name: String,
+    short_description: String,
 ) -> String {
     for i in [
         ("$GENERETO['title']", metadata.title),
@@ -184,6 +206,9 @@ fn apply_variables(
             "$GENERETO['read_time_minutes']",
             estimation_reading_time_minutes.to_string(),
         ),
+        ("$GENERETO['keywords']", metadata.keywords),
+        ("$GENERETO['description']", short_description),
+        ("$GENERETO['file_name']", file_name),
     ] {
         final_page = final_page.replace(i.0, &i.1);
     }
