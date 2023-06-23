@@ -46,6 +46,7 @@ impl GeneretoConfig {
     }
 
     pub fn load_from_path<P: AsRef<Path>>(project_path: P) -> anyhow::Result<Self> {
+        Self::validate_project_folders(project_path.as_ref())?;
         let project_path = project_path.as_ref();
         let config_file: ConfigFile =
             serde_yaml::from_reader(&File::open(project_path.join(CONFIG_FILENAME))?)?;

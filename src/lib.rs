@@ -3,10 +3,11 @@ extern crate log;
 
 use std::path::{Path, PathBuf};
 
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use config::GeneretoConfig;
 use regex::Regex;
 use std::fs;
+use std::fs::read_dir;
 
 mod config;
 mod page_metadata;
@@ -21,7 +22,6 @@ const END_PATTERN: &str = "<!-- end_content -->";
 pub fn run(project_path: PathBuf) -> anyhow::Result<()> {
     // todo: move to config.
 
-    GeneretoConfig::validate_project_folders(&project_path)?;
     let genereto_config = GeneretoConfig::load_from_path(project_path)?;
 
     if genereto_config.output_dir_path.exists() {
@@ -31,9 +31,25 @@ pub fn run(project_path: PathBuf) -> anyhow::Result<()> {
 
     build(
         genereto_config.content_path,
+        genereto_config.template_dir_path.clone(),
+        genereto_config.output_dir_path.clone(),
+    )?;
+    copy_resources(
         genereto_config.template_dir_path,
         genereto_config.output_dir_path,
     )?;
+    Ok(())
+}
+fn copy_resources(template_dir_path: PathBuf, output_dir_path: PathBuf) -> anyhow::Result<()> {
+    for entry in read_dir(template_dir_path)? {
+        let entry_path = entry?.path();
+        if entry_path.is_dir() {
+            copy_directory_recursively(
+                entry_path.clone(),
+                output_dir_path.join(entry_path.file_name().unwrap().to_str().unwrap()),
+            )?;
+        }
+    }
     Ok(())
 }
 
@@ -46,27 +62,28 @@ fn build(content_dir: PathBuf, template: PathBuf, output_dir: PathBuf) -> anyhow
     );
     // iterate on all files in content folder, and call build_page
     let mut file_list = vec![];
+    let gen_dest_filename =
+        |p: &Path| -> Option<String> { Some(p.file_name()?.to_str()?.replace(".md", ".html")) };
+
     for entry in fs::read_dir(content_dir)? {
         debug!("Entry: {:?}", entry);
         let entry_path = entry?.path();
-        let filename = entry_path
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string()
-            .replace(".md", ".html");
-
+        let dest_filename =
+            gen_dest_filename(&entry_path).ok_or(anyhow!("failed to gen dest_filename"))?;
         if entry_path.is_file() {
             let metadata = build_page(
                 &template.join("blog.html"),
                 entry_path,
-                output_dir.join(&filename),
+                output_dir.join(&dest_filename),
             )
             .context("Failed to build page.")?;
-            file_list.push((filename, metadata));
+            file_list.push((dest_filename, metadata));
         } else if entry_path.is_dir() {
-            copy_directory_recursively(entry_path, output_dir.join(&filename))?;
+            if entry_path.file_name().unwrap().to_str().unwrap() == "res" {
+                info!("Please put the 'res' folder in the templating folder. Skipping copy.");
+                continue;
+            }
+            copy_directory_recursively(entry_path, output_dir.join(&dest_filename))?;
         }
     }
 
@@ -141,9 +158,10 @@ fn build_page(
     out_page: PathBuf,
 ) -> anyhow::Result<GeneretoMetadata> {
     let file_name = out_page.file_name().unwrap().to_str().unwrap().to_string();
+    let in_page_display = in_page.display().to_string();
     debug!(
         "Gonna build page for {} with template {} and out_page {}",
-        in_page.display(),
+        in_page_display,
         template.display(),
         out_page.display()
     );
@@ -151,6 +169,12 @@ fn build_page(
     let page = fs::read_to_string(in_page)?;
     let pattern = Regex::new(r"---+\n").unwrap();
     let mut fields: Vec<&str> = pattern.splitn(&page, 2).collect();
+    if fields.len() < 2 {
+        return Err(anyhow::anyhow!(
+            "Failed to find metadata in page {}",
+            in_page_display
+        ));
+    }
     let (metadata, content) = (fields.remove(0), fields.remove(0));
     debug!("Metadata: {:?}", metadata);
     debug!("Content: {}", content);
