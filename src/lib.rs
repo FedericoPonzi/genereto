@@ -73,10 +73,10 @@ fn build(content_dir: PathBuf, template: PathBuf, output_dir: PathBuf) -> anyhow
         if entry_path.is_file() {
             let metadata = build_page(
                 &template.join("blog.html"),
-                entry_path,
+                &entry_path,
                 output_dir.join(&dest_filename),
             )
-            .context("Failed to build page.")?;
+            .with_context(|| format!("Failed to build page {entry_path:?}"))?;
             file_list.push((dest_filename, metadata));
         } else if entry_path.is_dir() {
             if entry_path.file_name().unwrap().to_str().unwrap() == "res" {
@@ -154,7 +154,7 @@ fn build_index_page(
 
 fn build_page(
     template: &Path,
-    in_page: PathBuf,
+    in_page: &Path,
     out_page: PathBuf,
 ) -> anyhow::Result<GeneretoMetadata> {
     let file_name = out_page.file_name().unwrap().to_str().unwrap().to_string();
@@ -177,10 +177,10 @@ fn build_page(
     }
     let (metadata, content) = (fields.remove(0), fields.remove(0));
     debug!("Metadata: {:?}", metadata);
-    debug!("Content: {}", content);
+    //debug!("Content: {}", content);
 
-    let metadata: PageMetadata =
-        serde_yaml::from_str(metadata).expect("Failed to deserialize metadata");
+    let metadata: PageMetadata = serde_yaml::from_str(metadata)
+        .context("Failed to deserialize metadata, did you remember to put the metadata section?")?;
     let mut final_page = fs::read_to_string(template)?;
     let html_content = load_markdown(content);
     let start = final_page.find(START_PATTERN).unwrap();
