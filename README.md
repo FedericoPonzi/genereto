@@ -37,14 +37,14 @@ cargo run -- --project-path /home/user/blog/genereto-project
 Every article is a markdown file divided in two sections: metadata and content. The two sections are divided by a number of "-".
 As the name suggests, the metadata section contains metadata about the articles. It can be used to populate metadata headers and such.
 
-This metadata section is used when building the article page. 
-
-These are the supported options:
+This metadata section is in yaml. These are the supported fields:
 
 * `title` string: title of the article.
 * `keywords` string: comma separated list of keywords.
 * `publish_date` string: the published date of the article
 * `description` string: A small description.
+* `is_draft` bool: Default false, if set to true it will skip processing this page.
+* `show_table_of_contents` bool: Default false, if set to true it will add a ToC (if supported by the template)
 
 ## Templating
 To create a template, you need two files:
@@ -65,4 +65,4 @@ Inside the html templates, we have access to different variables; that take the 
 * description
 * keywords
 * read_time_minutes
-
+* table_of_contents: it's a <ul><li> based list generated from the headings. Each entry will have an id 

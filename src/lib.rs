@@ -12,7 +12,7 @@ use std::fs::read_dir;
 mod config;
 mod page_metadata;
 
-use crate::page_metadata::GeneretoMetadata;
+use crate::page_metadata::{get_anchor_id_from_title, GeneretoMetadata};
 use page_metadata::PageMetadata;
 
 const START_PATTERN: &str = "<!-- start_content -->";
@@ -176,18 +176,19 @@ fn build_page(
         ));
     }
     let (metadata, content) = (fields.remove(0), fields.remove(0));
+    let content = add_ids_to_headings(content);
     debug!("Metadata: {:?}", metadata);
     //debug!("Content: {}", content);
 
     let metadata: PageMetadata = serde_yaml::from_str(metadata)
         .context("Failed to deserialize metadata, did you remember to put the metadata section?")?;
     let mut final_page = fs::read_to_string(template)?;
-    let html_content = load_markdown(content);
+    let html_content = load_markdown(&content);
     let start = final_page.find(START_PATTERN).unwrap();
     let end = final_page.find(END_PATTERN).unwrap();
 
     final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
-    let genereto_metadata = GeneretoMetadata::new(metadata, content, file_name);
+    let genereto_metadata = GeneretoMetadata::new(metadata, &content, file_name);
     let final_page = apply_variables(&genereto_metadata, final_page);
 
     fs::write(out_page, final_page).context("Failed writing to output page")?;
@@ -206,10 +207,27 @@ fn load_markdown(markdown_input: &str) -> String {
     use pulldown_cmark::{html, Options, Parser};
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
+    options.insert(Options::ENABLE_HEADING_ATTRIBUTES);
     let parser = Parser::new_ext(markdown_input, options);
 
     // Write to String buffer.
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
     html_output
+}
+
+fn add_ids_to_headings(content: &str) -> String {
+    let mut content_new = String::new();
+
+    for line in content.lines() {
+        let mut line_new = line.to_string();
+        if line.trim().starts_with("#") {
+            let title = line.trim_start_matches('#').trim();
+            let anchor = get_anchor_id_from_title(title);
+            line_new = format!("{line}{{#{anchor}}}");
+        }
+
+        content_new.push_str(&format!("{line_new}\n"));
+    }
+    content_new
 }
