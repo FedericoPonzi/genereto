@@ -11,10 +11,12 @@ struct Args {
     /// to contain a "content" folder, a "templates" folder and the config.yml file.
     #[arg(long)]
     project_path: PathBuf,
+    #[arg(long)]
+    skip_drafts: bool,
 }
 
 fn main() {
     env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
     let args = Args::parse();
-    run(args.project_path).expect("Error");
+    run(args.project_path, args.skip_drafts).expect("Error");
 }

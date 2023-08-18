@@ -42,6 +42,10 @@ You can run genereto by running:
 ```shell
 cargo run -- --project-path /home/user/blog/genereto-project
 ```
+if you want to skip drafts:
+```shell
+cargo run -- --project-path /home/user/blog/genereto-project --skip-drafts
+```
 
 ## Writing articles
 Every article is a markdown file divided in two sections: metadata and content. The two sections are divided by a number of "-".

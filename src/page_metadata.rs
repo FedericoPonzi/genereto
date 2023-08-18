@@ -265,7 +265,6 @@ mod test {
 </ul>";
 
         let table_of_contents = generate_table_of_contents(test_input);
-        println!("{table_of_contents}");
         assert_eq!(table_of_contents.trim(), expected.trim());
     }
 

@@ -7,7 +7,6 @@ use anyhow::{anyhow, Context};
 use config::GeneretoConfig;
 use regex::Regex;
 use std::fs;
-use std::fs::read_dir;
 
 mod config;
 mod page_metadata;
@@ -19,7 +18,7 @@ const START_PATTERN: &str = "<!-- start_content -->";
 const END_PATTERN: &str = "<!-- end_content -->";
 
 /// project: path to the project.
-pub fn run(project_path: PathBuf) -> anyhow::Result<()> {
+pub fn run(project_path: PathBuf, skip_drafts: bool) -> anyhow::Result<()> {
     // todo: move to config.
 
     let genereto_config = GeneretoConfig::load_from_path(project_path)?;
@@ -33,6 +32,7 @@ pub fn run(project_path: PathBuf) -> anyhow::Result<()> {
         genereto_config.content_path,
         genereto_config.template_dir_path.clone(),
         genereto_config.output_dir_path.clone(),
+        skip_drafts,
     )?;
     copy_resources(
         genereto_config.template_dir_path,
@@ -41,7 +41,7 @@ pub fn run(project_path: PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 fn copy_resources(template_dir_path: PathBuf, output_dir_path: PathBuf) -> anyhow::Result<()> {
-    for entry in read_dir(template_dir_path)? {
+    for entry in fs::read_dir(template_dir_path)? {
         let entry_path = entry?.path();
         if entry_path.is_dir() {
             copy_directory_recursively(
@@ -53,7 +53,12 @@ fn copy_resources(template_dir_path: PathBuf, output_dir_path: PathBuf) -> anyho
     Ok(())
 }
 
-fn build(content_dir: PathBuf, template: PathBuf, output_dir: PathBuf) -> anyhow::Result<()> {
+fn build(
+    content_dir: PathBuf,
+    template: PathBuf,
+    output_dir: PathBuf,
+    skip_drafts: bool,
+) -> anyhow::Result<()> {
     debug!(
         "Gonna build for {} with template {} and out_page {}",
         content_dir.display(),
@@ -75,12 +80,15 @@ fn build(content_dir: PathBuf, template: PathBuf, output_dir: PathBuf) -> anyhow
                 &template.join("blog.html"),
                 &entry_path,
                 output_dir.join(&dest_filename),
+                skip_drafts,
             )
             .with_context(|| format!("Failed to build page {entry_path:?}"))?;
-            file_list.push((dest_filename, metadata));
+            if let Some(metadata) = metadata {
+                file_list.push((dest_filename, metadata));
+            }
         } else if entry_path.is_dir() {
             if entry_path.file_name().unwrap().to_str().unwrap() == "res" {
-                info!("Please put the 'res' folder in the templating folder. Skipping copy.");
+                warn!("Please put the 'res' folder in the templating folder. Skipping copy.");
                 continue;
             }
             copy_directory_recursively(entry_path, output_dir.join(&dest_filename))?;
@@ -152,11 +160,20 @@ fn build_index_page(
     Ok(())
 }
 
+/// Build a page from a template and a content file.
+/// The content file is read in, the metadata is extracted,
+/// the content is loaded and converted to html,
+/// the html is inserted into the template,
+/// the template is written to the output folder.
+/// The metadata is returned to the caller.
+/// If skip_drafts is true, and the page is a draft,
+/// None is returned.
 fn build_page(
     template: &Path,
     in_page: &Path,
     out_page: PathBuf,
-) -> anyhow::Result<GeneretoMetadata> {
+    skip_drafts: bool,
+) -> anyhow::Result<Option<GeneretoMetadata>> {
     let file_name = out_page.file_name().unwrap().to_str().unwrap().to_string();
     let in_page_display = in_page.display().to_string();
     debug!(
@@ -182,6 +199,16 @@ fn build_page(
 
     let metadata: PageMetadata = serde_yaml::from_str(metadata)
         .context("Failed to deserialize metadata, did you remember to put the metadata section?")?;
+
+    println!(
+        "is draft: {}, skip_drafts: {}",
+        metadata.is_draft, skip_drafts
+    );
+
+    if metadata.is_draft && skip_drafts {
+        return Ok(None);
+    }
+
     let mut final_page = fs::read_to_string(template)?;
     let html_content = load_markdown(&content);
     let start = final_page.find(START_PATTERN).unwrap();
@@ -192,7 +219,7 @@ fn build_page(
     let final_page = apply_variables(&genereto_metadata, final_page);
 
     fs::write(out_page, final_page).context("Failed writing to output page")?;
-    Ok(genereto_metadata)
+    Ok(Some(genereto_metadata))
 }
 
 // Apply variables to the final page.
