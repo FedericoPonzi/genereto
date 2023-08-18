@@ -2,6 +2,8 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
+const DESCRIPTION_LENGTH: usize = 150;
+
 /// Included from a page file
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PageMetadata {
@@ -14,10 +16,11 @@ pub struct PageMetadata {
     pub is_draft: bool,
     /// Keywords for this article
     pub keywords: String,
-
     /// Defaults to false. If true it will add a Table Of Contents.
     #[serde(default = "bool::default")]
     pub show_table_of_contents: bool,
+    /// If empty, the first 150 chars will be used as description.
+    pub description: Option<String>,
 }
 impl Display for PageMetadata {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -42,13 +45,11 @@ pub struct GeneretoMetadata {
 impl GeneretoMetadata {
     pub fn new(page_metadata: PageMetadata, page_content: &str, file_name: String) -> Self {
         let reading_time_mins = estimate_reading_time(page_content);
-        let description = truncate_text(page_content, 150);
-
-        let table_of_contents = if page_metadata.show_table_of_contents {
-            generate_table_of_contents(page_content)
-        } else {
-            String::new()
-        };
+        let description = get_description(page_content, DESCRIPTION_LENGTH);
+        let table_of_contents = page_metadata
+            .show_table_of_contents
+            .then(|| generate_table_of_contents(page_content))
+            .unwrap_or_default();
 
         Self {
             page_metadata,
@@ -101,15 +102,37 @@ impl Display for GeneretoMetadata {
 
 pub(crate) fn estimate_reading_time(page_content: &str) -> u16 {
     // Define the average reading speed in words per minute
-    const AVERAGE_READING_SPEED: usize = 200;
+    // https://www.sciencedirect.com/science/article/abs/pii/S0749596X19300786
+    const AVERAGE_READING_SPEED: usize = 238;
 
     // Count the number of words on the page
-    let word_count = page_content.split_whitespace().count();
+    let word_count = page_content
+        .split_whitespace()
+        .filter(|w| w.chars().any(|c| c.is_alphabetic())) // Filter words with only symbols
+        .count();
 
     // Calculate the estimated reading time in minutes
-    let reading_time = (word_count as f64 / AVERAGE_READING_SPEED as f64).ceil() as u16;
+    (word_count as f64 / AVERAGE_READING_SPEED as f64).ceil() as u16
+}
 
-    reading_time
+fn get_description(article: &str, limit: usize) -> String {
+    let mut buff = String::new();
+    for line in article.lines() {
+        if line.trim().starts_with('#') {
+            // titles come with the id. Remove the id from the title.
+            // Example: `Introduction {#introduction}` becomes `Introduction`.
+            buff.push_str(
+                remove_after_last_character(line.trim_start_matches('#').trim(), '{').trim(),
+            );
+        } else {
+            buff.push_str(line);
+        }
+        buff.push('\n');
+        if buff.len() >= limit {
+            break;
+        }
+    }
+    truncate_text(&buff, limit)
 }
 
 fn truncate_text(article: &str, limit: usize) -> String {
@@ -148,7 +171,8 @@ fn generate_table_of_contents(markdown: &str) -> String {
             if current_depth < depth {
                 toc.push_str("<ul>\n")
             }
-
+            // titles come with the id. Remove the id from the title.
+            // Example: `Introduction {#introduction}` becomes `Introduction`.
             let title = remove_after_last_character(line.trim_start_matches('#').trim(), '{');
             let title = title.trim();
             let class_name = format!("table_of_contents-indent-{}", depth);
@@ -190,7 +214,9 @@ fn remove_after_last_character(input: &str, character: char) -> String {
 
 #[cfg(test)]
 mod test {
-    use crate::page_metadata::{generate_table_of_contents, remove_after_last_character};
+    use crate::page_metadata::{
+        generate_table_of_contents, get_description, remove_after_last_character,
+    };
     use std::{assert_eq, println};
 
     #[test]
@@ -229,5 +255,14 @@ mod test {
             remove_after_last_character("Some text without braces", '{'),
             "Some text without braces"
         );
+    }
+
+    #[test]
+    fn test_get_description() {
+        const TEST_INPUT: &str = "## Introduction {#introduction}\
+        \nThis is a test description.";
+        // it adds an extra new line at the end, but I don't care
+        const EXPECTED: &str = "Introduction\nThis is a test description.\n";
+        assert_eq!(get_description(TEST_INPUT, 100), EXPECTED);
     }
 }

@@ -1,8 +1,17 @@
 # Genereto
-A simple static site generator to handle a blog. 
+A simple static site generator to handle a blog website. 
 
-Create a project folder "genereto-project" (can be called in any way) with a "content" and "templates" folders.
+With Genereto, you can:
+* write the template for your blog and index page. 
+* Write your articles in markdown.
+* Generate your blog site by generating the html out of your markdown and applying the template.
 
+Each article is divided in metadata (written in yaml) and the article section. 
+The metdata will be available in the template in the form of variables like $GENERETO['title'].
+
+## Getting started
+
+First you need to create a project folder "genereto-project" (can be called in any way) with a "content" and "templates" folders.
 ```
 genereto-project/
     content/
@@ -17,9 +26,9 @@ genereto-project/
             blog.html
     config.yml
 ```
-You can also use sample-genereto-project.
+You can also use `sample-genereto-project` folder in this repository as a base example.
 
-The config.yml file looks like this:
+Create a config.yml file, it should look like like this:
 
 ```
 template: 'main' # select a template
@@ -29,6 +38,7 @@ output_dirname: 'output' # name for the folder that olds the generated files
 Running genereto will create an output folder with the index, articles, and assets inside the output_dirname folder.
 The output_dirname folder will be created inside the project-folder.
 
+You can run genereto by running:
 ```shell
 cargo run -- --project-path /home/user/blog/genereto-project
 ```
@@ -60,9 +70,13 @@ Hello world! This will be hidden in the result!
 the content will be removed, so it can be used to test the template itself.
 
 Inside the html templates, we have access to different variables; that take the form of `$GENERETO['variable_name']`:
-* publish_date
-* read_time_minutes
-* description
-* keywords
-* read_time_minutes
-* table_of_contents: it's a <ul><li> based list generated from the headings. Each entry will have an id 
+* `publish_date`
+* `read_time_minutes`
+* `description`
+* `keywords`
+* `read_time_minutes`
+* `table_of_contents`: it's a <ul><li> based list generated from the headings. Each entry will have an id 
+
+----
+
+Genereto was presented in [this](https://blog.fponzi.me/2023-05-19-one-complex-setup.html) article.
