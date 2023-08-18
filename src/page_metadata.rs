@@ -1,6 +1,7 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+use std::path::Path;
 
 const DESCRIPTION_LENGTH: usize = 150;
 
@@ -38,20 +39,42 @@ pub struct GeneretoMetadata {
     pub description: String,
     /// Filename of the page
     pub file_name: String,
-    /// Table of contents generated from headings
+    /// Table of contents generated from headings.
     pub table_of_contents: String,
+    /// Derived from git.
+    pub last_modified_date: String,
 }
 
 impl GeneretoMetadata {
-    pub fn new(page_metadata: PageMetadata, page_content: &str, file_name: String) -> Self {
+    // On error, if git is not available in the system, it will return None.
+    fn get_last_modified_date(file_path: &Path) -> Option<String> {
+        let mut git_cmd = std::process::Command::new("git");
+        git_cmd.arg("-C");
+        git_cmd.arg(file_path.parent().unwrap());
+        git_cmd.arg("log");
+        git_cmd.arg("-1");
+        git_cmd.arg("--format=%cd");
+        git_cmd.arg("--date=short");
+        git_cmd.arg(file_path);
+        let output = git_cmd.output().ok()?;
+        let date = String::from_utf8(output.stdout).unwrap();
+        Some(date)
+    }
+    pub fn new(
+        page_metadata: PageMetadata,
+        page_content: &str,
+        file_name: String,
+        file_path: &Path,
+    ) -> Self {
         let reading_time_mins = estimate_reading_time(page_content);
         let description = get_description(page_content, DESCRIPTION_LENGTH);
         let table_of_contents = page_metadata
             .show_table_of_contents
             .then(|| generate_table_of_contents(page_content))
             .unwrap_or_default();
-
         Self {
+            last_modified_date: Self::get_last_modified_date(file_path)
+                .unwrap_or(page_metadata.publish_date.clone()),
             page_metadata,
             reading_time_mins: reading_time_mins.to_string(),
             description,
@@ -66,6 +89,7 @@ impl GeneretoMetadata {
                 "$GENERETO['publish_date']",
                 &self.page_metadata.publish_date,
             ),
+            ("$GENERETO['last_modified_date']", &self.last_modified_date),
             ("$GENERETO['read_time_minutes']", &self.reading_time_mins),
             ("$GENERETO['keywords']", &self.page_metadata.keywords),
             ("$GENERETO['description']", &self.description),

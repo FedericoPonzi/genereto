@@ -76,6 +76,7 @@ Inside the html templates, we have access to different variables; that take the 
 * `keywords`
 * `read_time_minutes`
 * `table_of_contents`: it's a <ul><li> based list generated from the headings. Each entry will have an id 
+* `last_modified_date`: format is like `2023-08-18`. It uses git to get the last modified date. If git is not present, it will use publish date instead.
 
 ----
 

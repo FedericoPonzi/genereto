@@ -188,7 +188,7 @@ fn build_page(
     let end = final_page.find(END_PATTERN).unwrap();
 
     final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
-    let genereto_metadata = GeneretoMetadata::new(metadata, &content, file_name);
+    let genereto_metadata = GeneretoMetadata::new(metadata, &content, file_name, in_page);
     let final_page = apply_variables(&genereto_metadata, final_page);
 
     fs::write(out_page, final_page).context("Failed writing to output page")?;
