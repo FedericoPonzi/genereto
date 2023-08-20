@@ -142,7 +142,7 @@ fn build_index_page(
     let mut links = "".to_string();
     for i in file_list.into_iter().filter(|el| el.0 != "error.html") {
         let li_entry = &format!(
-            "<li><a href=\"https://blog.fponzi.me/{}\">{}</a> - {} ({})</li>",
+            "<li><a href=\"{}\">{}</a> - {} ({})</li>",
             i.1.file_name,
             i.1.page_metadata.title,
             i.1.page_metadata.publish_date,
