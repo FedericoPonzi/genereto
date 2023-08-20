@@ -245,10 +245,14 @@ fn load_markdown(markdown_input: &str) -> String {
 
 fn add_ids_to_headings(content: &str) -> String {
     let mut content_new = String::new();
+    let mut in_code_block = false;
 
     for line in content.lines() {
         let mut line_new = line.to_string();
-        if line.trim().starts_with("#") {
+        if line.trim().starts_with("```") {
+            in_code_block = !in_code_block;
+        }
+        if line.trim().starts_with('#') && !in_code_block {
             let title = line.trim_start_matches('#').trim();
             let anchor = get_anchor_id_from_title(title);
             line_new = format!("{line}{{#{anchor}}}");
