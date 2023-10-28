@@ -176,7 +176,6 @@ fn truncate_text(article: &str, limit: usize) -> String {
 }
 
 // TODO: What happens with overlaps of sections with same name?
-// todo for later: renders well but sublisting is not correct, it should be `<li>h2 title <ul><li>h3</li></ul></li>` right now is `<li>h2 title</li><ul><li>h3</li></ul>`.
 /// Generate the table of contents
 /// out is in html. I could change it to output markdown instead.
 fn generate_table_of_contents(markdown: &str) -> String {
@@ -192,10 +191,13 @@ fn generate_table_of_contents(markdown: &str) -> String {
         if line.trim().starts_with('#') && !in_code_block {
             let last_depth = line.chars().take_while(|ch| *ch == '#').count();
             if current_depth > last_depth {
-                toc.push_str("</ul>\n");
+                toc.push_str("\n</ul>\n");
             }
             if current_depth < last_depth {
-                toc.push_str("<ul>\n")
+                toc.push_str("\n<ul>\n");
+            }
+            if current_depth == last_depth {
+                toc.push_str("</li>\n");
             }
             // titles come with the id. Remove the id from the title.
             // Example: `Introduction {#introduction}` becomes `Introduction`.
@@ -205,7 +207,7 @@ fn generate_table_of_contents(markdown: &str) -> String {
             let anchor = get_anchor_id_from_title(title);
 
             toc.push_str(&format!(
-                "<li><a href=\"#{}\" class=\"{}\">{}</a></li>\n",
+                "<li><a href=\"#{}\" class=\"{}\">{}</a>",
                 anchor, class_name, title
             ));
 
@@ -219,7 +221,7 @@ fn generate_table_of_contents(markdown: &str) -> String {
         current_depth -= 1;
     }
 
-    format!("<ul class=\"table_of_contents\">\n{}</ul>", toc)
+    format!("<ul class=\"table_of_contents\">\n{}</ul>", &toc[6..])
 }
 
 pub fn get_anchor_id_from_title(title: &str) -> String {
@@ -264,14 +266,13 @@ mod test {
         let expected: &str = "
 <ul class=\"table_of_contents\">
 <li><a href=\"#introduction\" class=\"table_of_contents-indent-2\">Introduction</a></li>
-<li><a href=\"#getting-started\" class=\"table_of_contents-indent-2\">Getting Started</a></li>
+<li><a href=\"#getting-started\" class=\"table_of_contents-indent-2\">Getting Started</a>
 <ul>
-<li><a href=\"#installation\" class=\"table_of_contents-indent-3\">Installation</a></li>
+<li><a href=\"#installation\" class=\"table_of_contents-indent-3\">Installation</a>
 </ul>
-<li><a href=\"#basic-usage\" class=\"table_of_contents-indent-2\">Basic Usage</a></li>
+<li><a href=\"#basic-usage\" class=\"table_of_contents-indent-2\">Basic Usage</a>
 </ul>
-<li><a href=\"#advanced-features\" class=\"table_of_contents-indent-1\">Advanced Features!!!!</a></li>
-</ul>";
+<li><a href=\"#advanced-features\" class=\"table_of_contents-indent-1\">Advanced Features!!!!</a></ul>";
 
         let table_of_contents = generate_table_of_contents(test_input);
         assert_eq!(table_of_contents.trim(), expected.trim());
@@ -285,14 +286,13 @@ mod test {
 
         let expected2 = "<ul class=\"table_of_contents\">
 <li><a href=\"#introduction\" class=\"table_of_contents-indent-2\">Introduction</a></li>
-<li><a href=\"#getting-started\" class=\"table_of_contents-indent-2\">Getting Started</a></li>
+<li><a href=\"#getting-started\" class=\"table_of_contents-indent-2\">Getting Started</a>
 <ul>
-<li><a href=\"#installation\" class=\"table_of_contents-indent-3\">Installation</a></li>
+<li><a href=\"#installation\" class=\"table_of_contents-indent-3\">Installation</a>
 </ul>
-<li><a href=\"#basic-usage\" class=\"table_of_contents-indent-2\">Basic Usage</a></li>
+<li><a href=\"#basic-usage\" class=\"table_of_contents-indent-2\">Basic Usage</a>
 <ul>
-<li><a href=\"#advanced-features\" class=\"table_of_contents-indent-3\">Advanced Features!!!!</a></li>
-</ul>
+<li><a href=\"#advanced-features\" class=\"table_of_contents-indent-3\">Advanced Features!!!!</a></ul>
 </ul>";
         let table_of_contents = generate_table_of_contents(test_input2);
         assert_eq!(table_of_contents.trim(), expected2.trim());
