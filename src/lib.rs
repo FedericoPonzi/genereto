@@ -140,15 +140,15 @@ fn build_index_page(
     out_page: PathBuf,
 ) -> anyhow::Result<()> {
     let mut links = "".to_string();
-    for i in file_list.into_iter().filter(|el| el.0 != "error.html") {
-        let li_entry = &format!(
+    for (_, metadata) in file_list.into_iter().filter(|el| el.0 != "error.html") {
+        let li_entry = format!(
             "<li><a href=\"{}\">{}</a> - {} ({})</li>",
-            i.1.file_name,
-            i.1.page_metadata.title,
-            i.1.page_metadata.publish_date,
-            i.1.page_metadata.keywords,
+            metadata.file_name,
+            metadata.page_metadata.title,
+            metadata.page_metadata.publish_date,
+            metadata.page_metadata.keywords,
         );
-        links.push_str(li_entry);
+        links.push_str(&li_entry);
     }
     let mut template_view = fs::read_to_string(template)?;
     let html_content = links;
@@ -243,6 +243,8 @@ fn load_markdown(markdown_input: &str) -> String {
     html_output
 }
 
+/// Parses the markdown to add ids to h1,h2,h3
+/// to allow building the ToC.
 fn add_ids_to_headings(content: &str) -> String {
     let mut content_new = String::new();
     let mut in_code_block = false;
