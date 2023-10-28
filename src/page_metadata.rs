@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
@@ -46,38 +47,21 @@ pub struct GeneretoMetadata {
 }
 
 impl GeneretoMetadata {
-    // On error, if git is not available in the system, it will return None.
-    fn get_last_modified_date(file_path: &Path) -> Option<String> {
-        let mut git_cmd = std::process::Command::new("git");
-        git_cmd.arg("-C");
-        git_cmd.arg(file_path.parent().unwrap());
-        git_cmd.arg("log");
-        git_cmd.arg("-1");
-        git_cmd.arg("--format=%cd");
-        git_cmd.arg("--date=short");
-        git_cmd.arg(file_path);
-        let output = git_cmd.output().ok()?;
-        let date = String::from_utf8(output.stdout).unwrap();
-        Some(date)
-    }
     pub fn new(
         page_metadata: PageMetadata,
         page_content: &str,
         file_name: String,
         file_path: &Path,
     ) -> Self {
-        let reading_time_mins = estimate_reading_time(page_content);
-        let description = get_description(page_content, DESCRIPTION_LENGTH);
         let table_of_contents = page_metadata
             .show_table_of_contents
             .then(|| generate_table_of_contents(page_content))
             .unwrap_or_default();
         Self {
-            last_modified_date: Self::get_last_modified_date(file_path)
-                .unwrap_or(page_metadata.publish_date.clone()),
+            last_modified_date: get_last_modified_date(&page_metadata.publish_date, file_path),
+            reading_time_mins: estimate_reading_time(page_content).to_string(),
+            description: get_description(page_content, DESCRIPTION_LENGTH),
             page_metadata,
-            reading_time_mins: reading_time_mins.to_string(),
-            description,
             file_name,
             table_of_contents,
         }
@@ -121,6 +105,20 @@ impl Eq for GeneretoMetadata {}
 impl Display for GeneretoMetadata {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Title: {}", self.page_metadata.title)
+    }
+}
+
+/// Get last modified date of the file as string
+/// Uses git to get last modified date. It will return the most recent date between the last update and the publish date
+fn get_last_modified_date(publish_date: &str, file_path: &Path) -> String {
+    let last_modified_date = get_last_modified_date_of_file_from_git(file_path)
+        .unwrap_or_else(|| publish_date.to_string());
+    let last_update_as_date = NaiveDate::parse_from_str(&last_modified_date, "%Y-%m-%d").unwrap();
+    let publish_date_as_date = NaiveDate::parse_from_str(&publish_date, "%Y-%m-%d").unwrap();
+    if last_update_as_date < publish_date_as_date {
+        publish_date.to_string()
+    } else {
+        last_modified_date
     }
 }
 
@@ -173,6 +171,21 @@ fn truncate_text(article: &str, limit: usize) -> String {
     }
 
     truncated
+}
+
+// On error, if git is not available in the system, it will return None.
+fn get_last_modified_date_of_file_from_git(file_path: &Path) -> Option<String> {
+    let mut git_cmd = std::process::Command::new("git");
+    git_cmd.arg("-C");
+    git_cmd.arg(file_path.parent().unwrap());
+    git_cmd.arg("log");
+    git_cmd.arg("-1");
+    git_cmd.arg("--format=%cd");
+    git_cmd.arg("--date=short");
+    git_cmd.arg(file_path);
+    let output = git_cmd.output().ok()?;
+    let date = String::from_utf8(output.stdout).unwrap().trim().to_string();
+    Some(date)
 }
 
 // TODO: What happens with overlaps of sections with same name?
