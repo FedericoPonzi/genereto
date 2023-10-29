@@ -119,6 +119,9 @@ impl Display for GeneretoMetadata {
 fn get_last_modified_date(publish_date: &str, file_path: &Path) -> String {
     let last_modified_date = get_last_modified_date_of_file_from_git(file_path)
         .unwrap_or_else(|| publish_date.to_string());
+    if last_modified_date.is_empty() {
+        return publish_date.to_string();
+    }
     let last_update_as_date = NaiveDate::parse_from_str(&last_modified_date, "%Y-%m-%d").unwrap();
     let publish_date_as_date = NaiveDate::parse_from_str(&publish_date, "%Y-%m-%d").unwrap();
     if last_update_as_date < publish_date_as_date {

@@ -10,6 +10,8 @@ use std::fs;
 
 mod config;
 mod page_metadata;
+mod project_generation;
+pub use project_generation::generate_project;
 
 use crate::page_metadata::{get_anchor_id_from_title, GeneretoMetadata};
 use page_metadata::PageMetadata;
@@ -210,8 +212,10 @@ fn build_page(
         return Ok(None);
     }
 
-    let mut final_page = fs::read_to_string(template)?;
-    let html_content = load_markdown(&content);
+    let final_page = fs::read_to_string(template)?;
+    let mut final_page = filter_out_comments(&final_page);
+
+    let html_content = compile_markdown_to_html(&content);
     let start = final_page.find(START_PATTERN).unwrap();
     let end = final_page.find(END_PATTERN).unwrap();
 
@@ -231,7 +235,7 @@ fn apply_variables(metadata: &GeneretoMetadata, mut final_page: String) -> Strin
     final_page
 }
 
-fn load_markdown(markdown_input: &str) -> String {
+fn compile_markdown_to_html(markdown_input: &str) -> String {
     use pulldown_cmark::{html, Options, Parser};
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
@@ -269,11 +273,11 @@ fn add_ids_to_headings(content: &str) -> String {
 // search page_content for $GENERETO{comment } and filter it out.
 // if the comment is in the same line of other text, it will remove only $GENERETO{}
 // if the comment is in the only content of a line, it will remove the whole line
-fn filter_out_comments(page_content: &str) -> String {
+fn filter_out_comments(markdown_content: &str) -> String {
     let mut page_content_new = String::new();
     let mut in_code_block = false;
 
-    for line in page_content.lines() {
+    for line in markdown_content.lines() {
         let mut line_new = line.to_string();
         if line.trim().starts_with("```") {
             in_code_block = !in_code_block;
