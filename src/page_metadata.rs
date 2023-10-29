@@ -48,7 +48,7 @@ pub struct GeneretoMetadata {
 
 impl GeneretoMetadata {
     pub fn new(
-        page_metadata: PageMetadata,
+        mut page_metadata: PageMetadata,
         page_content: &str,
         file_name: String,
         file_path: &Path,
@@ -57,6 +57,12 @@ impl GeneretoMetadata {
             .show_table_of_contents
             .then(|| generate_table_of_contents(page_content))
             .unwrap_or_default();
+        let has_todos = contains_todos(page_content);
+        if has_todos && !page_metadata.is_draft {
+            println!("File {} has todos - setting is_draft to true.", file_name);
+        }
+        page_metadata.is_draft = page_metadata.is_draft || has_todos;
+
         Self {
             last_modified_date: get_last_modified_date(&page_metadata.publish_date, file_path),
             reading_time_mins: estimate_reading_time(page_content).to_string(),
@@ -120,6 +126,12 @@ fn get_last_modified_date(publish_date: &str, file_path: &Path) -> String {
     } else {
         last_modified_date
     }
+}
+
+/// Search page_content for "$GENERETO{TO DO: string.
+fn contains_todos(page_content: &str) -> bool {
+    // search page_content for "$GENERETO{TO DO string.
+    page_content.contains(r"$GENERETO{TODO")
 }
 
 pub(crate) fn estimate_reading_time(page_content: &str) -> u16 {
@@ -263,7 +275,7 @@ fn remove_after_last_character(input: &str, character: char) -> String {
 #[cfg(test)]
 mod test {
     use crate::page_metadata::{
-        generate_table_of_contents, get_description, remove_after_last_character,
+        contains_todos, generate_table_of_contents, get_description, remove_after_last_character,
     };
     use std::assert_eq;
 
@@ -330,5 +342,12 @@ mod test {
         // it adds an extra new line at the end, but I don't care
         const EXPECTED: &str = "Introduction\nThis is a test description.\n";
         assert_eq!(get_description(TEST_INPUT, 100), EXPECTED);
+    }
+
+    #[test]
+    fn test_todos() {
+        const TEST_INPUT: &str = "## Introduction {#introduction}\
+        \nThis is a test description. $GENERETO{TODO: finish this page}";
+        assert!(contains_todos(TEST_INPUT));
     }
 }

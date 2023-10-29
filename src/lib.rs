@@ -139,7 +139,7 @@ fn build_index_page(
     file_list: Vec<(String, GeneretoMetadata)>,
     out_page: PathBuf,
 ) -> anyhow::Result<()> {
-    let mut links = "".to_string();
+    let mut links = "<ul class=\"index-list\">\n".to_string();
     for (_, metadata) in file_list.into_iter().filter(|el| el.0 != "error.html") {
         let li_entry = format!(
             "<li><a href=\"{}\">{}</a> - {} ({})</li>",
@@ -150,6 +150,7 @@ fn build_index_page(
         );
         links.push_str(&li_entry);
     }
+    links.push_str("</ul>\n");
     let mut template_view = fs::read_to_string(template)?;
     let html_content = links;
     let start = template_view.find(START_PATTERN).unwrap();
