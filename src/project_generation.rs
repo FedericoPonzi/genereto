@@ -1,5 +1,5 @@
 use anyhow::bail;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 const SAMPLE_BLOG_PAGE: &str = include_str!("../sample-genereto-project/templates/main/blog.html");
 const SAMPLE_INDEX_PAGE: &str =

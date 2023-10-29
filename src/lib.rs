@@ -11,9 +11,12 @@ use std::fs;
 mod config;
 mod page_metadata;
 mod project_generation;
+mod rss_generation;
+
 pub use project_generation::generate_project;
 
 use crate::page_metadata::{get_anchor_id_from_title, GeneretoMetadata};
+use crate::rss_generation::generate_rss;
 use page_metadata::PageMetadata;
 
 const START_PATTERN: &str = "<!-- start_content -->";
@@ -30,19 +33,27 @@ pub fn run(project_path: PathBuf, skip_drafts: bool) -> anyhow::Result<()> {
     }
     fs::create_dir_all(&genereto_config.output_dir_path)?;
 
-    build(
+    let metadatas = build(
         genereto_config.content_path,
         genereto_config.template_dir_path.clone(),
         genereto_config.output_dir_path.clone(),
         skip_drafts,
     )?;
     copy_resources(
-        genereto_config.template_dir_path,
-        genereto_config.output_dir_path,
+        &genereto_config.template_dir_path,
+        &genereto_config.output_dir_path,
     )?;
+    generate_rss(
+        genereto_config.title,
+        genereto_config.url,
+        genereto_config.description,
+        metadatas,
+        &genereto_config.output_dir_path,
+    )?;
+
     Ok(())
 }
-fn copy_resources(template_dir_path: PathBuf, output_dir_path: PathBuf) -> anyhow::Result<()> {
+fn copy_resources(template_dir_path: &Path, output_dir_path: &Path) -> anyhow::Result<()> {
     for entry in fs::read_dir(template_dir_path)? {
         let entry_path = entry?.path();
         if entry_path.is_dir() {
@@ -55,12 +66,13 @@ fn copy_resources(template_dir_path: PathBuf, output_dir_path: PathBuf) -> anyho
     Ok(())
 }
 
+/// Returns a list of dest_filename, GeneretoMetadata for each file.
 fn build(
     content_dir: PathBuf,
     template: PathBuf,
     output_dir: PathBuf,
     skip_drafts: bool,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<Vec<(String, GeneretoMetadata)>> {
     debug!(
         "Gonna build for {} with template {} and out_page {}",
         content_dir.display(),
@@ -76,7 +88,7 @@ fn build(
         debug!("Entry: {:?}", entry);
         let entry_path = entry?.path();
         let dest_filename =
-            gen_dest_filename(&entry_path).ok_or(anyhow!("failed to gen dest_filename"))?;
+            gen_dest_filename(&entry_path).ok_or_else(|| anyhow!("failed to gen dest_filename"))?;
         if entry_path.is_file() {
             let metadata = build_page(
                 &template.join("blog.html"),
@@ -102,12 +114,11 @@ fn build(
     // Create an index.html
     build_index_page(
         &template.join("index.html"),
-        file_list,
+        file_list.clone(),
         output_dir.join("index.html"),
     )
     .context("Failed to build index page.")?;
-
-    Ok(())
+    Ok(file_list)
 }
 
 fn copy_directory_recursively<P: AsRef<Path>, Q: AsRef<Path>>(

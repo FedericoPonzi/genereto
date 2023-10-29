@@ -11,19 +11,27 @@ const CONTENT: &str = "content";
 // Template folder name
 const TEMPLATES: &str = "templates";
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ConfigFile {
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct GeneretoConfig {
+    #[serde(default)]
+    pub template_dir_path: PathBuf,
+    #[serde(default)]
+    pub output_dir_path: PathBuf,
+    #[serde(default)]
+    pub project_path: PathBuf,
+    #[serde(default)]
+    pub content_path: PathBuf,
     //todo: move to option and if None, use the first item in the templates folder.
     pub template: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct GeneretoConfig {
-    pub config_file: ConfigFile,
-    pub template_dir_path: PathBuf,
-    pub output_dir_path: PathBuf,
-    pub project_path: PathBuf,
-    pub content_path: PathBuf,
+    /// title of the website - used in rss
+    #[serde(default)]
+    pub title: String,
+    /// url of the website - used in rss.
+    #[serde(default)]
+    pub url: String,
+    /// description of the website - used in rss.
+    #[serde(default)]
+    pub description: String,
 }
 
 impl GeneretoConfig {
@@ -48,14 +56,14 @@ impl GeneretoConfig {
     pub fn load_from_path<P: AsRef<Path>>(project_path: P) -> anyhow::Result<Self> {
         Self::validate_project_folders(project_path.as_ref())?;
         let project_path = project_path.as_ref();
-        let config_file: ConfigFile =
+        let config_file: Self =
             serde_yaml::from_reader(&File::open(project_path.join(CONFIG_FILENAME))?)?;
         Ok(Self {
             template_dir_path: project_path.join(TEMPLATES).join(&config_file.template),
             output_dir_path: project_path.join(OUTPUT_DIR),
             content_path: project_path.join(CONTENT),
             project_path: project_path.to_path_buf(),
-            config_file,
+            ..config_file
         })
     }
 }
