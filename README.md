@@ -85,6 +85,14 @@ $GENERETO{TODO: need to rephrase this section}
 ```
 The format matched is `$GENERETO{TODO`. When a TODO is present, your article will not be published even if is_draft is false.
 
+you can also write comments using the same syntax - the comments should be on the same line:
+```
+this is my article $GENERETO{give article a name!}
+$GENERETO{TODO: I need to fix this chart.}
+<img src="">
+```
+
+
 ## Templating
 To create a template, you need two files:
 * `index.html` the index page, which will be used to list blog articles,

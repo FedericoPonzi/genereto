@@ -265,3 +265,49 @@ fn add_ids_to_headings(content: &str) -> String {
     }
     content_new
 }
+
+// search page_content for $GENERETO{comment } and filter it out.
+// if the comment is in the same line of other text, it will remove only $GENERETO{}
+// if the comment is in the only content of a line, it will remove the whole line
+fn filter_out_comments(page_content: &str) -> String {
+    let mut page_content_new = String::new();
+    let mut in_code_block = false;
+
+    for line in page_content.lines() {
+        let mut line_new = line.to_string();
+        if line.trim().starts_with("```") {
+            in_code_block = !in_code_block;
+        }
+        if in_code_block {
+            continue;
+        }
+
+        if line.trim().starts_with("$GENERETO{") {
+            // full line comment, will remove the whole line.
+            line_new = String::new();
+        } else if line.contains("$GENERETO{") {
+            // inline comment
+            let comment_start = line.find("$GENERETO{").unwrap();
+            let comment_end = line.find("}").unwrap();
+            line_new = line.replace(&line[comment_start..=comment_end], "");
+        } else {
+            line_new += "\n"; // no comments.
+        }
+        page_content_new.push_str(&line_new);
+    }
+    page_content_new
+}
+
+#[cfg(test)]
+mod test {
+    use crate::filter_out_comments;
+
+    #[test]
+    fn test_filter_out_comments() {
+        let page_content = "$GENERETO{comment}
+        content
+        some content$GENERETO{comment}";
+        let page_content_new = filter_out_comments(page_content);
+        assert_eq!(page_content_new, "        content\n        some content");
+    }
+}
