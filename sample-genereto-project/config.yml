@@ -1,2 +1,8 @@
-template: 'main'
-output_dirname: 'output'
+template: 'main' # select a template
+output_dirname: 'output' # name for the folder that olds the generated files
+# used in RSS
+title: Blog
+# used in RSS.
+description: Description of the blog
+# used in RSS.
+url: https://blog.fponzi.me

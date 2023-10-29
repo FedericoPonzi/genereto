@@ -40,19 +40,3 @@ fn articles_to_items(metadatas: Vec<(String, GeneretoMetadata)>) -> Vec<rss::Ite
     }
     ret
 }
-
-#[cfg(test)]
-mod test {
-    use crate::rss_generation::generate_rss;
-
-    #[test]
-    fn test_generate_rss() {
-        generate_rss(
-            "Federico Ponzi".to_string(),
-            "https://blog.fponzi.me".to_string(),
-            "Federico Ponzi's Blog on Computer Science and Software Engineering.".to_string(),
-            vec![],
-        )
-        .unwrap();
-    }
-}

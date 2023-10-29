@@ -34,6 +34,13 @@ Create a `config.yml` file, it should look like this:
 ```
 template: 'main' # select a template
 output_dirname: 'output' # name for the folder that olds the generated files
+# used in RSS
+title: Blog
+# used in RSS.
+description: Description of the blog
+# used in RSS.
+url: https://blog.fponzi.me
+
 ```
 
 Running genereto will create an output folder with the index, articles, and assets inside the `output_dirname` folder.
@@ -116,6 +123,11 @@ Inside the html templates, you have access to different variables; that take the
 * `keywords`: as you defined it in your metadata section.
 * `table_of_contents`: it's a simple `<ul><li>` based list generated from the headings. Each entry will have an id to quickly jump to the right heading. 
 * `last_modified_date`: format is like `2023-08-18`. It uses git to get the last modified date. If git is not present, it will use publish date instead.
+
+Genereto will also generate a RSS feed for you, you should advertise it in your html (and somewhere in your website if you want):
+```
+<link rel="alternate" type="application/rss+xml" title="RSS Feed" href="rss.xml" />
+```
 
 ----
 
