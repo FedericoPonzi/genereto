@@ -62,6 +62,11 @@ impl GeneretoMetadata {
             println!("File {} has todos - setting is_draft to true.", file_name);
         }
         page_metadata.is_draft = page_metadata.is_draft || has_todos;
+        page_metadata.title = if page_metadata.is_draft {
+            format!("[DRAFT] {}", page_metadata.title)
+        } else {
+            page_metadata.title
+        };
 
         Self {
             last_modified_date: get_last_modified_date(&page_metadata.publish_date, file_path),
@@ -74,15 +79,15 @@ impl GeneretoMetadata {
     }
     pub fn get_variables(&self) -> Vec<(&'static str, &str)> {
         vec![
-            ("$GENERETO['title']", &self.page_metadata.title),
+            ("$GENERETO['title']", &self.page_metadata.title.trim()),
             (
                 "$GENERETO['publish_date']",
                 &self.page_metadata.publish_date,
             ),
             ("$GENERETO['last_modified_date']", &self.last_modified_date),
             ("$GENERETO['read_time_minutes']", &self.reading_time_mins),
-            ("$GENERETO['keywords']", &self.page_metadata.keywords),
-            ("$GENERETO['description']", &self.description),
+            ("$GENERETO['keywords']", self.page_metadata.keywords.trim()),
+            ("$GENERETO['description']", self.description.trim()),
             ("$GENERETO['file_name']", &self.file_name),
             ("$GENERETO['table_of_contents']", &self.table_of_contents),
         ]

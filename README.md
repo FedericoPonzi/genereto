@@ -1,5 +1,7 @@
 # Genereto
-A simple static site generator to handle a blog website. 
+A simple static site generator to handle a blog website.
+
+[<img src="https://github.com/FedericoPonzi/genereto/raw/main/assets/genereto-logo.jpg" width="300" align="center">](https://github.com/FedericoPonzi/genereto/raw/main/assets/genereto-logo.jpg)
 
 With Genereto, you can:
 * Write the template for your blog and index page. 
