@@ -157,6 +157,10 @@ pub(crate) fn estimate_reading_time(page_content: &str) -> u16 {
     (word_count as f64 / AVERAGE_READING_SPEED as f64).ceil() as u16
 }
 
+/// Some filtering the get_description should be doing:
+/// 1. remove links if any. Otherwise the markdown will end up in the preview.
+/// 2. remove any whitespace at the start and at the end.
+/// 3. remove any markdown if it's a title.
 fn get_description(article: &str, limit: usize) -> String {
     let mut buff = String::new();
     for line in article.lines() {
@@ -169,12 +173,27 @@ fn get_description(article: &str, limit: usize) -> String {
         } else {
             buff.push_str(line);
         }
+        buff = remove_links(buff);
         buff.push('\n');
         if buff.len() >= limit {
             break;
         }
     }
     truncate_text(&buff, limit)
+}
+
+fn remove_links(buff: String) -> String {
+    let re = Regex::new(r"\[([^)]*)\]\([^)]*\)").unwrap();
+
+    let result = re.replace_all(&buff, |caps: &regex::Captures| {
+        if let Some(title) = caps.get(1) {
+            title.as_str().to_string()
+        } else {
+            caps[0].to_string()
+        }
+    });
+
+    result.into_owned()
 }
 
 fn truncate_text(article: &str, limit: usize) -> String {
@@ -350,6 +369,13 @@ mod test {
         // it adds an extra new line at the end, but I don't care
         const EXPECTED: &str = "Introduction\nThis is a test description.\n";
         assert_eq!(get_description(TEST_INPUT, 100), EXPECTED);
+
+        const TEST_INPUT_LINK: &str = "hello world! [how](http://google.com) are you?";
+        const EXPECTED_LINK: &str = "hello world! how are you?\n";
+        assert_eq!(
+            get_description(TEST_INPUT_LINK, TEST_INPUT_LINK.len()),
+            EXPECTED_LINK
+        );
     }
 
     #[test]
