@@ -22,8 +22,30 @@ use page_metadata::PageMetadata;
 const START_PATTERN: &str = "<!-- start_content -->";
 const END_PATTERN: &str = "<!-- end_content -->";
 
+#[derive(clap::ValueEnum, Clone, Default, Debug)]
+pub enum DraftsOptions {
+    /// Default. Builds the draft page, but is not linked anywhere. Useful to share the draft.
+    #[default]
+    Build,
+    /// Considers the draft page as a normal page. Useful during development to preview drafts
+    Dev,
+    /// Hides draft pages. They will not be built and will not be linked anywhere.
+    Hide,
+}
+impl DraftsOptions {
+    fn is_dev(&self) -> bool {
+        matches!(self, DraftsOptions::Dev)
+    }
+    fn is_build(&self) -> bool {
+        matches!(self, DraftsOptions::Build)
+    }
+    fn is_hide(&self) -> bool {
+        matches!(self, DraftsOptions::Hide)
+    }
+}
+
 /// project: path to the project.
-pub fn run(project_path: PathBuf, skip_drafts: bool) -> anyhow::Result<()> {
+pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Result<()> {
     // todo: move to config.
 
     let genereto_config = GeneretoConfig::load_from_path(project_path)?;
@@ -37,7 +59,7 @@ pub fn run(project_path: PathBuf, skip_drafts: bool) -> anyhow::Result<()> {
         genereto_config.content_path,
         genereto_config.template_dir_path.clone(),
         genereto_config.output_dir_path.clone(),
-        skip_drafts,
+        drafts_options,
     )?;
     copy_resources(
         &genereto_config.template_dir_path,
@@ -71,7 +93,7 @@ fn build(
     content_dir: PathBuf,
     template: PathBuf,
     output_dir: PathBuf,
-    skip_drafts: bool,
+    drafts_options: DraftsOptions,
 ) -> anyhow::Result<Vec<(String, GeneretoMetadata)>> {
     debug!(
         "Gonna build for {} with template {} and out_page {}",
@@ -94,7 +116,7 @@ fn build(
                 &template.join("blog.html"),
                 &entry_path,
                 output_dir.join(&dest_filename),
-                skip_drafts,
+                &drafts_options,
             )
             .with_context(|| format!("Failed to build page {entry_path:?}"))?;
             if let Some(metadata) = metadata {
@@ -109,6 +131,7 @@ fn build(
         }
     }
 
+    // sort by published date
     file_list.sort_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap());
 
     // Create an index.html
@@ -116,6 +139,7 @@ fn build(
         &template.join("index.html"),
         file_list.clone(),
         output_dir.join("index.html"),
+        drafts_options,
     )
     .context("Failed to build index page.")?;
     Ok(file_list)
@@ -151,9 +175,16 @@ fn build_index_page(
     template: &Path,
     file_list: Vec<(String, GeneretoMetadata)>,
     out_page: PathBuf,
+    drafts_options: DraftsOptions,
 ) -> anyhow::Result<()> {
     let mut links = "<ul class=\"index-list\">\n".to_string();
-    for (_, metadata) in file_list.into_iter().filter(|el| el.0 != "error.html") {
+    for (_, metadata) in file_list
+        .into_iter()
+        // error page doesn't need to be shown on the homepage.
+        .filter(|el| el.0 != "error.html")
+        // if the page is a draft and we are not in dev mode, we need to skip it.
+        .filter(|el| !el.1.page_metadata.is_draft || drafts_options.is_dev())
+    {
         let li_entry = format!(
             "<li><a href=\"{}\">{}</a> - {} ({})</li>",
             metadata.file_name,
@@ -179,14 +210,14 @@ fn build_index_page(
 /// the content is loaded and converted to html,
 /// the html is inserted into the template,
 /// the template is written to the output folder.
-/// The metadata is returned to the caller.
+/// The `metadata` is returned to the caller.
 /// If skip_drafts is true, and the page is a draft,
-/// None is returned.
+/// `None` is returned.
 fn build_page(
     template: &Path,
     in_page: &Path,
     out_page: PathBuf,
-    skip_drafts: bool,
+    drafts_options: &DraftsOptions,
 ) -> anyhow::Result<Option<GeneretoMetadata>> {
     let file_name = out_page.file_name().unwrap().to_str().unwrap().to_string();
     let in_page_display = in_page.display().to_string();
@@ -215,11 +246,11 @@ fn build_page(
         .context("Failed to deserialize metadata, did you remember to put the metadata section?")?;
 
     println!(
-        "is draft: {}, skip_drafts: {}",
-        metadata.is_draft, skip_drafts
+        "is draft: {}, drafts_options: {:?}",
+        metadata.is_draft, drafts_options
     );
 
-    if metadata.is_draft && skip_drafts {
+    if metadata.is_draft && drafts_options.is_hide() {
         return Ok(None);
     }
 

@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use env_logger::Env;
 use genereto::run;
+use genereto::DraftsOptions;
 use log::info;
 use std::path::PathBuf;
 
@@ -13,10 +14,13 @@ struct Args {
     #[arg(long)]
     project_path: Option<PathBuf>,
     #[arg(long)]
-    skip_drafts: bool,
+    #[clap(default_value_t, value_enum)]
+    drafts_options: DraftsOptions,
     #[command(subcommand)]
     command: Option<Commands>,
 }
+
+// draft: build (default), dev, hide
 #[derive(Subcommand, Debug)]
 enum Commands {
     /// Generates a new sample Genereto project.
@@ -34,9 +38,10 @@ fn main() {
         info!("Your project was successfully generated. Use `genereto --project-path {}/genereto-project` to run it.", project_path.display());
         return;
     }
+    println!("{:?}", args);
     run(
         args.project_path.expect("Project path not provided"),
-        args.skip_drafts,
+        args.drafts_options,
     )
     .expect("Error");
 }
