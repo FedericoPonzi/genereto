@@ -36,9 +36,6 @@ impl DraftsOptions {
     fn is_dev(&self) -> bool {
         matches!(self, DraftsOptions::Dev)
     }
-    fn is_build(&self) -> bool {
-        matches!(self, DraftsOptions::Build)
-    }
     fn is_hide(&self) -> bool {
         matches!(self, DraftsOptions::Hide)
     }
