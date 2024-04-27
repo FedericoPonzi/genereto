@@ -99,8 +99,8 @@ is_draft: true
 # by this article.
 show_table_of_contents: true
 ```
-
-Inside the article, you can embed todos:
+### Inside articles
+Inside the article, you can embed **todos**:
 
 ```
 $GENERETO{TODO: need to rephrase this section}
