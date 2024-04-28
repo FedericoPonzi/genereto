@@ -32,6 +32,7 @@ pub struct GeneretoConfig {
     /// description of the website - used in rss.
     #[serde(default)]
     pub description: String,
+    pub default_cover_image: Option<String>,
 }
 
 impl GeneretoConfig {

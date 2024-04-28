@@ -57,6 +57,7 @@ pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Resu
         genereto_config.template_dir_path.clone(),
         genereto_config.output_dir_path.clone(),
         drafts_options,
+        &genereto_config.default_cover_image.unwrap_or_default(),
     )?;
     copy_resources(
         &genereto_config.template_dir_path,
@@ -91,6 +92,7 @@ fn build(
     template: PathBuf,
     output_dir: PathBuf,
     drafts_options: DraftsOptions,
+    default_cover_image: &str,
 ) -> anyhow::Result<Vec<(String, GeneretoMetadata)>> {
     debug!(
         "Gonna build for {} with template {} and out_page {}",
@@ -114,6 +116,7 @@ fn build(
                 &entry_path,
                 output_dir.join(&dest_filename),
                 &drafts_options,
+                default_cover_image,
             )
             .with_context(|| format!("Failed to build page {entry_path:?}"))?;
             if let Some(metadata) = metadata {
@@ -215,6 +218,7 @@ fn build_page(
     in_page: &Path,
     out_page: PathBuf,
     drafts_options: &DraftsOptions,
+    default_cover_image: &str,
 ) -> anyhow::Result<Option<GeneretoMetadata>> {
     let file_name = out_page.file_name().unwrap().to_str().unwrap().to_string();
     let in_page_display = in_page.display().to_string();
@@ -259,7 +263,8 @@ fn build_page(
     let end = final_page.find(END_PATTERN).unwrap();
 
     final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
-    let genereto_metadata = GeneretoMetadata::new(metadata, &content, file_name, in_page);
+    let genereto_metadata =
+        GeneretoMetadata::new(metadata, &content, file_name, in_page, default_cover_image);
     let final_page = apply_variables(&genereto_metadata, final_page);
 
     fs::write(out_page, final_page).context("Failed writing to output page")?;

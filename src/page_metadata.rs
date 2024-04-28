@@ -1,3 +1,4 @@
+use crate::config::GeneretoConfig;
 use chrono::NaiveDate;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -13,17 +14,19 @@ pub struct PageMetadata {
     pub title: String,
     /// Publish date as string
     pub publish_date: String,
-    /// Defaults to false. If true this article will not be processed.
+    /// Defaults to false. If true, this article will not be processed.
     #[serde(default = "bool::default")]
     pub is_draft: bool,
     /// Keywords for this article
     pub keywords: String,
-    /// Defaults to false. If true it will add a Table Of Contents.
+    /// Defaults to false. If true, it will add a Table Of Contents.
     #[serde(default = "bool::default")]
     pub show_table_of_contents: bool,
     /// If empty, the first 150 chars will be used as description.
     pub description: Option<String>,
+    pub cover_image: Option<String>,
 }
+
 impl Display for PageMetadata {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Title: {}", self.title)
@@ -44,6 +47,7 @@ pub struct GeneretoMetadata {
     pub table_of_contents: String,
     /// Derived from git.
     pub last_modified_date: String,
+    pub cover_image: String,
 }
 
 impl GeneretoMetadata {
@@ -52,6 +56,7 @@ impl GeneretoMetadata {
         page_content: &str,
         file_name: String,
         file_path: &Path,
+        default_cover_image: &str,
     ) -> Self {
         let table_of_contents = page_metadata
             .show_table_of_contents
@@ -72,9 +77,24 @@ impl GeneretoMetadata {
             last_modified_date: get_last_modified_date(&page_metadata.publish_date, file_path),
             reading_time_mins: estimate_reading_time(page_content).to_string(),
             description: get_description(page_content, DESCRIPTION_LENGTH),
+            cover_image: Self::get_cover_image(
+                default_cover_image,
+                page_metadata.cover_image.as_ref(),
+                &file_name,
+            ),
             page_metadata,
             file_name,
             table_of_contents,
+        }
+    }
+    fn get_cover_image(
+        default_cover_image: &str,
+        page_cover_image: Option<&String>,
+        file_name: &str,
+    ) -> String {
+        match page_cover_image {
+            Some(cover_image) => format!("{}/{}", &file_name.replace(".html", ""), cover_image),
+            None => default_cover_image.to_string(),
         }
     }
     pub fn get_variables(&self) -> Vec<(&'static str, &str)> {
@@ -90,6 +110,7 @@ impl GeneretoMetadata {
             ("$GENERETO['description']", self.description.trim()),
             ("$GENERETO['file_name']", &self.file_name),
             ("$GENERETO['table_of_contents']", &self.table_of_contents),
+            ("$GENERETO['cover_image']", &self.cover_image),
         ]
     }
 }

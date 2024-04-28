@@ -84,6 +84,7 @@ This metadata section is written in yaml. These are the supported fields:
 * `description` string: A small description.
 * `is_draft` bool: Default false, if set to true it will skip processing this page.
 * `show_table_of_contents` bool: Default false, if set to true it will add a ToC (if supported by the template)
+* `cover_image` string: the cover image for this blog post. If empty the variable will use the value from the config file's `default_cover_image`.
 
 As an example:
 
