@@ -35,7 +35,9 @@ impl Display for PageMetadata {
 /// Derived from PageMetadata and few more fields
 #[derive(Debug, Clone)]
 pub struct GeneretoMetadata {
-    pub page_metadata: PageMetadata,
+    pub title: String,
+    pub publish_date: String,
+    pub keywords: String,
     /// Reading time in minutes
     pub reading_time_mins: String,
     /// Description of the page (metadata headers, etc.)
@@ -47,6 +49,7 @@ pub struct GeneretoMetadata {
     /// Derived from git.
     pub last_modified_date: String,
     pub cover_image: String,
+    pub is_draft: bool,
 }
 
 impl GeneretoMetadata {
@@ -81,7 +84,10 @@ impl GeneretoMetadata {
                 page_metadata.cover_image.as_ref(),
                 &file_name,
             ),
-            page_metadata,
+            title: page_metadata.title,
+            keywords: page_metadata.keywords,
+            publish_date: page_metadata.publish_date,
+            is_draft: page_metadata.is_draft,
             file_name,
             table_of_contents,
         }
@@ -98,14 +104,11 @@ impl GeneretoMetadata {
     }
     pub fn get_variables(&self) -> Vec<(&'static str, &str)> {
         vec![
-            ("$GENERETO['title']", &self.page_metadata.title.trim()),
-            (
-                "$GENERETO['publish_date']",
-                &self.page_metadata.publish_date,
-            ),
+            ("$GENERETO['title']", &self.title.trim()),
+            ("$GENERETO['publish_date']", &self.publish_date),
             ("$GENERETO['last_modified_date']", &self.last_modified_date),
             ("$GENERETO['read_time_minutes']", &self.reading_time_mins),
-            ("$GENERETO['keywords']", self.page_metadata.keywords.trim()),
+            ("$GENERETO['keywords']", self.keywords.trim()),
             ("$GENERETO['description']", self.description.trim()),
             ("$GENERETO['file_name']", &self.file_name),
             ("$GENERETO['table_of_contents']", &self.table_of_contents),
@@ -116,18 +119,13 @@ impl GeneretoMetadata {
 
 impl PartialOrd for GeneretoMetadata {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(
-            self.page_metadata
-                .publish_date
-                .cmp(&other.page_metadata.publish_date)
-                .reverse(),
-        )
+        Some(self.publish_date.cmp(&other.publish_date).reverse())
     }
 }
 
 impl PartialEq for GeneretoMetadata {
     fn eq(&self, other: &Self) -> bool {
-        self.page_metadata.publish_date == other.page_metadata.publish_date
+        self.publish_date == other.publish_date
     }
 }
 
@@ -135,7 +133,7 @@ impl Eq for GeneretoMetadata {}
 
 impl Display for GeneretoMetadata {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Title: {}", self.page_metadata.title)
+        write!(f, "Title: {}", self.title)
     }
 }
 

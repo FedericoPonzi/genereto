@@ -27,14 +27,14 @@ pub fn generate_rss(
 fn articles_to_items(metadatas: Vec<(String, GeneretoMetadata)>) -> Vec<rss::Item> {
     let mut ret = vec![];
     for (dest_filepath, md) in metadatas {
-        if md.page_metadata.is_draft || md.file_name == "error.html" {
+        if md.is_draft || md.file_name == "error.html" {
             continue;
         }
         let item = ItemBuilder::default()
-            .title(md.page_metadata.title)
+            .title(md.title)
             .link(dest_filepath)
             .description(md.description)
-            .pub_date(md.page_metadata.publish_date)
+            .pub_date(md.publish_date)
             .build();
         ret.push(item);
     }

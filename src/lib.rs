@@ -183,14 +183,11 @@ fn build_index_page(
         // error page doesn't need to be shown on the homepage.
         .filter(|el| el.0 != "error.html")
         // if the page is a draft and we are not in dev mode, we need to skip it.
-        .filter(|el| !el.1.page_metadata.is_draft || drafts_options.is_dev())
+        .filter(|el| !el.1.is_draft || drafts_options.is_dev())
     {
         let li_entry = format!(
             "<li><a href=\"{}\">{}</a> - {} ({})</li>",
-            metadata.file_name,
-            metadata.page_metadata.title,
-            metadata.page_metadata.publish_date,
-            metadata.page_metadata.keywords,
+            metadata.file_name, metadata.title, metadata.publish_date, metadata.keywords,
         );
         links.push_str(&li_entry);
     }

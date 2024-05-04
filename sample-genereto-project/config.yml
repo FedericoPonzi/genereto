@@ -6,3 +6,5 @@ title: Blog
 description: Description of the blog
 # used in RSS.
 url: https://blog.fponzi.me
+# used in metadata, and passed to the template
+# default_cover_image: res/cover.jpg
