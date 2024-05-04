@@ -42,11 +42,13 @@ fn articles_to_items(url: String, metadatas: Vec<BlogArticleMetadata>) -> Vec<rs
 
 /// Returns RFC-822 date format
 fn get_complaint_date(date: &str) -> String {
-    // takes date as "2024-02-01" and returns 01 Feb 24
+    // takes date as "2018-08-06" and returns "Mon, 06 Aug 2018 00:00:00 UTC"
     if let Ok(parsed_date) = NaiveDate::parse_from_str(date, "%Y-%m-%d") {
-        parsed_date.format("%d %b %y").to_string()
+        error!("Parsed date: {}", parsed_date);
+        parsed_date.format("%a, %d %b %Y 00:00:00 UTC").to_string()
     } else {
-        "Invalid date format".to_string()
+        error!("Error parsing date: {}, will use it as date string.", date);
+        date.to_string()
     }
 }
 
@@ -55,8 +57,9 @@ mod tests {
     use super::*;
     #[test]
     fn test_get_complaint_date() {
-        assert_eq!(get_complaint_date("2024-01-01"), "01 Jan 24");
-        assert_eq!(get_complaint_date("2024-02-01"), "01 Feb 24");
-        assert_eq!(get_complaint_date("2027-10-01"), "01 Oct 27");
+        assert_eq!(
+            get_complaint_date("2018-08-06"),
+            "Mon, 06 Aug 2018 00:00:00 UTC"
+        );
     }
 }
