@@ -3,3 +3,4 @@ genereto-project/output
 .idea
 *.iml
 blog
+/homepage/

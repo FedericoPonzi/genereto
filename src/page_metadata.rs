@@ -1,4 +1,3 @@
-use crate::config::GeneretoConfig;
 use chrono::NaiveDate;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
