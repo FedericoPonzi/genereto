@@ -80,7 +80,7 @@ This metadata section is written in yaml. These are the supported fields:
 
 * `title` string: title of the article.
 * `keywords` string: comma separated list of keywords.
-* `publish_date` string: the published date of the article in YYYY-mm-dd (e.g. 2023-01-01)
+* `publish_date` string: the published date of the article formatted as YYYY-mm-dd (e.g. 2023-01-01)
 * `description` string: A small description.
 * `is_draft` bool: Default false, if set to true it will skip processing this page.
 * `show_table_of_contents` bool: Default false, if set to true it will add a ToC (if supported by the template)

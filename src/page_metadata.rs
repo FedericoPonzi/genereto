@@ -6,9 +6,9 @@ use std::path::Path;
 
 const DESCRIPTION_LENGTH: usize = 150;
 
-/// Included from a page file
+/// Included from the top of an article file
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PageMetadata {
+pub struct BlogArticleMetadataRaw {
     /// Title of the page
     pub title: String,
     /// Publish date as string
@@ -26,7 +26,7 @@ pub struct PageMetadata {
     pub cover_image: Option<String>,
 }
 
-impl Display for PageMetadata {
+impl Display for BlogArticleMetadataRaw {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Title: {}", self.title)
     }
@@ -34,7 +34,7 @@ impl Display for PageMetadata {
 
 /// Derived from PageMetadata and few more fields
 #[derive(Debug, Clone)]
-pub struct GeneretoMetadata {
+pub struct BlogArticleMetadata {
     pub title: String,
     pub publish_date: String,
     pub keywords: String,
@@ -52,9 +52,9 @@ pub struct GeneretoMetadata {
     pub is_draft: bool,
 }
 
-impl GeneretoMetadata {
+impl BlogArticleMetadata {
     pub fn new(
-        mut page_metadata: PageMetadata,
+        mut page_metadata: BlogArticleMetadataRaw,
         page_content: &str,
         file_name: String,
         file_path: &Path,
@@ -66,7 +66,7 @@ impl GeneretoMetadata {
             .unwrap_or_default();
         let has_todos = contains_todos(page_content);
         if has_todos && !page_metadata.is_draft {
-            println!("File {} has todos - setting is_draft to true.", file_name);
+            info!("File {} has todos - setting is_draft to true.", file_name);
         }
         page_metadata.is_draft = page_metadata.is_draft || has_todos;
         page_metadata.title = if page_metadata.is_draft {
@@ -104,7 +104,7 @@ impl GeneretoMetadata {
     }
     pub fn get_variables(&self) -> Vec<(&'static str, &str)> {
         vec![
-            ("$GENERETO['title']", &self.title.trim()),
+            ("$GENERETO['title']", self.title.trim()),
             ("$GENERETO['publish_date']", &self.publish_date),
             ("$GENERETO['last_modified_date']", &self.last_modified_date),
             ("$GENERETO['read_time_minutes']", &self.reading_time_mins),
@@ -117,21 +117,21 @@ impl GeneretoMetadata {
     }
 }
 
-impl PartialOrd for GeneretoMetadata {
+impl PartialOrd for BlogArticleMetadata {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.publish_date.cmp(&other.publish_date).reverse())
     }
 }
 
-impl PartialEq for GeneretoMetadata {
+impl PartialEq for BlogArticleMetadata {
     fn eq(&self, other: &Self) -> bool {
         self.publish_date == other.publish_date
     }
 }
 
-impl Eq for GeneretoMetadata {}
+impl Eq for BlogArticleMetadata {}
 
-impl Display for GeneretoMetadata {
+impl Display for BlogArticleMetadata {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Title: {}", self.title)
     }

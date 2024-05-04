@@ -1,5 +1,5 @@
-template: 'main' # select a template
-output_dirname: 'output' # name for the folder that olds the generated files
+template: 'main' # select a template - name of the folder in genereto-project/templates/
+output_dirname: 'output' # name for the folder that olds the generated files, inside the genereto-project path.
 # used in RSS
 title: Blog
 # used in RSS.
