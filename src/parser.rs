@@ -166,9 +166,15 @@ mod test {
     fn test_filter_out_comments() {
         let page_content = "$GENERETO{comment}
         content
-        some content$GENERETO{comment}";
+        some content$GENERETO{comment}
+```
+some code!!
+```";
         let page_content_new = filter_out_comments(page_content);
-        assert_eq!(page_content_new, "        content\n        some content");
+        assert_eq!(
+            page_content_new,
+            "\n        content\n\n        some content\n```\nsome code!!\n```\n\n"
+        );
     }
 
     #[test]
@@ -186,5 +192,13 @@ mod test {
 ";
         let page_content_new = super::add_ids_to_headings(page_content);
         assert_eq!(page_content_new, expected);
+    }
+
+    #[test]
+    fn test_remove_special_characters() {
+        let input = "Hello,..  world!!^-_.@dòł234disiduc";
+        let expected = "Hello  worldd234disiduc";
+        let output = super::remove_special_characters(input);
+        assert_eq!(output, expected);
     }
 }
