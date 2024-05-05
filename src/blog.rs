@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::{fs, io};
 
 const BLOG_ENTRIES_FOLDER_RELATIVE_PATH: &str = "blog";
-const BLOG_ENTRY_FILENAME: &str = "blog.html";
+const BLOG_ENTRY_TEMPLATE_FILENAME: &str = "blog.html";
 
 // TODO: builders should be separated into two functions, one which operates with
 // objects in memory (e.g. template file as string, content as string and return a string for the output
@@ -18,14 +18,14 @@ const BLOG_ENTRY_FILENAME: &str = "blog.html";
 pub fn generate_blog(
     genereto_config: &GeneretoConfig,
     drafts_options: DraftsOptions,
-) -> anyhow::Result<Vec<BlogArticleMetadata>> {
+) -> anyhow::Result<Option<Vec<BlogArticleMetadata>>> {
     if !should_generate_blog(&genereto_config.content_path) {
         info!(
             "Skipping blog generation. No blog generation needed, as '{}/{}' doesn't exists",
             genereto_config.content_path.display(),
             BLOG_ENTRIES_FOLDER_RELATIVE_PATH
         );
-        return Ok(vec![]);
+        return Ok(None);
     }
     debug!("Genereting blog");
 
@@ -46,7 +46,7 @@ pub fn generate_blog(
         &drafts_options,
     )
     .context("Failed to build index page.")?;
-    Ok(metadatas)
+    Ok(Some(metadatas))
 }
 fn build_index_page(
     mut template_view: String,
@@ -85,7 +85,9 @@ fn build_articles(
 ) -> anyhow::Result<Vec<BlogArticleMetadata>> {
     debug!("Loading articles metadata");
     let mut articles = vec![];
-    let template_path = &genereto_config.template_dir_path.join(BLOG_ENTRY_FILENAME);
+    let template_path = &genereto_config
+        .template_dir_path
+        .join(BLOG_ENTRY_TEMPLATE_FILENAME);
     let template_raw = fs::read_to_string(template_path)?;
     let default_cover_image = genereto_config
         .default_cover_image
@@ -107,7 +109,7 @@ fn build_articles(
 
             copy_directory_recursively(
                 &entry_path,
-                genereto_config.output_dir_path.join(file_name),
+                &genereto_config.output_dir_path.join(file_name),
             )?;
         } else if entry_path.is_file() {
             let dest_filename = generate_file_name(&entry_path);

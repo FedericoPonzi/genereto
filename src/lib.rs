@@ -4,7 +4,7 @@ extern crate log;
 use std::path::{Path, PathBuf};
 
 use config::GeneretoConfig;
-use std::fs;
+use std::{fs, io};
 
 mod blog;
 mod config;
@@ -52,28 +52,34 @@ pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Resu
     fs::create_dir_all(&genereto_config.output_dir_path)?;
 
     let metadatas = generate_blog(&genereto_config, drafts_options)?;
+    let has_blog = metadatas.is_some();
+    if has_blog {
+        generate_rss(
+            genereto_config.title,
+            genereto_config.url,
+            genereto_config.description,
+            metadatas.unwrap(),
+            &genereto_config.output_dir_path,
+        )?;
+    }
 
-    copy_resources(
+    copy_folders_from_template(
         &genereto_config.template_dir_path,
-        &genereto_config.output_dir_path,
-    )?;
-    generate_rss(
-        genereto_config.title,
-        genereto_config.url,
-        genereto_config.description,
-        metadatas,
         &genereto_config.output_dir_path,
     )?;
 
     Ok(())
 }
-fn copy_resources(template_dir_path: &Path, output_dir_path: &Path) -> anyhow::Result<()> {
+
+/// Used to copy resources and assets from the template folder
+fn copy_folders_from_template(template_dir_path: &Path, output_dir_path: &Path) -> io::Result<()> {
     for entry in fs::read_dir(template_dir_path)? {
         let entry_path = entry?.path();
+        let entry_path_name = entry_path.file_name().unwrap().to_str().unwrap();
         if entry_path.is_dir() {
             copy_directory_recursively(
-                entry_path.clone(),
-                output_dir_path.join(entry_path.file_name().unwrap().to_str().unwrap()),
+                entry_path.as_ref(),
+                output_dir_path.join(entry_path_name).as_ref(),
             )?;
         }
     }

@@ -22,6 +22,8 @@ templates" folders.
 ```
 genereto-project/
     content/
+        /blog/2024-my-first-article/cover.png
+        /blog/2024-my-first-article.md
         /my-article/image.png
         my-article.md
     templates/
