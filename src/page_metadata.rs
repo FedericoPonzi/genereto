@@ -13,6 +13,7 @@ pub struct PageMetadataRaw {
     /// Title of the page
     pub title: String,
     /// Publish date as string
+    #[serde(default)]
     pub publish_date: String,
     /// Defaults to false. If true, this article will not be processed.
     #[serde(default = "bool::default")]

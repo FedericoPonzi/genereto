@@ -5,15 +5,15 @@ use rss::{ChannelBuilder, ItemBuilder};
 use std::path::Path;
 
 pub fn generate_rss(
-    website_title: String,
-    url: String,
-    description: String,
+    website_title: &str,
+    url: &str,
+    description: &str,
     metadatas: Vec<PageMetadata>,
     output_dir: &Path,
 ) -> Result<()> {
     let channel = ChannelBuilder::default()
         .title(website_title)
-        .link(&url)
+        .link(url)
         .description(description)
         .language("en-us".to_string())
         .items(articles_to_items(url, metadatas))
@@ -23,7 +23,7 @@ pub fn generate_rss(
     std::fs::write(output_dir.join("rss.xml"), rss)?;
     Ok(())
 }
-fn articles_to_items(url: String, metadatas: Vec<PageMetadata>) -> Vec<rss::Item> {
+fn articles_to_items(url: &str, metadatas: Vec<PageMetadata>) -> Vec<rss::Item> {
     metadatas
         .into_iter()
         .filter(|md| !(md.is_draft || md.file_name == "error.html"))

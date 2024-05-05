@@ -201,4 +201,12 @@ some code!!
         let output = super::remove_special_characters(input);
         assert_eq!(output, expected);
     }
+
+    #[test]
+    fn test_get_anchor_id_from_title() {
+        let input = "Hello world--..^^";
+        let expected = "hello-world";
+        let output = super::get_anchor_id_from_title(input);
+        assert_eq!(output, expected);
+    }
 }

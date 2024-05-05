@@ -3,5 +3,6 @@ genereto-project/output
 .idea
 *.iml
 /blog/
-/homepage/
 sample-genereto-project/output/
+/genereto-template-main/
+/fponzi.me/

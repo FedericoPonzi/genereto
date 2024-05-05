@@ -3,6 +3,7 @@ extern crate log;
 
 use std::path::{Path, PathBuf};
 
+use anyhow::Context;
 use config::GeneretoConfig;
 use std::{fs, io};
 
@@ -18,7 +19,10 @@ pub use project_generation::generate_project;
 
 use crate::blog::generate_blog;
 use crate::fs_util::copy_directory_recursively;
+use crate::parser::load_compile_write;
 use crate::rss_generation::generate_rss;
+
+const PAGE_TEMPLATE_FILENAME: &str = "index.html";
 
 #[derive(clap::ValueEnum, Clone, Default, Debug)]
 pub enum DraftsOptions {
@@ -42,23 +46,24 @@ impl DraftsOptions {
 /// project: path to the project.
 pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Result<()> {
     let genereto_config = GeneretoConfig::load_from_path(project_path)?;
-
+    debug!("GeneretoConfig: {genereto_config:?}");
     if genereto_config.output_dir_path.exists() {
         fs::remove_dir_all(&genereto_config.output_dir_path)?;
     }
     fs::create_dir_all(&genereto_config.output_dir_path)?;
 
-    let metadatas = generate_blog(&genereto_config, drafts_options)?;
+    let metadatas = generate_blog(&genereto_config, &drafts_options)?;
     let has_blog = metadatas.is_some();
     if has_blog {
         generate_rss(
-            genereto_config.title,
-            genereto_config.url,
-            genereto_config.description,
+            &genereto_config.title,
+            &genereto_config.url,
+            &genereto_config.description,
             metadatas.unwrap(),
             &genereto_config.output_dir_path,
         )?;
     }
+    compile_pages(&genereto_config, &drafts_options)?;
 
     copy_folders_from_template(
         &genereto_config.template_dir_path,
@@ -81,4 +86,46 @@ fn copy_folders_from_template(template_dir_path: &Path, output_dir_path: &Path) 
         }
     }
     Ok(())
+}
+
+fn compile_pages(
+    genereto_config: &GeneretoConfig,
+    drafts_options: &DraftsOptions,
+) -> anyhow::Result<()> {
+    for entry in fs::read_dir(&genereto_config.content_path)? {
+        let entry_path = entry?.path();
+        let template_path = &genereto_config
+            .template_dir_path
+            .join(PAGE_TEMPLATE_FILENAME);
+        let template_raw = fs::read_to_string(template_path)?;
+
+        let entry_path_name = entry_path.file_name().unwrap().to_str().unwrap();
+        let destination_path = genereto_config.get_dest_path(&entry_path);
+        if entry_path.is_dir() {
+            if entry_path_name == "blog" {
+                debug!("Skipping blog directory from compile pages.");
+                continue;
+            }
+            copy_directory_recursively(&entry_path, &destination_path)?;
+        } else if entry_path.is_file() {
+            let _page_opt = load_compile_write(
+                &genereto_config.default_cover_image,
+                &entry_path,
+                drafts_options,
+                &destination_path,
+                &template_raw,
+            )
+            .with_context(|| format!("Failed to build page {entry_path:?}"))?;
+        } else {
+            warn!("Found entry which is not a file nor a directory: {entry_path:?}. Skipping.");
+        }
+    }
+
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_compile_page() {}
 }

@@ -32,7 +32,8 @@ pub struct GeneretoConfig {
     /// description of the website - used in rss.
     #[serde(default)]
     pub description: String,
-    pub default_cover_image: Option<String>,
+    #[serde(default)]
+    pub default_cover_image: String,
     #[serde(default)]
     pub(crate) blog: BlogConfig,
 }
@@ -42,16 +43,23 @@ pub(crate) struct BlogConfig {
     #[serde(default = "index_html")]
     pub(crate) base_template: PathBuf,
     #[serde(default = "index_html")]
-    pub(crate) index_destination: PathBuf,
+    pub(crate) index_name: PathBuf,
+    #[serde(default = "blog_destination")]
+    pub(crate) destination: PathBuf,
 }
 fn index_html() -> PathBuf {
     "index.html".into()
 }
+fn blog_destination() -> PathBuf {
+    "".into()
+}
+
 impl Default for BlogConfig {
     fn default() -> Self {
         Self {
             base_template: index_html(),
-            index_destination: index_html(),
+            index_name: index_html(),
+            destination: blog_destination(),
         }
     }
 }
@@ -93,19 +101,29 @@ impl GeneretoConfig {
                     .join(TEMPLATES)
                     .join(&config_file.template)
                     .join(config_file.blog.base_template),
-                index_destination: project_path
+                destination: project_path
                     .join(OUTPUT_DIR)
-                    .join(config_file.blog.index_destination),
+                    .join(config_file.blog.destination),
+                ..config_file.blog
             },
             ..config_file
         })
     }
 
+    pub fn get_blog_dest_path(&self, entry_path: &Path) -> PathBuf {
+        self.inner_get_dest_path(entry_path, &self.blog.destination)
+    }
+
     /// Given a file or directory, returns the final destination path in output directory.
     pub fn get_dest_path(&self, entry_path: &Path) -> PathBuf {
+        self.inner_get_dest_path(entry_path, &self.output_dir_path)
+    }
+    fn inner_get_dest_path(&self, entry_path: &Path, base_path: &Path) -> PathBuf {
+        println!("entry path: {entry_path:?}");
+
         let name = entry_path.file_name().unwrap().to_str().unwrap();
         // unwraps needed because these returns optional
-        self.output_dir_path.join(if entry_path.is_dir() {
+        base_path.join(if entry_path.is_dir() {
             name.to_string()
         } else {
             name.replace(".md", ".html")
@@ -130,7 +148,8 @@ mod tests {
         default_cover_image: Something.jpg
         blog:
             base_template: blog-index.html
-            index_destination: blog.html
+            index_name: blog.html
+            destination: some/directory/folder
         "#;
         let expected_full_config = GeneretoConfig {
             template_dir_path: "a".into(),
@@ -141,10 +160,11 @@ mod tests {
             title: "Test title".into(),
             url: "XXXXXXXXXXXXXXXX".into(),
             description: "Test description".into(),
-            default_cover_image: Some("Something.jpg".into()),
+            default_cover_image: "Something.jpg".into(),
             blog: BlogConfig {
                 base_template: "blog-index.html".into(),
-                index_destination: "blog.html".into(),
+                index_name: "blog.html".into(),
+                destination: "some/directory/folder".into(),
             },
         };
 
@@ -157,10 +177,11 @@ mod tests {
             title: "Test title".into(),
             url: "XXXXXXXXXXXXXXXX".into(),
             description: "Test description".into(),
-            default_cover_image: Some("Something.jpg".into()),
+            default_cover_image: "Something.jpg".into(),
             blog: BlogConfig {
                 base_template: "index.html".into(),
-                index_destination: "index.html".into(),
+                index_name: "index.html".into(),
+                destination: "".into(),
             },
         };
 
