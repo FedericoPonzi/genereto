@@ -1,3 +1,4 @@
+use crate::parser::get_anchor_id_from_title;
 use chrono::NaiveDate;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -8,7 +9,7 @@ const DESCRIPTION_LENGTH: usize = 150;
 
 /// Included from the top of an article file
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlogArticleMetadataRaw {
+pub struct PageMetadataRaw {
     /// Title of the page
     pub title: String,
     /// Publish date as string
@@ -26,7 +27,7 @@ pub struct BlogArticleMetadataRaw {
     pub cover_image: Option<String>,
 }
 
-impl Display for BlogArticleMetadataRaw {
+impl Display for PageMetadataRaw {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Title: {}", self.title)
     }
@@ -34,7 +35,7 @@ impl Display for BlogArticleMetadataRaw {
 
 /// Derived from PageMetadata and few more fields
 #[derive(Debug, Clone)]
-pub struct BlogArticleMetadata {
+pub struct PageMetadata {
     pub title: String,
     pub publish_date: String,
     pub keywords: String,
@@ -52,14 +53,20 @@ pub struct BlogArticleMetadata {
     pub is_draft: bool,
 }
 
-impl BlogArticleMetadata {
+impl PageMetadata {
     pub fn new(
-        mut page_metadata: BlogArticleMetadataRaw,
+        mut page_metadata: PageMetadataRaw,
         page_content: &str,
-        file_name: String,
         file_path: &Path,
         default_cover_image: &str,
     ) -> Self {
+        let file_name = file_path
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string()
+            .replace(".md", ".html");
         let table_of_contents = page_metadata
             .show_table_of_contents
             .then(|| generate_table_of_contents(page_content))
@@ -115,23 +122,31 @@ impl BlogArticleMetadata {
             ("$GENERETO['cover_image']", &self.cover_image),
         ]
     }
+
+    // Apply variables to the final page.
+    pub(crate) fn apply(&self, mut final_page: String) -> String {
+        for i in self.get_variables() {
+            final_page = final_page.replace(i.0, &i.1);
+        }
+        final_page
+    }
 }
 
-impl PartialOrd for BlogArticleMetadata {
+impl PartialOrd for PageMetadata {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.publish_date.cmp(&other.publish_date).reverse())
     }
 }
 
-impl PartialEq for BlogArticleMetadata {
+impl PartialEq for PageMetadata {
     fn eq(&self, other: &Self) -> bool {
         self.publish_date == other.publish_date
     }
 }
 
-impl Eq for BlogArticleMetadata {}
+impl Eq for PageMetadata {}
 
-impl Display for BlogArticleMetadata {
+impl Display for PageMetadata {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Title: {}", self.title)
     }
@@ -292,20 +307,6 @@ fn generate_table_of_contents(markdown: &str) -> String {
     }
 
     format!("<ul class=\"table_of_contents\">\n{}</ul>", &toc[6..])
-}
-
-pub fn get_anchor_id_from_title(title: &str) -> String {
-    remove_special_characters(title)
-        .replace(' ', "-")
-        .to_lowercase()
-}
-
-fn remove_special_characters(input: &str) -> String {
-    // Define a regular expression pattern to match special characters
-    let pattern = Regex::new(r"[^a-zA-Z0-9\s]+").unwrap();
-
-    // Replace matches with an empty string to remove special characters
-    pattern.replace_all(input, "").to_string()
 }
 
 // remove everything after the last occurrence of `character`. Check the tests.

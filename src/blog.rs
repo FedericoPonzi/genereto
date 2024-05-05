@@ -1,12 +1,11 @@
 use crate::config::GeneretoConfig;
-use crate::page_metadata::{BlogArticleMetadata, BlogArticleMetadataRaw};
+use crate::page_metadata::PageMetadata;
 
 use crate::fs_util::copy_directory_recursively;
-use crate::parser::{add_ids_to_headings, compile_markdown_to_html, filter_out_comments};
-use crate::{DraftsOptions, END_PATTERN, START_PATTERN};
+use crate::parser::{load_compile_write, END_PATTERN, START_PATTERN};
+use crate::DraftsOptions;
 use anyhow::Context;
-use regex::Regex;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::{fs, io};
 
 const BLOG_ENTRIES_FOLDER_RELATIVE_PATH: &str = "blog";
@@ -18,7 +17,7 @@ const BLOG_ENTRY_TEMPLATE_FILENAME: &str = "blog.html";
 pub fn generate_blog(
     genereto_config: &GeneretoConfig,
     drafts_options: DraftsOptions,
-) -> anyhow::Result<Option<Vec<BlogArticleMetadata>>> {
+) -> anyhow::Result<Option<Vec<PageMetadata>>> {
     if !should_generate_blog(&genereto_config.content_path) {
         info!(
             "Skipping blog generation. No blog generation needed, as '{}/{}' doesn't exists",
@@ -50,13 +49,13 @@ pub fn generate_blog(
 }
 fn build_index_page(
     mut template_view: String,
-    articles: &[BlogArticleMetadata],
+    articles: &[PageMetadata],
     destination_path: &Path,
     drafts_options: &DraftsOptions,
 ) -> anyhow::Result<()> {
     let mut links = "<ul class=\"index-list\">\n".to_string();
     for md in articles
-        .into_iter()
+        .iter()
         // error page doesn't need to be shown on the homepage.
         .filter(|el| el.file_name != "error.html")
         // if the page is a draft and we are not in dev mode, we need to skip it.
@@ -78,11 +77,12 @@ fn build_index_page(
     Ok(())
 }
 
-/// Returns a list of dest_filename, GeneretoMetadata for each file.
+/// Builds the articles to the destination
+/// Returns a list of GeneretoMetadata
 fn build_articles(
     genereto_config: &GeneretoConfig,
     drafts_options: &DraftsOptions,
-) -> anyhow::Result<Vec<BlogArticleMetadata>> {
+) -> anyhow::Result<Vec<PageMetadata>> {
     debug!("Loading articles metadata");
     let mut articles = vec![];
     let template_path = &genereto_config
@@ -100,114 +100,30 @@ fn build_articles(
     )? {
         let entry_path = entry?.path();
         let entry_path_display = entry_path.display().to_string();
-        info!("Blog entry path: {}", entry_path_display);
+        let destination_path = genereto_config.get_dest_path(&entry_path);
+        info!("Compiling {entry_path_display} to {destination_path:?}.");
         if entry_path.is_dir() {
             if is_res_folder(&entry_path)? {
                 continue;
             }
-            let file_name = entry_path.file_name().unwrap();
-
-            copy_directory_recursively(
-                &entry_path,
-                &genereto_config.output_dir_path.join(file_name),
-            )?;
+            copy_directory_recursively(&entry_path, &destination_path)?;
         } else if entry_path.is_file() {
-            let dest_filename = generate_file_name(&entry_path);
-            let article_opt = build_blog_entry(
-                &template_raw,
-                entry_path,
-                genereto_config.output_dir_path.join(&dest_filename),
+            let article_opt = load_compile_write(
                 &default_cover_image,
+                &entry_path,
                 drafts_options,
+                &destination_path,
+                &template_raw,
             )
             .with_context(|| format!("Failed to build page {entry_path_display}"))?;
-            if let Some(article) = article_opt {
-                articles.push(article);
+            if let Some(md) = article_opt {
+                articles.push(md);
             }
+        } else {
+            warn!("Found entry which is not a file nor a directory: {entry_path:?}. Skipping.");
         }
     }
     Ok(articles)
-}
-
-fn build_blog_entry(
-    template: &str,
-    entry_path: PathBuf,
-    destination_path: PathBuf,
-    default_cover_image: &str,
-    drafts_options: &DraftsOptions,
-) -> anyhow::Result<Option<BlogArticleMetadata>> {
-    // to ease log printing
-    let entry_path_str = entry_path.display().to_string();
-
-    // 1 read in_page.
-    let page = fs::read_to_string(&entry_path)?;
-    let pattern = Regex::new(r"---+\n").unwrap();
-    let mut fields: Vec<&str> = pattern.splitn(&page, 2).collect();
-    if fields.len() < 2 {
-        return Err(anyhow::anyhow!(
-            "Failed to find metadata in page {}",
-            entry_path_str
-        ));
-    }
-    let (metadata, content) = (fields.remove(0), fields.remove(0));
-    let content = add_ids_to_headings(content);
-    debug!("Metadata: {:?}", metadata);
-
-    let metadata: BlogArticleMetadataRaw = serde_yaml::from_str(metadata)
-        .context("Failed to deserialize metadata, did you remember to put the metadata section?")?;
-
-    println!(
-        "is draft: {}, drafts_options: {:?}",
-        metadata.is_draft, drafts_options
-    );
-
-    if metadata.is_draft && drafts_options.is_hide() {
-        return Ok(None);
-    }
-    let final_page = template;
-    let mut final_page = filter_out_comments(final_page);
-
-    let html_content = compile_markdown_to_html(&content);
-    let start = final_page.find(START_PATTERN).unwrap();
-    let end = final_page.find(END_PATTERN).unwrap();
-
-    final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
-
-    let file_name = destination_path
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string();
-    info!("Writing blog entry to {}", file_name);
-    let genereto_metadata = BlogArticleMetadata::new(
-        metadata,
-        &content,
-        file_name,
-        &entry_path,
-        default_cover_image,
-    );
-    let final_page = apply_variables(&genereto_metadata, final_page);
-
-    fs::write(destination_path, final_page).context("Failed writing to output page")?;
-    Ok(Some(genereto_metadata))
-}
-
-// Apply variables to the final page.
-fn apply_variables(metadata: &BlogArticleMetadata, mut final_page: String) -> String {
-    for i in metadata.get_variables() {
-        final_page = final_page.replace(i.0, &i.1);
-    }
-    final_page
-}
-
-fn generate_file_name(p: &Path) -> String {
-    // unwraps needed because these returns optional
-    p.file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .replace(".md", ".html")
 }
 
 fn is_res_folder(entry_path: &Path) -> io::Result<bool> {

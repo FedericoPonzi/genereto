@@ -100,6 +100,17 @@ impl GeneretoConfig {
             ..config_file
         })
     }
+
+    /// Given a file or directory, returns the final destination path in output directory.
+    pub fn get_dest_path(&self, entry_path: &Path) -> PathBuf {
+        let name = entry_path.file_name().unwrap().to_str().unwrap();
+        // unwraps needed because these returns optional
+        self.output_dir_path.join(if entry_path.is_dir() {
+            name.to_string()
+        } else {
+            name.replace(".md", ".html")
+        })
+    }
 }
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
 title: 'Hello, world'
 keywords: 'templating, genereto'
-publish_date: '2023-05-15'
+publish_date: '2024-05-04'
 --------
 This is the first blog entry. I'm still working on the setup, stay tuned!
 

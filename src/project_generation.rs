@@ -6,9 +6,9 @@ const SAMPLE_INDEX_PAGE: &str =
     include_str!("../sample-genereto-project/templates/main/index.html");
 const SAMPLE_CONFIG_FILE: &str = include_str!("../sample-genereto-project/config.yml");
 const SAMPLE_CONTENT_PAGE: &str =
-    include_str!("../sample-genereto-project/content/2024-05-04-hello-world.md");
+    include_str!("../sample-genereto-project/content/blog/2024-05-04-hello-world.md");
 const SAMPLE_IMAGE: &[u8] =
-    include_bytes!("../sample-genereto-project/content/2024-05-04-hello-world/rustacean.png");
+    include_bytes!("../sample-genereto-project/content/blog/2024-05-04-hello-world/rustacean.png");
 
 pub fn generate_project(project_path: &Path) -> anyhow::Result<()> {
     // check if project_path has a .git directory.

@@ -2,5 +2,6 @@ genereto-project/output
 /target
 .idea
 *.iml
-blog
+/blog/
 /homepage/
+sample-genereto-project/output/

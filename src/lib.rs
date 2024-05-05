@@ -20,9 +20,6 @@ use crate::blog::generate_blog;
 use crate::fs_util::copy_directory_recursively;
 use crate::rss_generation::generate_rss;
 
-const START_PATTERN: &str = "<!-- start_content -->";
-const END_PATTERN: &str = "<!-- end_content -->";
-
 #[derive(clap::ValueEnum, Clone, Default, Debug)]
 pub enum DraftsOptions {
     /// Default. Builds the draft page, but is not linked anywhere. Useful to share the draft.
