@@ -127,7 +127,7 @@ impl PageMetadata {
     // Apply variables to the final page.
     pub(crate) fn apply(&self, mut final_page: String) -> String {
         for i in self.get_variables() {
-            final_page = final_page.replace(i.0, &i.1);
+            final_page = final_page.replace(i.0, i.1);
         }
         final_page
     }
@@ -162,7 +162,7 @@ fn get_last_modified_date(publish_date: &str, file_path: &Path) -> String {
         return publish_date.to_string();
     }
     let last_update_as_date = NaiveDate::parse_from_str(&last_modified_date, "%Y-%m-%d").unwrap();
-    let publish_date_as_date = NaiveDate::parse_from_str(&publish_date, "%Y-%m-%d").unwrap();
+    let publish_date_as_date = NaiveDate::parse_from_str(publish_date, "%Y-%m-%d").unwrap();
     if last_update_as_date < publish_date_as_date {
         publish_date.to_string()
     } else {

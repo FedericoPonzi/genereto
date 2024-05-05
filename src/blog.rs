@@ -29,7 +29,7 @@ pub fn generate_blog(
     let mut metadatas = build_articles(genereto_config, drafts_options)?;
 
     // sort by published date
-    metadatas.sort_by(|a, b| a.partial_cmp(&b).unwrap());
+    metadatas.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
     let template_index_page = fs::read_to_string(&genereto_config.blog.base_template)?;
     // todo: if there is already an index.html, replace it with blog.html.

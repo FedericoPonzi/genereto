@@ -63,7 +63,7 @@ pub(crate) fn compile_page_phase_1(
     source_content: &str,
 ) -> anyhow::Result<(String, PageMetadataRaw)> {
     let pattern = Regex::new(r"---+\n").unwrap();
-    let mut fields: Vec<&str> = pattern.splitn(&source_content, 2).collect();
+    let mut fields: Vec<&str> = pattern.splitn(source_content, 2).collect();
     if fields.len() < 2 {
         return Err(anyhow::anyhow!("Failed to find metadata in page"));
     }
@@ -148,7 +148,7 @@ pub(crate) fn filter_out_comments(markdown_content: &str) -> String {
         } else if line.contains("$GENERETO{") {
             // inline comment
             let comment_start = line.find("$GENERETO{").unwrap();
-            let comment_end = line.find("}").unwrap();
+            let comment_end = line.find('}').unwrap();
             line_new = line.replace(&line[comment_start..=comment_end], "");
         } else {
             line_new += "\n"; // no comments.
