@@ -82,7 +82,6 @@ impl PageMetadata {
         } else {
             page_metadata.title
         };
-
         Self {
             last_modified_date: get_last_modified_date(&page_metadata.publish_date, file_path),
             reading_time_mins: estimate_reading_time(page_content).to_string(),
@@ -161,6 +160,11 @@ fn get_last_modified_date(publish_date: &str, file_path: &Path) -> String {
     if last_modified_date.is_empty() {
         return publish_date.to_string();
     }
+    let publish_date = if publish_date.is_empty() {
+        &last_modified_date
+    } else {
+        publish_date
+    };
     let last_update_as_date = NaiveDate::parse_from_str(&last_modified_date, "%Y-%m-%d").unwrap();
     let publish_date_as_date = NaiveDate::parse_from_str(publish_date, "%Y-%m-%d").unwrap();
     if last_update_as_date < publish_date_as_date {
@@ -249,13 +253,12 @@ fn truncate_text(article: &str, limit: usize) -> String {
 // On error, if git is not available in the system, it will return None.
 fn get_last_modified_date_of_file_from_git(file_path: &Path) -> Option<String> {
     let mut git_cmd = std::process::Command::new("git");
-    git_cmd.arg("-C");
-    git_cmd.arg(file_path.parent().unwrap());
+    git_cmd.current_dir(file_path.parent().unwrap());
     git_cmd.arg("log");
     git_cmd.arg("-1");
     git_cmd.arg("--format=%cd");
     git_cmd.arg("--date=short");
-    git_cmd.arg(file_path);
+    git_cmd.arg(file_path.file_name().unwrap());
     let output = git_cmd.output().ok()?;
     let date = String::from_utf8(output.stdout).unwrap().trim().to_string();
     Some(date)
