@@ -48,7 +48,7 @@ impl DraftsOptions {
 /// project: path to the project.
 pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Result<PathBuf> {
     validate_project_folders(&project_path)?;
-    let genereto_config = GeneretoConfig::load_from_path(project_path)?;
+    let genereto_config = GeneretoConfig::load_from_folder(project_path)?;
     debug!("GeneretoConfig: {genereto_config:?}");
     if genereto_config.output_dir_path.exists() {
         fs::remove_dir_all(&genereto_config.output_dir_path)?;

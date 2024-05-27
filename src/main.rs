@@ -38,7 +38,6 @@ fn main() {
         info!("Your project was successfully generated. Use `genereto --project-path {}/genereto-project` to run it.", project_path.display());
         return;
     }
-    println!("{:?}", args);
     let ret = run(
         args.project_path.expect("Project path not provided"),
         args.drafts_options,

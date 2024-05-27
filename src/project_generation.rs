@@ -14,7 +14,7 @@ pub fn generate_project(project_path: &Path) -> anyhow::Result<()> {
     // check if project_path has a .git directory.
     // if it doesn't, this script could cause irreversible overwrites. Let's bail and ask user to use git.
     if !project_path.join(".git").exists() {
-        bail!(".git directory not found. This script could cause irreversible overwrites. Please use initialize a git repo using `git init`. Exiting.")
+        bail!(".git directory not found. This script could cause irreversible overwrites. Please initialize a git repo using `git init`. Exiting.")
     }
     // create directories:
     std::fs::create_dir_all(project_path.join("genereto-project/templates/main/res"))?;
@@ -33,14 +33,15 @@ pub fn generate_project(project_path: &Path) -> anyhow::Result<()> {
     )?;
     // get todays date in the format YYYY-MM-DD
     let today = chrono::offset::Local::now().format("%Y-%m-%d").to_string();
-    // create a directory for today's blog po
+    // create a directory for today's blog post
     std::fs::create_dir_all(
         project_path.join(format!("genereto-project/content/{today}-hello-world")),
     )?;
 
+    let sample_content = SAMPLE_CONTENT_PAGE.replace("2024-05-04", &today.to_string());
     std::fs::write(
         project_path.join(format!("genereto-project/content/{today}-hello-world.md")),
-        SAMPLE_CONTENT_PAGE,
+        sample_content,
     )?;
     std::fs::write(
         project_path.join(format!(

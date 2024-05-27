@@ -1,4 +1,5 @@
 use crate::config::CONFIG_FILENAME;
+use anyhow::bail;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::path::{Path, PathBuf};
@@ -50,8 +51,17 @@ pub(crate) struct GeneretoConfigRaw {
     pub(crate) blog: GeneretoConfigBlogRaw,
 }
 impl GeneretoConfigRaw {
-    pub fn load_from_path<P: AsRef<Path>>(project_path: P) -> anyhow::Result<Self> {
-        let project_path = project_path.as_ref();
+    pub fn load_from_path(project_path: &Path) -> anyhow::Result<Self> {
+        if !project_path.exists() {
+            bail!("Project path '{}' doesn't exists.", project_path.display());
+        }
+        if !project_path.is_dir() {
+            bail!(
+                "Project path '{}' is not a folder. It should be a folder with a '{}' file inside.",
+                project_path.display(),
+                CONFIG_FILENAME
+            );
+        }
         let config_file: Self =
             serde_yaml::from_reader(&File::open(project_path.join(CONFIG_FILENAME))?)?;
         Ok(config_file)

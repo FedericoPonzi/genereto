@@ -5,12 +5,13 @@ use tempdir::TempDir;
 
 #[test]
 fn test_load_config_sample_genereto_project_works() {
-    let config_path = "sample-genereto-project/config.yml";
+    let config_path = "sample-genereto-project/";
 
-    let config: GeneretoConfig = GeneretoConfig::load_from_path(PathBuf::from(config_path))
+    let config: GeneretoConfig = GeneretoConfig::load_from_folder(PathBuf::from(config_path))
         .expect("Failed to deserialize config");
     assert_eq!(config.title, "My Website");
     assert_eq!(config.description, "The best website in the world.");
+    assert_eq!(config.url, "https://blog.fponzi.me");
 }
 
 #[test]
@@ -72,7 +73,7 @@ fn test_load_config_without_blog() {
         (expected_no_blog, no_blog),
     ] {
         let temp = store_config(cfg).unwrap();
-        let received = GeneretoConfig::load_from_path(temp.path()).unwrap();
+        let received = GeneretoConfig::load_from_folder(temp.path()).unwrap();
         // generate assert_equals for each field:
         for p in [
             received.template_dir_path,

@@ -72,7 +72,7 @@ impl GeneretoConfigBlog {
 }
 
 impl GeneretoConfig {
-    pub fn load_from_path<P: AsRef<Path>>(project_path: P) -> anyhow::Result<Self> {
+    pub fn load_from_folder<P: AsRef<Path>>(project_path: P) -> anyhow::Result<Self> {
         let project_path = project_path.as_ref().to_path_buf();
         let raw_config = GeneretoConfigRaw::load_from_path(&project_path)?;
         let blog = GeneretoConfigBlog::new_from_raw(&project_path, &raw_config);
