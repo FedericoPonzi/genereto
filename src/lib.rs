@@ -2,10 +2,19 @@
 extern crate log;
 
 use std::path::{Path, PathBuf};
+use std::{fs, io};
 
 use anyhow::Context;
-use config::GeneretoConfig;
-use std::{fs, io};
+
+pub use config::GeneretoConfig;
+pub use config::GeneretoConfigBlog;
+pub use project_generation::generate_project;
+
+use crate::blog::generate_blog;
+use crate::config::validate_project_folders;
+use crate::fs_util::copy_directory_recursively;
+use crate::parser::load_compile_write;
+use crate::rss_generation::generate_rss;
 
 mod blog;
 mod config;
@@ -14,13 +23,6 @@ mod page_metadata;
 mod parser;
 mod project_generation;
 mod rss_generation;
-
-pub use project_generation::generate_project;
-
-use crate::blog::generate_blog;
-use crate::fs_util::copy_directory_recursively;
-use crate::parser::load_compile_write;
-use crate::rss_generation::generate_rss;
 
 const PAGE_TEMPLATE_FILENAME: &str = "index.html";
 
@@ -44,7 +46,8 @@ impl DraftsOptions {
 }
 
 /// project: path to the project.
-pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Result<()> {
+pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Result<PathBuf> {
+    validate_project_folders(&project_path)?;
     let genereto_config = GeneretoConfig::load_from_path(project_path)?;
     debug!("GeneretoConfig: {genereto_config:?}");
     if genereto_config.output_dir_path.exists() {
@@ -52,14 +55,14 @@ pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Resu
     }
     fs::create_dir_all(&genereto_config.output_dir_path)?;
 
-    let metadatas = generate_blog(&genereto_config, &drafts_options)?;
-    let has_blog = metadatas.is_some();
+    let metadata = generate_blog(&genereto_config, &drafts_options)?;
+    let has_blog = metadata.is_some();
     if has_blog {
         generate_rss(
             &genereto_config.title,
             &genereto_config.url,
             &genereto_config.description,
-            metadatas.unwrap(),
+            metadata.unwrap(),
             &genereto_config.output_dir_path,
         )?;
     }
@@ -69,8 +72,7 @@ pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Resu
         &genereto_config.template_dir_path,
         &genereto_config.output_dir_path,
     )?;
-
-    Ok(())
+    Ok(genereto_config.output_dir_path)
 }
 
 /// Used to copy resources and assets from the template folder

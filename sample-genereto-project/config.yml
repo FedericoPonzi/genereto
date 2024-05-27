@@ -1,9 +1,9 @@
 template: 'main' # select a template - name of the folder in genereto-project/templates/
 output_dirname: 'output' # name for the folder that olds the generated files, inside the genereto-project path.
 # used in RSS
-title: Blog
+title: My Website
 # used in RSS.
-description: Description of the blog
+description: The best website in the world.
 # used in RSS.
 url: https://blog.fponzi.me
 # used in metadata, and passed to the template

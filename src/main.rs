@@ -39,9 +39,13 @@ fn main() {
         return;
     }
     println!("{:?}", args);
-    run(
+    let ret = run(
         args.project_path.expect("Project path not provided"),
         args.drafts_options,
     )
     .expect("Error");
+    println!(
+        "Website generation completed. Index path: {} ",
+        ret.join("index.html").display()
+    );
 }
