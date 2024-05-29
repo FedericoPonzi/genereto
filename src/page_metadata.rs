@@ -203,11 +203,7 @@ fn get_description(article: &str, limit: usize) -> String {
     let mut buff = String::new();
     for line in article.lines() {
         if line.trim().starts_with('#') {
-            // titles come with the id. Remove the id from the title.
-            // Example: `Introduction {#introduction}` becomes `Introduction`.
-            buff.push_str(
-                remove_after_last_character(line.trim_start_matches('#').trim(), '{').trim(),
-            );
+            // skip it, it's usually a title like introduction.
         } else {
             buff.push_str(line);
         }
@@ -217,7 +213,21 @@ fn get_description(article: &str, limit: usize) -> String {
             break;
         }
     }
-    truncate_text(&buff, limit)
+    use pulldown_cmark::{Event, Parser};
+    // Extract plaintext
+    let parser = Parser::new(&buff);
+    let mut plaintext = String::new();
+    for event in parser {
+        match event {
+            Event::Text(text) => plaintext.push_str(&text),
+            Event::Code(text) => plaintext.push_str(&text),
+            Event::Html(text) => plaintext.push_str(&text),
+            Event::SoftBreak | Event::HardBreak => plaintext.push('\n'),
+            _ => (),
+        }
+    }
+
+    truncate_text(&plaintext.trim(), limit)
 }
 
 fn remove_links(buff: String) -> String {
@@ -390,11 +400,11 @@ mod test {
         const TEST_INPUT: &str = "## Introduction {#introduction}\
         \nThis is a test description.";
         // it adds an extra new line at the end, but I don't care
-        const EXPECTED: &str = "Introduction\nThis is a test description.\n";
+        const EXPECTED: &str = "This is a test description.";
         assert_eq!(get_description(TEST_INPUT, 100), EXPECTED);
 
         const TEST_INPUT_LINK: &str = "hello world! [how](http://google.com) are you?";
-        const EXPECTED_LINK: &str = "hello world! how are you?\n";
+        const EXPECTED_LINK: &str = "hello world! how are you?";
         assert_eq!(
             get_description(TEST_INPUT_LINK, TEST_INPUT_LINK.len()),
             EXPECTED_LINK
