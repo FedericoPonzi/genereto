@@ -80,6 +80,8 @@ pub(crate) fn compile_markdown_to_html(markdown_input: &str) -> String {
     let mut options = Options::empty();
     options.insert(Options::ENABLE_STRIKETHROUGH);
     options.insert(Options::ENABLE_HEADING_ATTRIBUTES);
+    options.insert(Options::ENABLE_TABLES);
+
     let parser = Parser::new_ext(markdown_input, options);
 
     // Write to String buffer.
@@ -150,9 +152,8 @@ pub(crate) fn filter_out_comments(markdown_content: &str) -> String {
             let comment_start = line.find("$GENERETO{").unwrap();
             let comment_end = line.find('}').unwrap();
             line_new = line.replace(&line[comment_start..=comment_end], "");
-        } else {
-            line_new += "\n"; // no comments.
         }
+
         page_content_new.push_str(&format!("{line_new}\n"));
     }
     page_content_new
@@ -173,7 +174,7 @@ some code!!
         let page_content_new = filter_out_comments(page_content);
         assert_eq!(
             page_content_new,
-            "\n        content\n\n        some content\n```\nsome code!!\n```\n\n"
+            "\n        content\n        some content\n```\nsome code!!\n```\n"
         );
     }
 
