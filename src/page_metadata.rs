@@ -107,6 +107,8 @@ impl PageMetadata {
         file_name: &str,
     ) -> String {
         match page_cover_image {
+            // todo: should be a complete path, not doing funky replace of the file name
+            // or it breaks cover image for swag page for example.
             Some(cover_image) => format!("{}/{}", &file_name.replace(".html", ""), cover_image),
             None => default_cover_image.to_string(),
         }
