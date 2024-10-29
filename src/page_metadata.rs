@@ -85,7 +85,9 @@ impl PageMetadata {
         Self {
             last_modified_date: get_last_modified_date(&page_metadata.publish_date, file_path),
             reading_time_mins: estimate_reading_time(page_content).to_string(),
-            description: get_description(page_content, DESCRIPTION_LENGTH),
+            description: page_metadata
+                .description
+                .unwrap_or_else(|| get_description(page_content, DESCRIPTION_LENGTH)),
             cover_image: Self::get_cover_image(
                 default_cover_image,
                 page_metadata.cover_image.as_ref(),

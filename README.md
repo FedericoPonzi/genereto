@@ -168,6 +168,10 @@ You can use the `--draft` argument. The supported options are:
 * `dev`: Considers the draft page as a normal page. Useful during development to preview drafts.
 * `hide`: Hides draft pages. They will not be built and will not be linked anywhere.
 
+Adding a new git submodule:
+```
+git submodule add git@github.com:FedericoPonzi/genereto-template-main.git main
+```
 ----
 
 Genereto was presented in [this](https://blog.fponzi.me/2023-05-19-one-complex-setup.html) article.

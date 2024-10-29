@@ -5,4 +5,5 @@
 (cd fponzi.me/ && git submodule update --init --remote --recursive)
 
 cargo run -- --project-path blog/genereto-project --drafts-options dev
-cargo run -- --project-path fponzi.me/genereto-project --drafts-options dev
+cargo run -- --project-path fponzi.me/home --drafts-options dev
+cargo run -- --project-path fponzi.me/swag --drafts-options dev
