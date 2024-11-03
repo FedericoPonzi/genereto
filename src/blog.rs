@@ -133,11 +133,11 @@ fn should_generate_blog(content_path: &Path) -> bool {
 mod tests {
     use super::*;
     use std::io;
-    use tempdir::TempDir;
+    use tempfile::TempDir;
 
     #[test]
     fn test_should_generate_blog() -> io::Result<()> {
-        let tmp_dir = TempDir::new("example")?;
+        let tmp_dir = TempDir::with_prefix("example")?;
         let project_path = tmp_dir.path();
         assert!(!should_generate_blog(project_path));
 

@@ -1,7 +1,7 @@
 use genereto::{GeneretoConfig, GeneretoConfigBlog};
 use std::io;
 use std::path::PathBuf;
-use tempdir::TempDir;
+use tempfile::TempDir;
 
 #[test]
 fn test_load_config_sample_genereto_project_works() {
@@ -91,7 +91,7 @@ fn test_load_config_without_blog() {
     }
 }
 fn store_config(cfg: &str) -> io::Result<TempDir> {
-    let temp = TempDir::new("genereto")?;
+    let temp = TempDir::with_prefix("genereto")?;
     let config_path = temp.path().join("config.yml");
     std::fs::write(config_path, cfg)?;
     Ok(temp)

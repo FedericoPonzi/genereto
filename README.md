@@ -47,7 +47,7 @@ output_dirname: 'output' # name for the folder that olds the generated files
 title: Blog
 # used in RSS.
 description: Description of the blog
-# used in RSS.
+# used in RSS or for templating purposes.
 url: https://blog.fponzi.me
 ```
 
