@@ -23,6 +23,9 @@ pub struct PageMetadataRaw {
     /// Defaults to false. If true, it will add a Table Of Contents.
     #[serde(default = "bool::default")]
     pub show_table_of_contents: bool,
+    /// Defaults to false. If true, it will add an H1 with the page title on top of the content.
+    #[serde(default = "bool::default")]
+    pub add_title: bool,
     /// If empty, the first 150 chars will be used as description.
     pub description: Option<String>,
     pub cover_image: Option<String>,
@@ -52,6 +55,7 @@ pub struct PageMetadata {
     pub last_modified_date: String,
     pub cover_image: String,
     pub is_draft: bool,
+    pub add_title: bool,
 }
 
 impl PageMetadata {
@@ -97,6 +101,7 @@ impl PageMetadata {
             keywords: page_metadata.keywords,
             publish_date: page_metadata.publish_date,
             is_draft: page_metadata.is_draft,
+            add_title: page_metadata.add_title,
             file_name,
             table_of_contents,
         }

@@ -49,7 +49,15 @@ pub fn compile_page_phase_2(
     let metadata = PageMetadata::new(metadata_raw, &content, entry_path, default_cover_image);
 
     let mut final_page = template_raw.to_string();
-    let html_content = compile_markdown_to_html(&filter_out_comments(&content));
+    
+    // If add_title is true, add an H1 with the page title at the top of the content
+    let content_with_title = if metadata.add_title {
+        format!("# {}\n\n{}", metadata.title, content)
+    } else {
+        content
+    };
+    
+    let html_content = compile_markdown_to_html(&filter_out_comments(&content_with_title));
     let start = final_page.find(START_PATTERN).unwrap();
     let end = final_page.find(END_PATTERN).unwrap();
 

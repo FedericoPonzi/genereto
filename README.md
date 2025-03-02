@@ -101,6 +101,8 @@ is_draft: true
 # if set to true, it will add a `table_of_contents` variable in the template with the table of contents generated
 # by this article.
 show_table_of_contents: true
+# if set to true, it will automatically add an H1 heading with the page title at the top of the content
+add_title: true
 ```
 ### Inside articles
 Inside the article, you can embed **todos**:
