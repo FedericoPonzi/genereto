@@ -63,7 +63,7 @@ fn build_index_page(
         .filter(|el| !el.is_draft || drafts_options.is_dev())
     {
         let li_entry = format!(
-            "<li><a href=\"{}\">{}</a> - {} ({})</li>",
+            "<li><a href=\"{}\">{}</a> - {} ({})</li>\n",
             md.file_name, md.title, md.publish_date, md.keywords,
         );
         links.push_str(&li_entry);
@@ -89,7 +89,8 @@ fn build_articles(
     let template_path = &genereto_config
         .template_dir_path
         .join(BLOG_ENTRY_TEMPLATE_FILENAME);
-    let template_raw = fs::read_to_string(template_path)?;
+    let template_raw =
+        fs::read_to_string(template_path).context("reading template path".to_string())?;
     let default_cover_image = &genereto_config.default_cover_image;
     for entry in fs::read_dir(
         genereto_config
@@ -104,14 +105,24 @@ fn build_articles(
             copy_directory_recursively(&entry_path, &destination_path)?;
         } else if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "md" {
             // TODO: test. any other non-md file is copied over to the output folder.
-            let article_opt = load_compile_write(
-                default_cover_image,
-                &entry_path,
-                drafts_options,
-                &destination_path,
-                &template_raw,
-            )
-            .with_context(|| format!("Failed to build page {entry_path_display}"))?;
+            let article_opt = if genereto_config.blog.generate_single_pages {
+                load_compile_write(
+                    default_cover_image,
+                    &entry_path,
+                    drafts_options,
+                    &destination_path,
+                    &template_raw,
+                )
+                .with_context(|| format!("Failed to build page {entry_path_display}"))?
+            } else {
+                // When single pages are disabled, still parse metadata but skip file generation
+                let (_, md) =
+                    crate::parser::load_compile(default_cover_image, &entry_path, &template_raw)
+                        .with_context(|| {
+                            format!("Failed to parse metadata for {entry_path_display}")
+                        })?;
+                Some(md)
+            };
             if let Some(md) = article_opt {
                 articles.push(md);
             }

@@ -29,6 +29,8 @@ pub struct PageMetadataRaw {
     /// If empty, the first 150 chars will be used as description.
     pub description: Option<String>,
     pub cover_image: Option<String>,
+    /// Optional URL for external links
+    pub url: Option<String>,
 }
 
 impl Display for PageMetadataRaw {
@@ -56,6 +58,8 @@ pub struct PageMetadata {
     pub cover_image: String,
     pub is_draft: bool,
     pub add_title: bool,
+    /// Optional URL for external links
+    pub url: Option<String>,
 }
 
 impl PageMetadata {
@@ -104,6 +108,7 @@ impl PageMetadata {
             add_title: page_metadata.add_title,
             file_name,
             table_of_contents,
+            url: page_metadata.url,
         }
     }
     fn get_cover_image(
@@ -118,24 +123,25 @@ impl PageMetadata {
             None => default_cover_image.to_string(),
         }
     }
-    pub fn get_variables(&self) -> Vec<(&'static str, &str)> {
+    pub fn get_variables(&self) -> Vec<(&'static str, String)> {
         vec![
-            ("$GENERETO['title']", self.title.trim()),
-            ("$GENERETO['publish_date']", &self.publish_date),
-            ("$GENERETO['last_modified_date']", &self.last_modified_date),
-            ("$GENERETO['read_time_minutes']", &self.reading_time_mins),
-            ("$GENERETO['keywords']", self.keywords.trim()),
-            ("$GENERETO['description']", self.description.trim()),
-            ("$GENERETO['file_name']", &self.file_name),
-            ("$GENERETO['table_of_contents']", &self.table_of_contents),
-            ("$GENERETO['cover_image']", &self.cover_image),
+            ("$GENERETO['title']", self.title.trim().to_string()),
+            ("$GENERETO['publish_date']", self.publish_date.clone()),
+            ("$GENERETO['last_modified_date']", self.last_modified_date.clone()),
+            ("$GENERETO['read_time_minutes']", self.reading_time_mins.clone()),
+            ("$GENERETO['keywords']", self.keywords.trim().to_string()),
+            ("$GENERETO['description']", self.description.trim().to_string()),
+            ("$GENERETO['file_name']", self.file_name.clone()),
+            ("$GENERETO['table_of_contents']", self.table_of_contents.clone()),
+            ("$GENERETO['cover_image']", self.cover_image.clone()),
+            ("$GENERETO['url']", self.url.clone().unwrap_or_default()),
         ]
     }
 
     // Apply variables to the final page.
     pub(crate) fn apply(&self, mut final_page: String) -> String {
-        for i in self.get_variables() {
-            final_page = final_page.replace(i.0, i.1);
+        for (key, value) in self.get_variables() {
+            final_page = final_page.replace(key, &value);
         }
         final_page
     }
@@ -427,3 +433,8 @@ mod test {
         assert!(contains_todos(TEST_INPUT));
     }
 }
+
+
+
+
+

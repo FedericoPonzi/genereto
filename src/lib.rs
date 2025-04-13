@@ -9,14 +9,13 @@ use anyhow::Context;
 pub use config::GeneretoConfig;
 pub use config::GeneretoConfigBlog;
 pub use project_generation::generate_project;
+pub mod blog;
 
-use crate::blog::generate_blog;
 use crate::config::validate_project_folders;
 use crate::fs_util::copy_directory_recursively;
 use crate::parser::load_compile_write;
 use crate::rss_generation::generate_rss;
 
-mod blog;
 mod config;
 mod fs_util;
 mod page_metadata;
@@ -37,6 +36,14 @@ pub enum DraftsOptions {
     Hide,
 }
 impl DraftsOptions {
+    pub fn new(is_dev: bool) -> Self {
+        if is_dev {
+            DraftsOptions::Dev
+        } else {
+            DraftsOptions::Build
+        }
+    }
+
     fn is_dev(&self) -> bool {
         matches!(self, DraftsOptions::Dev)
     }
@@ -55,7 +62,7 @@ pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Resu
     }
     fs::create_dir_all(&genereto_config.output_dir_path)?;
 
-    let metadata = generate_blog(&genereto_config, &drafts_options)?;
+    let metadata = blog::generate_blog(&genereto_config, &drafts_options)?;
     let has_blog = metadata.is_some();
     if has_blog {
         generate_rss(
@@ -132,3 +139,7 @@ mod tests {
     #[test]
     fn test_compile_page() {}
 }
+
+
+
+

@@ -1,19 +1,11 @@
-template: 'main' # select a template - name of the folder in genereto-project/templates/
-output_dirname: 'output' # name for the folder that olds the generated files, inside the genereto-project path.
-# used in RSS
-title: My Website
-# used in RSS.
-description: The best website in the world.
-# used in RSS.
-url: https://blog.fponzi.me
-# used in metadata, and passed to the template
-# default_cover_image: res/cover.jpg
-# blog:
-#     # this is a path relative the template folder
-#     # for the template to use for the blog index.
-#     base_template: blog-index.html
-#     # blog index file name. Useful if you want to have a blog index in the root directory
-#     # along with an index.html.
-#     index_name: index.html
-#     # offset from the output folder
-#     destination: blog/
+template: 'main'
+output_dirname: 'output'
+title: Distributed Systems Resources
+description: A curated collection of distributed systems resources and articles
+url: https://distsys.example.com
+default_cover_image: res/default-cover.jpg
+blog:
+  base_template: blog-index.html
+  index_name: blog.html
+  destination: blog
+  generate_single_pages: true

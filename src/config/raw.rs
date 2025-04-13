@@ -12,6 +12,8 @@ pub(crate) struct GeneretoConfigBlogRaw {
     pub(crate) index_name: PathBuf,
     #[serde(default = "blog_destination")]
     pub(crate) destination: PathBuf,
+    #[serde(default = "default_single_pages")]
+    pub(crate) generate_single_pages: bool,
 }
 
 fn index_html() -> PathBuf {
@@ -21,12 +23,17 @@ fn blog_destination() -> PathBuf {
     "".into()
 }
 
+fn default_single_pages() -> bool {
+    true
+}
+
 impl Default for GeneretoConfigBlogRaw {
     fn default() -> Self {
         Self {
             base_template: index_html(),
             index_name: index_html(),
             destination: blog_destination(),
+            generate_single_pages: default_single_pages(),
         }
     }
 }
@@ -99,6 +106,7 @@ mod tests {
                 base_template: "blog-index.html".into(),
                 index_name: "blog.html".into(),
                 destination: "some/directory/folder".into(),
+                generate_single_pages: true,
             },
         };
 
@@ -112,6 +120,7 @@ mod tests {
                 base_template: "index.html".into(),
                 index_name: "index.html".into(),
                 destination: "".into(),
+                generate_single_pages: true,
             },
         };
 
@@ -135,3 +144,8 @@ mod tests {
         }
     }
 }
+
+
+
+
+
