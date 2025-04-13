@@ -10,11 +10,11 @@ const SAMPLE_CONTENT_PAGE: &str =
 const SAMPLE_IMAGE: &[u8] =
     include_bytes!("../sample-genereto-project/content/blog/2024-05-04-hello-world/rustacean.png");
 
-pub fn generate_project(project_path: &Path) -> anyhow::Result<()> {
+pub fn generate_project(project_path: &Path, override_git: bool) -> anyhow::Result<()> {
     // check if project_path has a .git directory.
-    // if it doesn't, this script could cause irreversible overwrites. Let's bail and ask user to use git.
-    if !project_path.join(".git").exists() {
-        bail!(".git directory not found. This script could cause irreversible overwrites. Please initialize a git repo using `git init`. Exiting.")
+    // if it doesn't and override_git is false, this script could cause irreversible overwrites.
+    if !project_path.join(".git").exists() && !override_git {
+        bail!(".git directory not found. This script could cause irreversible overwrites. Please initialize a git repo using `git init` or use --override-git flag. Exiting.")
     }
     // create directories:
     std::fs::create_dir_all(project_path.join("genereto-project/templates/main/res"))?;
@@ -52,3 +52,4 @@ pub fn generate_project(project_path: &Path) -> anyhow::Result<()> {
 
     Ok(())
 }
+

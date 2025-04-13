@@ -60,6 +60,18 @@ You can run genereto by running:
 cargo run -- --project-path /home/user/blog/genereto-project
 ```
 
+To generate a new project:
+
+```shell
+cargo run -- generate-project --project-path /path/to/project
+```
+
+By default, the project generation requires a git repository to prevent accidental overwrites. You can override this check using the `--override-git` flag:
+
+```shell
+cargo run -- generate-project --project-path /path/to/project --override-git
+```
+
 If you have draft articles, they will be built but will not be linked anywhere. If you want to hide them completely you
 can use `--drafts hide`:
 
@@ -70,15 +82,40 @@ cargo run -- --project-path /home/user/blog/genereto-project --drafts hide
 Genereto is not published as a compiled binary,
 so for now you will need to fetch this repo and build it yourself by using rust and cargo.
 
-## Writing articles
+## Box-Style Layout
 
-Every article is a markdown file divided in two sections: metadata and article content. The two sections are divided by
-a number of "-".
+The template system now supports a box-style layout for displaying content in a grid of boxes. This is particularly useful for creating link collections, resource lists, or article indexes. Each box can contain:
 
-As the name suggests, the metadata section contains metadata about the article. It will be used in the template to
-populate metadata headers and such.
+* Title (with optional link to external URL)
+* Publication date
+* Description
+* Optional image
 
-This metadata section is written in yaml. These are the supported fields:
+To use this layout:
+
+1. Use the provided `main` template which includes the box-style CSS
+2. In your content files, include the following metadata:
+   * `title`: The title to display
+   * `url`: (Optional) External URL to link to
+   * `description`: Description text
+   * `publish_date`: Publication date
+   * `cover_image`: (Optional) Image to display
+
+Example content file:
+
+```yaml
+title: Raft Made Simple
+keywords: distributed systems, raft, consensus
+publish_date: 2023-12-01
+description: A great explanation of the Raft consensus algorithm with clear diagrams and examples
+url: https://decentralizedthoughts.github.io/2020-12-12-raft-made-simple/
+cover_image: https://example.com/raft.png
+---
+
+Content goes here...
+```
+
+The boxes will be styled with a clean, modern design including shadows and hover effects. The layout is responsive and will adjust to different screen sizes.
 
 * `title` string: title of the article.
 * `keywords` string: comma separated list of keywords.
@@ -87,6 +124,7 @@ This metadata section is written in yaml. These are the supported fields:
 * `is_draft` bool: Default false, if set to true it will skip processing this page.
 * `show_table_of_contents` bool: Default false, if set to true it will add a ToC (if supported by the template)
 * `cover_image` string: the cover image for this blog post. If empty the variable will use the value from the config file's `default_cover_image`.
+* `url` string: Optional external URL for the article. If provided, the article title will link to this URL instead of the local page.
 
 As an example:
 
@@ -177,3 +215,5 @@ git submodule add git@github.com:FedericoPonzi/genereto-template-main.git main
 ----
 
 Genereto was presented in [this](https://blog.fponzi.me/2023-05-19-one-complex-setup.html) article.
+
+
