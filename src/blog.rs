@@ -1,15 +1,32 @@
 use crate::config::GeneretoConfig;
-use crate::page_metadata::PageMetadata;
+use crate::page_metadata::{PageMetadata, PageMetadataRaw};
 
 use crate::fs_util::copy_directory_recursively;
 use crate::parser::{load_compile_write, END_PATTERN, START_PATTERN};
 use crate::DraftsOptions;
 use anyhow::Context;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 
 const BLOG_ENTRIES_FOLDER_RELATIVE_PATH: &str = "blog";
+const BLOG_ENTRIES_FILE_NAME: &str = "blog.yml";
 const BLOG_ENTRY_TEMPLATE_FILENAME: &str = "blog.html";
+
+#[derive(Debug, Serialize, Deserialize)]
+struct BlogEntries {
+    entries: Vec<PageMetadataRaw>,
+}
+
+impl BlogEntries {
+    fn load_from_path(path: &Path) -> anyhow::Result<Option<Self>> {
+        if !path.exists() {
+            return Ok(None);
+        }
+        let entries: BlogEntries = serde_yaml::from_reader(&fs::File::open(path)?)?;
+        Ok(Some(entries))
+    }
+}
 
 pub fn generate_blog(
     genereto_config: &GeneretoConfig,
@@ -106,55 +123,76 @@ fn build_articles(
     let template_path = &genereto_config
         .template_dir_path
         .join(BLOG_ENTRY_TEMPLATE_FILENAME);
-    let template_raw =
-        fs::read_to_string(template_path).context("reading template path".to_string())?;
+    let template_raw = fs::read_to_string(template_path)
+        .context(format!("reading template path {:?}", template_path))?;
     let default_cover_image = &genereto_config.default_cover_image;
-    for entry in fs::read_dir(
-        genereto_config
-            .content_path
-            .join(BLOG_ENTRIES_FOLDER_RELATIVE_PATH), // todo: this can be moved to the config.
-    )? {
-        let entry_path = entry?.path();
-        let entry_path_display = entry_path.display().to_string();
-        let destination_path = genereto_config.get_blog_dest_path(&entry_path);
-        info!("Compiling {entry_path_display} to {destination_path:?}.");
-        if entry_path.is_dir() {
-            copy_directory_recursively(&entry_path, &destination_path)?;
-        } else if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "md" {
-            // TODO: test. any other non-md file is copied over to the output folder.
-            let article_opt = if genereto_config.blog.generate_single_pages {
-                load_compile_write(
-                    default_cover_image,
-                    &entry_path,
-                    drafts_options,
-                    &destination_path,
-                    &template_raw,
-                )
-                .with_context(|| format!("Failed to build page {entry_path_display}"))?
+
+    // First try to load from blog.yml if it exists
+    let yaml_path = genereto_config.content_path.join(BLOG_ENTRIES_FILE_NAME);
+    if let Some(blog_entries) = BlogEntries::load_from_path(&yaml_path)? {
+        for entry in blog_entries.entries {
+            let metadata = PageMetadata::new(
+                entry,
+                "", // No content for YAML entries
+                &yaml_path,
+                default_cover_image,
+            );
+            debug!("Cover image: {}", metadata.cover_image);
+            articles.push(metadata);
+        }
+    }
+
+    // Then load from blog folder if it exists
+    let blog_folder = genereto_config
+        .content_path
+        .join(BLOG_ENTRIES_FOLDER_RELATIVE_PATH);
+    if blog_folder.exists() {
+        for entry in fs::read_dir(&blog_folder)? {
+            let entry_path = entry?.path();
+            let entry_path_display = entry_path.display().to_string();
+            let destination_path = genereto_config.get_blog_dest_path(&entry_path);
+            info!("Compiling {entry_path_display} to {destination_path:?}.");
+            if entry_path.is_dir() {
+                copy_directory_recursively(&entry_path, &destination_path)?;
+            } else if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "md" {
+                let article_opt = if genereto_config.blog.generate_single_pages {
+                    load_compile_write(
+                        default_cover_image,
+                        &entry_path,
+                        drafts_options,
+                        &destination_path,
+                        &template_raw,
+                    )
+                    .with_context(|| format!("Failed to build page {entry_path_display}"))?
+                } else {
+                    // When single pages are disabled, still parse metadata but skip file generation
+                    let (_, md) = crate::parser::load_compile(
+                        default_cover_image,
+                        &entry_path,
+                        &template_raw,
+                    )
+                    .with_context(|| {
+                        format!("Failed to parse metadata for {entry_path_display}")
+                    })?;
+                    Some(md)
+                };
+                if let Some(md) = article_opt {
+                    articles.push(md);
+                }
             } else {
-                // When single pages are disabled, still parse metadata but skip file generation
-                let (_, md) =
-                    crate::parser::load_compile(default_cover_image, &entry_path, &template_raw)
-                        .with_context(|| {
-                            format!("Failed to parse metadata for {entry_path_display}")
-                        })?;
-                Some(md)
-            };
-            if let Some(md) = article_opt {
-                articles.push(md);
+                warn!("Found entry which is not a file nor a directory: {entry_path:?}. Skipping.");
             }
-        } else {
-            warn!("Found entry which is not a file nor a directory: {entry_path:?}. Skipping.");
         }
     }
     Ok(articles)
 }
 
 fn should_generate_blog(content_path: &Path) -> bool {
-    // check if project_path/content/blog exists.
+    // check if project_path/content/blog exists or if blog.yml exists
     content_path
         .join(BLOG_ENTRIES_FOLDER_RELATIVE_PATH)
         .exists()
+        || content_path.join(BLOG_ENTRIES_FILE_NAME).exists()
 }
 
 #[cfg(test)]
@@ -170,8 +208,45 @@ mod tests {
         let project_path = tmp_dir.path();
         assert!(!should_generate_blog(project_path));
 
-        fs::create_dir_all(project_path.join(BLOG_ENTRIES_FOLDER_RELATIVE_PATH)).unwrap();
+        // Test with blog folder
+        fs::create_dir_all(project_path.join(BLOG_ENTRIES_FOLDER_RELATIVE_PATH))?;
         assert!(should_generate_blog(project_path));
+
+        // Test with blog.yml
+        fs::remove_dir_all(project_path.join(BLOG_ENTRIES_FOLDER_RELATIVE_PATH))?;
+        assert!(!should_generate_blog(project_path));
+        fs::write(
+            project_path.join(BLOG_ENTRIES_FILE_NAME),
+            "entries:\n  - title: Test\n    publish_date: 2024-01-01\n",
+        )?;
+        assert!(should_generate_blog(project_path));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_blog_entries_yaml() -> anyhow::Result<()> {
+        let tmp_dir = TempDir::with_prefix("example")?;
+        let yaml_content = r#"
+entries:
+  - title: Test Article 1
+    publish_date: 2024-01-01
+    keywords: test
+    description: Test description 1
+    cover_image: cover1.jpg
+  - title: Test Article 2
+    publish_date: 2024-01-02
+    keywords: test2
+    description: Test description 2
+    cover_image: cover2.jpg
+"#;
+        let yaml_path = tmp_dir.path().join("blog.yml");
+        fs::write(&yaml_path, yaml_content)?;
+
+        let blog_entries = BlogEntries::load_from_path(&yaml_path)?.unwrap();
+        assert_eq!(blog_entries.entries.len(), 2);
+        assert_eq!(blog_entries.entries[0].title, "Test Article 1");
+        assert_eq!(blog_entries.entries[1].title, "Test Article 2");
 
         Ok(())
     }

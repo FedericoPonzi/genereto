@@ -117,10 +117,21 @@ impl PageMetadata {
         page_cover_image: Option<&String>,
         file_name: &str,
     ) -> String {
+        debug!("Args:  {default_cover_image:?}, {page_cover_image:?}, {file_name:?}");
         match page_cover_image {
             // todo: should be a complete path, not doing funky replace of the file name
             // or it breaks cover image for swag page for example.
-            Some(cover_image) => format!("{}/{}", &file_name.replace(".html", ""), cover_image),
+            Some(cover_image) => {
+                if cover_image.is_empty() {
+                    return default_cover_image.to_string();
+                }
+                if cover_image.starts_with("http") {
+                    return cover_image.to_string();
+                }
+                // assume it's in a folder named the same way as this page
+                // for blog.yml; that would be blog.yml/images
+                format!("{}/{}", &file_name.replace(".html", ""), cover_image)
+            }
             None => default_cover_image.to_string(),
         }
     }

@@ -7,10 +7,13 @@ A simple static site generator to handle a blog website.
 With Genereto, you can:
 
 * Write the template for your blog and index page.
-* Write your articles in markdown.
+* Write your articles in markdown or define them in a YAML file for a Tumblr style blog.
 * Generate your blog site by generating the html out of your markdown and applying the template.
 
-Each article is divided in two sections: metadatas (written in yaml) and the article.
+Articles can be created in two ways:
+1. As markdown files divided into two sections: metadata (written in YAML) and the article content.
+2. As entries containing only the metadata, in a blog.yml file
+3. Both.
 
 The metdata will be available in the template in the form of variables like `$GENERETO['title']`.
 
@@ -26,6 +29,8 @@ genereto-project/
         /blog/2024-my-first-article.md
         /my-article/image.png
         my-article.md
+        # Alternatively (or jointly), you can use blog.yml for tumblr-style posts
+        blog.yml
     templates/
         main/
             res/
@@ -86,40 +91,31 @@ cargo run -- --project-path /home/user/blog/genereto-project --drafts hide
 Genereto is not published as a compiled binary,
 so for now you will need to fetch this repo and build it yourself by using rust and cargo.
 
-## Box-Style Layout
+## Blog Entries in YAML Format
 
-The template system now supports a box-style layout for displaying content in a grid of boxes. This is particularly useful for creating link collections, resource lists, or article indexes. Each box can contain:
+For tumblr-style blogs or when you want to create a collection of entries without full article content, you can use a `blog.yml` file in your content directory. 
 
-* Title (with optional link to external URL)
-* Publication date
-* Description
-* Optional image
-
-To use this layout:
-
-1. Use the provided `main` template which includes the box-style CSS
-2. In your content files, include the following metadata:
-   * `title`: The title to display
-   * `url`: (Optional) External URL to link to
-   * `description`: Description text
-   * `publish_date`: Publication date
-   * `cover_image`: (Optional) Image to display
-
-Example content file:
+This file should contain a list of entries with their metadata. Here's an example:
 
 ```yaml
-title: Raft Made Simple
-keywords: distributed systems, raft, consensus
-publish_date: 2023-12-01
-description: A great explanation of the Raft consensus algorithm with clear diagrams and examples
-url: https://decentralizedthoughts.github.io/2020-12-12-raft-made-simple/
-cover_image: https://example.com/raft.png
----
+entries:
+  - title: My First Post
+    publish_date: 2024-01-01
+    keywords: hello, world
+    description: This is my first post
+    cover_image: cover1.jpg
+    url: https://example.com  # Optional external link
 
-Content goes here...
+  - title: Another Post
+    publish_date: 2024-01-02
+    keywords: updates
+    description: Just a quick update
+    cover_image: cover2.jpg
 ```
+Each entry supports all the same metadata fields as markdown articles.
 
-The boxes will be styled with a clean, modern design including shadows and hover effects. The layout is responsive and will adjust to different screen sizes.
+
+### Articles metadatas:
 
 * `title` string: title of the article.
 * `keywords` string: comma separated list of keywords.
@@ -129,6 +125,7 @@ The boxes will be styled with a clean, modern design including shadows and hover
 * `show_table_of_contents` bool: Default false, if set to true it will add a ToC (if supported by the template)
 * `cover_image` string: the cover image for this blog post. If empty the variable will use the value from the config file's `default_cover_image`.
 * `url` string: Optional external URL for the article. If provided, the article title will link to this URL instead of the local page.
+
 
 As an example:
 
@@ -146,6 +143,7 @@ show_table_of_contents: true
 # if set to true, it will automatically add an H1 heading with the page title at the top of the content
 add_title: true
 ```
+
 ### Inside articles
 Inside the article, you can embed **todos**:
 
@@ -171,7 +169,7 @@ To create a template, you need two files:
 * `index.html` the index page, which will be used to list blog articles,
 * `blog.html` is the template used for single articles.
 
-in both pages, the section that is replaced with the html is demarked by start_content and end_content.
+in both pages, the section replaced with the html is demarked by start_content and end_content.
 
 ```html
 <!-- start_content -->
@@ -207,8 +205,9 @@ Inside the html templates, you have access to different variables; that take the
   quickly jump to the right heading.
 * `last_modified_date`: format is like `2023-08-18`. It uses git to get the last modified date. If git is not present,
   it will use publish date instead.
+* and all the other variables you defined in the metadata section.
 
-### Feed RSS
+## Feed RSS
 
 Genereto will also generate a RSS feed for you, you should advertise it in your html (and somewhere in your website if
 you want):
@@ -232,7 +231,3 @@ git submodule add git@github.com:FedericoPonzi/genereto-template-main.git main
 ----
 
 Genereto was presented in [this](https://blog.fponzi.me/2023-05-19-one-complex-setup.html) article.
-
-
-
-
