@@ -178,7 +178,20 @@ Hello world! This will be replaced, so you can use it in your template to see ho
 because the content will be removed, it can be used to test the template itself.
 
 In the blog.html, this content is replaced with your article section.
-In the index.html, this content is replaced by the list of articles.
+In the index.html, this content is replaced by the list of articles. For the index page, you can customize how each article is displayed by providing an HTML template between the start_content and end_content markers. For example:
+
+```html
+<!-- start_content -->
+<div class="post">
+    <h2><a href="$GENERETO['url']">$GENERETO['title']</a></h2>
+    <div class="post-date">$GENERETO['publish_date']</div>
+    <p class="post-description">$GENERETO['description']</p>
+    <img src="$GENERETO['cover_image']" alt="$GENERETO['title']" class="post-image">
+</div>
+<!-- end_content -->
+```
+
+This template will be used for each article in the index, with the variables being replaced with the corresponding metadata from each article. If no template is provided (i.e., the content between start_content and end_content is empty), a default template will be used that displays the title, date, and description.
 
 Inside the html templates, you have access to different variables; that take the form of `$GENERETO['variable_name']`:
 
@@ -215,5 +228,6 @@ git submodule add git@github.com:FedericoPonzi/genereto-template-main.git main
 ----
 
 Genereto was presented in [this](https://blog.fponzi.me/2023-05-19-one-complex-setup.html) article.
+
 
 

@@ -54,7 +54,19 @@ fn build_index_page(
     destination_path: &Path,
     drafts_options: &DraftsOptions,
 ) -> anyhow::Result<()> {
-    let mut links = "<ul class=\"index-list\">\n".to_string();
+    // Extract the template content between start_content and end_content
+    let start = template_view.find(START_PATTERN).unwrap();
+    let end = template_view.find(END_PATTERN).unwrap();
+    let template_content = &template_view[start + START_PATTERN.len()..end].trim();
+
+    // If template is empty or just whitespace, fallback to a default template
+    let template_to_use = if template_content.trim().is_empty() {
+        "<div class=\"post\">\n<h2><a href=\"$GENERETO['file_name']\">$GENERETO['title']</a></h2>\n<div class=\"post-date\">$GENERETO['publish_date']</div>\n<p class=\"post-description\">$GENERETO['description']</p>\n</div>\n"
+    } else {
+        template_content
+    };
+
+    let mut html_content = String::new();
     for md in articles
         .iter()
         // error page doesn't need to be shown on the homepage.
@@ -62,18 +74,13 @@ fn build_index_page(
         // if the page is a draft and we are not in dev mode, we need to skip it.
         .filter(|el| !el.is_draft || drafts_options.is_dev())
     {
-        let li_entry = format!(
-            "<li><a href=\"{}\">{}</a> - {} ({})</li>\n",
-            md.file_name, md.title, md.publish_date, md.keywords,
-        );
-        links.push_str(&li_entry);
+        // Apply the template for each article
+        let entry_content = md.apply(template_to_use.to_string());
+        html_content.push_str(&entry_content);
+        html_content.push('\n');
     }
-    links.push_str("</ul>\n");
-    let html_content = links;
-    let start = template_view.find(START_PATTERN).unwrap();
-    let end = template_view.find(END_PATTERN).unwrap();
-    template_view.replace_range(start..end + END_PATTERN.len(), &html_content);
 
+    template_view.replace_range(start..end + END_PATTERN.len(), &html_content);
     fs::write(destination_path, template_view).context("Failed writing to output page")?;
     Ok(())
 }
@@ -157,4 +164,75 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_build_index_page() -> anyhow::Result<()> {
+        let tmp_dir = TempDir::with_prefix("example")?;
+        let output_path = tmp_dir.path().join("index.html");
+        
+        // Create test articles
+        let articles = vec![
+            PageMetadata {
+                title: "Test Article 1".to_string(),
+                publish_date: "2024-01-01".to_string(),
+                keywords: "test".to_string(),
+                reading_time_mins: "5".to_string(),
+                description: "Test description 1".to_string(),
+                file_name: "article1.html".to_string(),
+                table_of_contents: "".to_string(),
+                last_modified_date: "2024-01-01".to_string(),
+                cover_image: "cover1.jpg".to_string(),
+                is_draft: false,
+                add_title: false,
+                url: None,
+            },
+            PageMetadata {
+                title: "Test Article 2".to_string(),
+                publish_date: "2024-01-02".to_string(),
+                keywords: "test2".to_string(),
+                reading_time_mins: "3".to_string(),
+                description: "Test description 2".to_string(),
+                file_name: "article2.html".to_string(),
+                table_of_contents: "".to_string(),
+                last_modified_date: "2024-01-02".to_string(),
+                cover_image: "cover2.jpg".to_string(),
+                is_draft: false,
+                add_title: false,
+                url: None,
+            },
+        ];
+
+        // Test with custom template
+        let template = format!(
+            "<!DOCTYPE html><html><body>{}\n<div class=\"post\">\n<h2>$GENERETO['title']</h2>\n<p>$GENERETO['description']</p>\n</div>\n{}\n</body></html>",
+            START_PATTERN, END_PATTERN
+        );
+
+        let drafts_options = DraftsOptions::Build;
+        build_index_page(template.clone(), &articles, &output_path, &drafts_options)?;
+
+        let output_content = fs::read_to_string(&output_path)?;
+        assert!(output_content.contains("<h2>Test Article 1</h2>"));
+        assert!(output_content.contains("<p>Test description 1</p>"));
+        assert!(output_content.contains("<h2>Test Article 2</h2>"));
+        assert!(output_content.contains("<p>Test description 2</p>"));
+
+        // Test with empty template (should use default)
+        let empty_template = format!(
+            "<!DOCTYPE html><html><body>{}\n{}\n</body></html>",
+            START_PATTERN, END_PATTERN
+        );
+
+        build_index_page(empty_template, &articles, &output_path, &drafts_options)?;
+
+        let output_content = fs::read_to_string(&output_path)?;
+        assert!(output_content.contains("Test Article 1"));
+        assert!(output_content.contains("Test description 1"));
+        assert!(output_content.contains("Test Article 2"));
+        assert!(output_content.contains("Test description 2"));
+
+        Ok(())
+    }
 }
+
+
