@@ -54,6 +54,7 @@ pub struct GeneretoConfigBlog {
     pub index_name: PathBuf,
     pub destination: PathBuf,
     pub generate_single_pages: bool,
+    pub title: Option<String>,
 }
 impl GeneretoConfigBlog {
     fn new_from_raw(project_path: &Path, raw_config: &GeneretoConfigRaw) -> Self {
@@ -69,6 +70,7 @@ impl GeneretoConfigBlog {
             index_name: raw_config.blog.index_name.clone(),
             destination,
             generate_single_pages: raw_config.blog.generate_single_pages,
+            title: raw_config.blog.title.clone(),
         }
     }
 }
@@ -115,5 +117,7 @@ impl GeneretoConfig {
         })
     }
 }
+
+
 
 

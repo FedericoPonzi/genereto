@@ -49,6 +49,10 @@ title: Blog
 description: Description of the blog
 # used in RSS or for templating purposes.
 url: https://blog.fponzi.me
+# Blog specific configuration
+blog:
+  # Optional custom title for the blog section. If not provided, the main title will be used.
+  title: My Blog Title
 ```
 
 Running genereto will create an output folder with the index, articles, and assets inside the `output_dirname` folder.
@@ -228,6 +232,7 @@ git submodule add git@github.com:FedericoPonzi/genereto-template-main.git main
 ----
 
 Genereto was presented in [this](https://blog.fponzi.me/2023-05-19-one-complex-setup.html) article.
+
 
 
 

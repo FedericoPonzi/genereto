@@ -27,6 +27,7 @@ fn test_load_config_without_blog() {
             index_name: blog.html
             destination: some/directory/folder
             generate_single_pages: false
+            title: Custom Blog Title
         "#;
     let expected_full_config = GeneretoConfig {
         template_dir_path: "template".into(),
@@ -43,6 +44,7 @@ fn test_load_config_without_blog() {
             index_name: "blog.html".into(),
             destination: "some/directory/folder".into(),
             generate_single_pages: false,
+            title: Some("Custom Blog Title".into()),
         },
     };
 
@@ -61,6 +63,7 @@ fn test_load_config_without_blog() {
             index_name: "index.html".into(),
             destination: "".into(),
             generate_single_pages: true,
+            title: None,
         },
     };
 
@@ -91,6 +94,7 @@ fn test_load_config_without_blog() {
         assert_eq!(expected.url, received.url);
         assert_eq!(expected.description, received.description);
         assert_eq!(expected.default_cover_image, received.default_cover_image);
+        assert_eq!(expected.blog.title, received.blog.title);
     }
 }
 fn store_config(cfg: &str) -> io::Result<TempDir> {
@@ -99,5 +103,6 @@ fn store_config(cfg: &str) -> io::Result<TempDir> {
     std::fs::write(config_path, cfg)?;
     Ok(temp)
 }
+
 
 

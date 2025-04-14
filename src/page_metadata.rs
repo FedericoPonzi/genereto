@@ -19,6 +19,7 @@ pub struct PageMetadataRaw {
     #[serde(default = "bool::default")]
     pub is_draft: bool,
     /// Keywords for this article
+    #[serde(default)]
     pub keywords: String,
     /// Defaults to false. If true, it will add a Table Of Contents.
     #[serde(default = "bool::default")]
@@ -127,12 +128,24 @@ impl PageMetadata {
         vec![
             ("$GENERETO['title']", self.title.trim().to_string()),
             ("$GENERETO['publish_date']", self.publish_date.clone()),
-            ("$GENERETO['last_modified_date']", self.last_modified_date.clone()),
-            ("$GENERETO['read_time_minutes']", self.reading_time_mins.clone()),
+            (
+                "$GENERETO['last_modified_date']",
+                self.last_modified_date.clone(),
+            ),
+            (
+                "$GENERETO['read_time_minutes']",
+                self.reading_time_mins.clone(),
+            ),
             ("$GENERETO['keywords']", self.keywords.trim().to_string()),
-            ("$GENERETO['description']", self.description.trim().to_string()),
+            (
+                "$GENERETO['description']",
+                self.description.trim().to_string(),
+            ),
             ("$GENERETO['file_name']", self.file_name.clone()),
-            ("$GENERETO['table_of_contents']", self.table_of_contents.clone()),
+            (
+                "$GENERETO['table_of_contents']",
+                self.table_of_contents.clone(),
+            ),
             ("$GENERETO['cover_image']", self.cover_image.clone()),
             ("$GENERETO['url']", self.url.clone().unwrap_or_default()),
         ]
@@ -433,8 +446,3 @@ mod test {
         assert!(contains_todos(TEST_INPUT));
     }
 }
-
-
-
-
-

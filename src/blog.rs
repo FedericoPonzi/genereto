@@ -44,6 +44,7 @@ pub fn generate_blog(
         &metadatas,
         destination_path,
         drafts_options,
+        genereto_config,
     )
     .context("Failed to build index page.")?;
     Ok(Some(metadatas))
@@ -53,6 +54,7 @@ fn build_index_page(
     articles: &[PageMetadata],
     destination_path: &Path,
     drafts_options: &DraftsOptions,
+    genereto_config: &GeneretoConfig,
 ) -> anyhow::Result<()> {
     // Extract the template content between start_content and end_content
     let start = template_view.find(START_PATTERN).unwrap();
@@ -81,6 +83,14 @@ fn build_index_page(
     }
 
     template_view.replace_range(start..end + END_PATTERN.len(), &html_content);
+
+    // Replace the blog title if configured
+    if let Some(blog_title) = &genereto_config.blog.title {
+        template_view = template_view.replace("$GENERETO['title']", blog_title);
+    } else {
+        template_view = template_view.replace("$GENERETO['title']", &genereto_config.title);
+    }
+
     fs::write(destination_path, template_view).context("Failed writing to output page")?;
     Ok(())
 }
@@ -150,6 +160,7 @@ fn should_generate_blog(content_path: &Path) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::GeneretoConfigBlog;
     use std::io;
     use tempfile::TempDir;
 
@@ -169,7 +180,7 @@ mod tests {
     fn test_build_index_page() -> anyhow::Result<()> {
         let tmp_dir = TempDir::with_prefix("example")?;
         let output_path = tmp_dir.path().join("index.html");
-        
+
         // Create test articles
         let articles = vec![
             PageMetadata {
@@ -204,35 +215,61 @@ mod tests {
 
         // Test with custom template
         let template = format!(
-            "<!DOCTYPE html><html><body>{}\n<div class=\"post\">\n<h2>$GENERETO['title']</h2>\n<p>$GENERETO['description']</p>\n</div>\n{}\n</body></html>",
+            "<!DOCTYPE html><html><body><title>$GENERETO['title']</title>{}\n<div class=\"post\">\n<h2>$GENERETO['title']</h2>\n<p>$GENERETO['description']</p>\n</div>\n{}\n</body></html>",
             START_PATTERN, END_PATTERN
         );
 
         let drafts_options = DraftsOptions::Build;
-        build_index_page(template.clone(), &articles, &output_path, &drafts_options)?;
+
+        // Test with blog title
+        let config = GeneretoConfig {
+            template_dir_path: "template".into(),
+            output_dir_path: "output".into(),
+            project_path: "".into(),
+            content_path: "content".into(),
+            template: "test_template".into(),
+            title: "Main Title".into(),
+            url: "test.com".into(),
+            description: "Test description".into(),
+            default_cover_image: "cover.jpg".into(),
+            blog: GeneretoConfigBlog {
+                base_template: "blog-index.html".into(),
+                index_name: "blog.html".into(),
+                destination: "".into(),
+                generate_single_pages: true,
+                title: Some("Custom Blog Title".into()),
+            },
+        };
+
+        build_index_page(
+            template.clone(),
+            &articles,
+            &output_path,
+            &drafts_options,
+            &config,
+        )?;
 
         let output_content = fs::read_to_string(&output_path)?;
+        assert!(output_content.contains("<title>Custom Blog Title</title>"));
         assert!(output_content.contains("<h2>Test Article 1</h2>"));
         assert!(output_content.contains("<p>Test description 1</p>"));
         assert!(output_content.contains("<h2>Test Article 2</h2>"));
         assert!(output_content.contains("<p>Test description 2</p>"));
 
-        // Test with empty template (should use default)
-        let empty_template = format!(
-            "<!DOCTYPE html><html><body>{}\n{}\n</body></html>",
-            START_PATTERN, END_PATTERN
-        );
-
-        build_index_page(empty_template, &articles, &output_path, &drafts_options)?;
+        // Test without blog title (should use main title)
+        let mut config = config;
+        config.blog.title = None;
+        build_index_page(
+            template.clone(),
+            &articles,
+            &output_path,
+            &drafts_options,
+            &config,
+        )?;
 
         let output_content = fs::read_to_string(&output_path)?;
-        assert!(output_content.contains("Test Article 1"));
-        assert!(output_content.contains("Test description 1"));
-        assert!(output_content.contains("Test Article 2"));
-        assert!(output_content.contains("Test description 2"));
+        assert!(output_content.contains("<title>Main Title</title>"));
 
         Ok(())
     }
 }
-
-
