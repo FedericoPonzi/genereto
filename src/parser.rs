@@ -49,14 +49,14 @@ pub fn compile_page_phase_2(
     let metadata = PageMetadata::new(metadata_raw, &content, entry_path, default_cover_image);
 
     let mut final_page = template_raw.to_string();
-    
+
     // If add_title is true, add an H1 with the page title at the top of the content
     let content_with_title = if metadata.add_title {
         format!("# {}\n\n{}", metadata.title, content)
     } else {
         content
     };
-    
+
     let html_content = compile_markdown_to_html(&filter_out_comments(&content_with_title));
     let start = final_page.find(START_PATTERN).unwrap();
     let end = final_page.find(END_PATTERN).unwrap();
@@ -67,9 +67,7 @@ pub fn compile_page_phase_2(
 }
 
 // Split the source content into the metadata and the content
-pub(crate) fn compile_page_phase_1(
-    source_content: &str,
-) -> anyhow::Result<(String, PageMetadataRaw)> {
+fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, PageMetadataRaw)> {
     let pattern = Regex::new(r"---+\n").unwrap();
     let mut fields: Vec<&str> = pattern.splitn(source_content, 2).collect();
     if fields.len() < 2 {

@@ -48,7 +48,11 @@ pub fn generate_blog(
     // sort by published date
     metadatas.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
-    let template_index_page = fs::read_to_string(&genereto_config.blog.base_template)?;
+    let template_index_page =
+        fs::read_to_string(&genereto_config.blog.base_template).context(format!(
+            "Failed to read the base template at path: {:?}",
+            genereto_config.blog.base_template
+        ))?;
     // todo: if there is already an index.html, replace it with blog.html.
     let destination_path = &genereto_config
         .blog
@@ -271,6 +275,7 @@ entries:
                 is_draft: false,
                 add_title: false,
                 url: None,
+                custom_metadata: Default::default(),
             },
             PageMetadata {
                 title: "Test Article 2".to_string(),
@@ -285,6 +290,7 @@ entries:
                 is_draft: false,
                 add_title: false,
                 url: None,
+                custom_metadata: Default::default(),
             },
         ];
 

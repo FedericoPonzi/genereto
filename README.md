@@ -89,7 +89,7 @@ default_cover_image: string # Default image for pages without cover
 
 # Blog configuration (optional)
 blog:
-  base_template: index.html  # Template for blog pages
+  base_template: index.html  # Template for blog's article pages
   index_name: index.html    # Name of the blog index file
   destination: ""           # Blog output subdirectory
   generate_single_pages: true # Generate individual article pages
@@ -119,6 +119,7 @@ Available metadata fields for pages and articles:
 | `cover_image` | string | Path to cover image | Optional |
 | `url` | string | External URL for the article | Optional |
 | `current_year` | string | Current year (auto-generated) | Auto |
+| `custom_fields` | any | Any additional key-value pairs | Optional |
 
 > ⚠️ **Notes**: 
 > - Articles with TODOs are automatically marked as drafts regardless of `is_draft` setting
@@ -147,6 +148,24 @@ $GENERETO['variable_name']
 
 ## Advanced Features
 
+### Custom Metadata
+You can add any custom key-value pairs to your page metadata, which will be available in templates as `$GENERETO['key']`:
+
+```markdown
+---
+title: My Collaborative Post
+publish_date: 2024-01-01
+co_authors: John Doe, Jane Smith
+project_url: https://github.com/example
+---
+
+# My Post
+Written by $GENERETO['co_authors']
+Check out the project at $GENERETO['project_url']
+```
+
+Any key-value pair that isn't a standard metadata field will be treated as custom metadata and made available in templates.
+
 ### RSS Feed
 Genereto automatically generates an RSS feed. Add to your template:
 ```html
@@ -174,6 +193,8 @@ entries:
 ---
 
 For more details, check out the [introduction article](https://blog.fponzi.me/2023-05-19-one-complex-setup.html).
+
+
 
 
 

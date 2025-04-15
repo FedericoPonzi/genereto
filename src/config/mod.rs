@@ -61,10 +61,22 @@ pub struct GeneretoConfigBlog {
 impl GeneretoConfigBlog {
     fn new_from_raw(project_path: &Path, raw_config: &GeneretoConfigRaw) -> Self {
         let blog_raw = &raw_config.blog;
-        let base_template = project_path
-            .join(TEMPLATES)
-            .join(&raw_config.template)
-            .join(&blog_raw.base_template);
+        let base_template = if raw_config.template_base_path.is_some() {
+            // If template_base_path is set, use it to construct the base_template path
+            raw_config
+                .template_base_path
+                .as_ref()
+                .unwrap()
+                .join(&raw_config.template)
+                .join(&blog_raw.base_template)
+        } else {
+            // If template_base_path is not set, use the default path
+            project_path
+                .join(TEMPLATES)
+                .join(&raw_config.template)
+                .join(&blog_raw.base_template)
+        };
+        
         let destination = project_path.join(OUTPUT_DIR).join(&blog_raw.destination);
 
         Self {

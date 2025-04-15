@@ -7,6 +7,8 @@ use std::path::Path;
 
 const DESCRIPTION_LENGTH: usize = 150;
 
+use std::collections::HashMap;
+
 /// Included from the top of an article file
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PageMetadataRaw {
@@ -32,6 +34,9 @@ pub struct PageMetadataRaw {
     pub cover_image: Option<String>,
     /// Optional URL for external links
     pub url: Option<String>,
+    /// Custom metadata fields that will be available as $GENERETO['field_name']
+    #[serde(flatten)]
+    pub custom_metadata: HashMap<String, String>,
 }
 
 impl Display for PageMetadataRaw {
@@ -61,6 +66,8 @@ pub struct PageMetadata {
     pub add_title: bool,
     /// Optional URL for external links
     pub url: Option<String>,
+    /// Custom metadata fields that will be available as $GENERETO['field_name']
+    pub custom_metadata: HashMap<String, String>,
 }
 
 impl PageMetadata {
@@ -110,6 +117,7 @@ impl PageMetadata {
             file_name,
             table_of_contents,
             url: page_metadata.url,
+            custom_metadata: page_metadata.custom_metadata,
         }
     }
     fn get_cover_image(
@@ -135,8 +143,8 @@ impl PageMetadata {
             None => default_cover_image.to_string(),
         }
     }
-    pub fn get_variables(&self) -> Vec<(&'static str, String)> {
-        vec![
+    pub fn get_variables(&self) -> Vec<(String, String)> {
+        let variables = vec![
             ("$GENERETO['title']", self.title.trim().to_string()),
             ("$GENERETO['publish_date']", self.publish_date.clone()),
             (
@@ -163,13 +171,23 @@ impl PageMetadata {
                 "$GENERETO['current_year']",
                 chrono::Local::now().year().to_string(),
             ),
-        ]
+        ];
+        let mut variables = variables
+            .into_iter()
+            .map(|(k, v)| (k.to_string(), v))
+            .collect::<Vec<_>>();
+
+        // Add custom metadata variables
+        for (key, value) in &self.custom_metadata {
+            variables.push((format!("$GENERETO['{key}']"), value.clone()));
+        }
+        variables
     }
 
     // Apply variables to the final page.
     pub(crate) fn apply(&self, mut final_page: String) -> String {
         for (key, value) in self.get_variables() {
-            final_page = final_page.replace(key, &value);
+            final_page = final_page.replace(&key, &value);
         }
         final_page
     }
@@ -379,10 +397,10 @@ fn remove_after_last_character(input: &str, character: char) -> String {
 mod test {
     use crate::page_metadata::{
         contains_todos, generate_table_of_contents, get_description, remove_after_last_character,
-        PageMetadata,
+        PageMetadata, PageMetadataRaw,
     };
-    use chrono::Datelike;
     use std::assert_eq;
+    use std::collections::HashMap;
 
     #[test]
     fn test_table_of_contents() {
@@ -464,7 +482,14 @@ mod test {
     }
 
     #[test]
-    fn test_current_year_variable() {
+    fn test_custom_metadata() {
+        let mut custom_metadata = HashMap::new();
+        custom_metadata.insert("co_authors".to_string(), "John Doe, Jane Smith".to_string());
+        custom_metadata.insert(
+            "project_url".to_string(),
+            "https://github.com/example".to_string(),
+        );
+
         let metadata = PageMetadata {
             title: "Test".to_string(),
             publish_date: "2024-01-01".to_string(),
@@ -478,11 +503,47 @@ mod test {
             is_draft: false,
             add_title: false,
             url: None,
+            custom_metadata,
         };
+
         let variables = metadata.get_variables();
-        let current_year = chrono::Local::now().year().to_string();
+        assert!(variables.iter().any(
+            |(key, value)| *key == "$GENERETO['co_authors']" && value == "John Doe, Jane Smith"
+        ));
         assert!(variables
             .iter()
-            .any(|(key, value)| *key == "$GENERETO['current_year']" && *value == current_year));
+            .any(|(key, value)| *key == "$GENERETO['project_url']"
+                && value == "https://github.com/example"));
+
+        // Test variable replacement
+        let template = "Authors: $GENERETO['co_authors']\nProject: $GENERETO['project_url']";
+        let result = metadata.apply(template.to_string());
+        assert_eq!(
+            result,
+            "Authors: John Doe, Jane Smith\nProject: https://github.com/example"
+        );
+    }
+
+    #[test]
+    fn test_metadata_raw_deserialization() {
+        let yaml = r#"
+title: Test Page
+publish_date: 2024-01-01
+keywords: test
+co_authors: John Doe, Jane Smith
+project_url: https://github.com/example
+"#;
+        let metadata: PageMetadataRaw = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(metadata.title, "Test Page");
+        assert_eq!(
+            metadata.custom_metadata.get("co_authors"),
+            Some(&"John Doe, Jane Smith".to_string()),
+            "Failed to deserialize custom metadata: {:?}",
+            metadata.custom_metadata
+        );
+        assert_eq!(
+            metadata.custom_metadata.get("project_url").unwrap(),
+            "https://github.com/example"
+        );
     }
 }
