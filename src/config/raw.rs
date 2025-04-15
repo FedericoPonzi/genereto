@@ -43,6 +43,7 @@ impl Default for GeneretoConfigBlogRaw {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub(crate) struct GeneretoConfigRaw {
+    #[serde(default)]
     pub template: String,
     /// Optional path to look for templates. Can be relative or absolute.
     #[serde(default)]

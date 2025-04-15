@@ -1,7 +1,6 @@
 mod raw;
 
 use crate::config::raw::GeneretoConfigRaw;
-use anyhow::bail;
 use std::path::{Path, PathBuf};
 
 const OUTPUT_DIR: &str = "output";
@@ -11,24 +10,6 @@ const CONFIG_FILENAME: &str = "config.yml";
 const CONTENT: &str = "content";
 // Template folder name
 const TEMPLATES: &str = "templates";
-
-pub fn validate_project_folders(project_path: &Path) -> anyhow::Result<()> {
-    if !project_path.exists() {
-        bail!("Project path {} does not exist", project_path.display());
-    }
-    let paths: [PathBuf; 4] = [
-        project_path.to_path_buf(),
-        project_path.join(CONFIG_FILENAME),
-        project_path.join(TEMPLATES),
-        project_path.join(CONTENT),
-    ];
-    for p in paths {
-        if !p.exists() {
-            bail!("Path {} does not exist", p.display());
-        }
-    }
-    Ok(())
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct GeneretoConfig {
@@ -76,7 +57,7 @@ impl GeneretoConfigBlog {
                 .join(&raw_config.template)
                 .join(&blog_raw.base_template)
         };
-        
+
         let destination = project_path.join(OUTPUT_DIR).join(&blog_raw.destination);
 
         Self {

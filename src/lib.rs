@@ -11,7 +11,6 @@ pub use config::GeneretoConfigBlog;
 pub use project_generation::generate_project;
 pub mod blog;
 
-use crate::config::validate_project_folders;
 use crate::fs_util::copy_directory_recursively;
 use crate::parser::load_compile_write;
 use crate::rss_generation::generate_rss;
@@ -54,7 +53,6 @@ impl DraftsOptions {
 
 /// project: path to the project.
 pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Result<PathBuf> {
-    validate_project_folders(&project_path)?;
     let genereto_config = GeneretoConfig::load_from_folder(project_path)?;
     debug!("GeneretoConfig: {genereto_config:?}");
     if genereto_config.output_dir_path.exists() {
