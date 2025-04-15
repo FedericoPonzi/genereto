@@ -40,23 +40,13 @@ pub struct GeneretoConfigBlog {
     pub title: Option<String>,
 }
 impl GeneretoConfigBlog {
-    fn new_from_raw(project_path: &Path, raw_config: &GeneretoConfigRaw) -> Self {
+    fn new_from_raw(
+        project_path: &Path,
+        raw_config: &GeneretoConfigRaw,
+        template_base_path: &Path,
+    ) -> Self {
         let blog_raw = &raw_config.blog;
-        let base_template = if raw_config.template_base_path.is_some() {
-            // If template_base_path is set, use it to construct the base_template path
-            raw_config
-                .template_base_path
-                .as_ref()
-                .unwrap()
-                .join(&raw_config.template)
-                .join(&blog_raw.base_template)
-        } else {
-            // If template_base_path is not set, use the default path
-            project_path
-                .join(TEMPLATES)
-                .join(&raw_config.template)
-                .join(&blog_raw.base_template)
-        };
+        let base_template = template_base_path.join(&blog_raw.base_template);
 
         let destination = project_path.join(OUTPUT_DIR).join(&blog_raw.destination);
 
@@ -74,27 +64,20 @@ impl GeneretoConfig {
     pub fn load_from_folder<P: AsRef<Path>>(project_path: P) -> anyhow::Result<Self> {
         let project_path = project_path.as_ref().to_path_buf();
         let raw_config = GeneretoConfigRaw::load_from_path(&project_path)?;
-        let blog = GeneretoConfigBlog::new_from_raw(&project_path, &raw_config);
 
         // Determine template directory path based on template_path and template
         let template_dir_path = if let Some(template_base_path) = &raw_config.template_base_path {
             if template_base_path.is_absolute() {
-                if raw_config.template.is_empty() {
-                    template_base_path.clone()
-                } else {
-                    template_base_path.join(&raw_config.template)
-                }
+                template_base_path.to_path_buf()
             } else {
-                let relative_base = project_path.join(template_base_path);
-                if raw_config.template.is_empty() {
-                    relative_base
-                } else {
-                    relative_base.join(&raw_config.template)
-                }
+                project_path.join(template_base_path)
             }
         } else {
-            project_path.join(TEMPLATES).join(&raw_config.template)
-        };
+            project_path.join(TEMPLATES)
+        }
+        .join(&raw_config.template);
+
+        let blog = GeneretoConfigBlog::new_from_raw(&project_path, &raw_config, &template_dir_path);
 
         let output_dir_path = project_path.join(OUTPUT_DIR);
         let content_path = project_path.join(CONTENT);

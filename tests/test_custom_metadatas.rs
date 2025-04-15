@@ -1,5 +1,3 @@
-use genereto::{GeneretoConfig, GeneretoConfigBlog};
-use std::path::PathBuf;
 use std::{fs, io};
 use tempfile::tempdir;
 
