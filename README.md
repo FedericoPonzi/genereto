@@ -1,233 +1,174 @@
 # Genereto
 
-A simple static site generator to handle a blog website.
+A simple static site generator to handle different kinds of simple static websites.
 
 [<img src="https://github.com/FedericoPonzi/genereto/raw/main/assets/genereto-logo.jpg" width="300" align="center">](https://github.com/FedericoPonzi/genereto/raw/main/assets/genereto-logo.jpg)
 
+## Table of Contents
+- [Features](#features)
+- [Quick Start Tutorial](#quick-start-tutorial)
+- [CLI Reference](#cli-reference)
+- [Config Reference](#config-reference)
+- [Metadata Fields Reference](#metadata-fields-reference)
+- [Templating Guide](#templating-guide)
+- [Advanced Features](#advanced-features)
+
+## Features
+
 With Genereto, you can:
+* Generate a simple static website with a single page or multiple pages
+* Generate a blog with articles
+* Generate a tumblr style website
+* Generate a simple static website along with a blog
 
-* Write the template for your blog and index page.
-* Write your articles in markdown or define them in a YAML file for a Tumblr style blog.
-* Generate your blog site by generating the html out of your markdown and applying the template.
+You should use genereto if you want:
+* A complete and easy way to create a static website
+* Metadata stored along with the website content written in Markdown
+* A super simple templating system
+* Fast compilation
+* And more:
+    * TODOs and comments embeddable in your pages
+    * Drafts support
+    * Tumblr style website
+    * RSS feed generation
 
-Articles can be created in two ways:
-1. As markdown files divided into two sections: metadata (written in YAML) and the article content.
-2. As entries containing only the metadata, in a blog.yml file
-3. Both.
+## Quick Start Tutorial
 
-The metdata will be available in the template in the form of variables like `$GENERETO['title']`.
-
-## Getting started
-
-First, you need to create a project folder `genereto-project` (but can be called in any way) with a "content" and "
-templates" folders.
-
-```
-genereto-project/
-    content/
-        /blog/2024-my-first-article/cover.png
-        /blog/2024-my-first-article.md
-        /my-article/image.png
-        my-article.md
-        # Alternatively (or jointly), you can use blog.yml for tumblr-style posts
-        blog.yml
-    templates/
-        main/
-            res/
-                logo.jpg
-                style.css
-            index.html
-            blog.html
-    config.yml
+1. Create a new project:
+```bash
+cargo run -- generate-project --project-path ./my-site
 ```
 
-You can also use `sample-genereto-project` folder in this repository as a base example.
-
-Create a `config.yml` file, it should look like this:
-
+2. Add content in `my-site/content/`:
+```markdown
+---
+title: My First Page
+description: Welcome to my site
+---
+# Welcome!
+This is my first page.
 ```
-template: 'main' # select a template
-output_dirname: 'output' # name for the folder that olds the generated files
-# used in RSS
-title: Blog
-# used in RSS.
-description: Description of the blog
-# used in RSS or for templating purposes.
-url: https://blog.fponzi.me
-# Blog specific configuration
+
+3. Build your site:
+```bash
+cargo run -- --project-path ./my-site
+```
+
+> 💡 **Tip**: Use the sample project as reference: check out `sample-genereto-project` in this repository.
+
+## CLI Reference
+
+```bash
+# Basic usage
+genereto --project-path <PATH>
+
+# Generate new project
+genereto generate-project --project-path <PATH> [--override-git]
+
+# Draft options
+genereto --project-path <PATH> --drafts-options <OPTION>
+```
+
+Draft options:
+- `build` (default): Builds draft pages but doesn't link them
+- `dev`: Treats drafts as normal pages
+- `hide`: Completely skips draft pages
+
+## Config Reference
+
+The `config.yml` file in your project root defines the site configuration:
+
+```yaml
+# Required fields
+template: string           # Template directory name to use
+title: string             # Website title (used in RSS)
+url: string              # Website URL (used in RSS)
+description: string      # Website description (used in RSS)
+default_cover_image: string # Default image for pages without cover
+
+# Blog configuration (optional)
 blog:
-  # Optional custom title for the blog section. If not provided, the main title will be used.
-  title: My Blog Title
+  base_template: index.html  # Template for blog pages
+  index_name: index.html    # Name of the blog index file
+  destination: ""           # Blog output subdirectory
+  generate_single_pages: true # Generate individual article pages
+  title: string            # Optional blog-specific title
 ```
 
-Running genereto will create an output folder with the index, articles, and assets inside the `output_dirname` folder.
-The `output_dirname` folder will be created inside the project-folder.
+### Directory Structure
+- `content/`: Markdown files and assets
+- `templates/`: HTML templates
+- `output/`: Generated site (created automatically)
 
-You can run genereto by running:
+## Metadata Fields Reference
 
-```shell
-cargo run -- --project-path /home/user/blog/genereto-project
-```
+Available metadata fields for pages and articles:
 
-To generate a new project:
+| Field | Type | Description | Default |
+|-------|------|-------------|---------|
+| `title` | string | Page/article title | Required |
+| `publish_date` | string | Publication date (YYYY-mm-dd) | Optional |
+| `is_draft` | bool | Draft status | `false` |
+| `keywords` | string | Comma-separated keywords | Optional |
+| `show_table_of_contents` | bool | Enable ToC generation | `false` |
+| `add_title` | bool | Auto-add H1 title from metadata | `false` |
+| `description` | string | Brief description (first 150 chars if not provided) | Optional |
+| `cover_image` | string | Path to cover image | Optional |
+| `url` | string | External URL for the article | Optional |
 
-```shell
-cargo run -- generate-project --project-path /path/to/project
-```
+> ⚠️ **Notes**: 
+> - Articles with TODOs are automatically marked as drafts regardless of `is_draft` setting
+> - If no description is provided, the first 150 characters of content will be used
+> - Cover images can be relative paths or full URLs
 
-By default, the project generation requires a git repository to prevent accidental overwrites. You can override this check using the `--override-git` flag:
+## Templating Guide
 
-```shell
-cargo run -- generate-project --project-path /path/to/project --override-git
-```
+Templates require two main files:
+- `index.html`: For listing blog articles
+- `blog.html`: For individual articles
 
-If you have draft articles, they will be built but will not be linked anywhere. If you want to hide them completely you
-can use `--drafts hide`:
-
-```shell
-cargo run -- --project-path /home/user/blog/genereto-project --drafts hide
-```
-
-Genereto is not published as a compiled binary,
-so for now you will need to fetch this repo and build it yourself by using rust and cargo.
-
-## Blog Entries in YAML Format
-
-For tumblr-style blogs or when you want to create a collection of entries without full article content, you can use a `blog.yml` file in your content directory. 
-
-This file should contain a list of entries with their metadata. Here's an example:
-
-```yaml
-entries:
-  - title: My First Post
-    publish_date: 2024-01-01
-    keywords: hello, world
-    description: This is my first post
-    cover_image: cover1.jpg
-    url: https://example.com  # Optional external link
-
-  - title: Another Post
-    publish_date: 2024-01-02
-    keywords: updates
-    description: Just a quick update
-    cover_image: cover2.jpg
-```
-Each entry supports all the same metadata fields as markdown articles.
-
-
-### Articles metadatas:
-
-* `title` string: title of the article.
-* `keywords` string: comma separated list of keywords.
-* `publish_date` string: the published date of the article formatted as YYYY-mm-dd (e.g. 2023-01-01)
-* `description` string: A small description.
-* `is_draft` bool: Default false, if set to true it will skip processing this page.
-* `show_table_of_contents` bool: Default false, if set to true it will add a ToC (if supported by the template)
-* `cover_image` string: the cover image for this blog post. If empty the variable will use the value from the config file's `default_cover_image`.
-* `url` string: Optional external URL for the article. If provided, the article title will link to this URL instead of the local page.
-
-
-As an example:
-
-```yaml
-title: My cool article
-keywords: Hello world, article, cool
-publish_date: 2023-01-01
-description: This is an intro article to my blog.
-# this is yaml, so comments work fine.
-# draft = true means that we can skip compilation on the cli when using --skip-drafts
-is_draft: true
-# if set to true, it will add a `table_of_contents` variable in the template with the table of contents generated
-# by this article.
-show_table_of_contents: true
-# if set to true, it will automatically add an H1 heading with the page title at the top of the content
-add_title: true
-```
-
-### Inside articles
-Inside the article, you can embed **todos**:
-
-```
-$GENERETO{TODO: need to rephrase this section}
-```
-
-The format matched is `$GENERETO{TODO`. When a TODO is present, your article will not be published even if is_draft is
-false.
-
-you can also write comments using the same syntax - the comments should be on the same line:
-
-```
-this is my article $GENERETO{give article a name!}
-$GENERETO{TODO: I need to fix this chart.}
-<img src="">
-```
-
-## Templating
-
-To create a template, you need two files:
-
-* `index.html` the index page, which will be used to list blog articles,
-* `blog.html` is the template used for single articles.
-
-in both pages, the section replaced with the html is demarked by start_content and end_content.
-
+Content replacement section:
 ```html
 <!-- start_content -->
-Hello world! This will be replaced, so you can use it in your template to see how the final resul will look like!
+Content here will be replaced
 <!-- end_content -->
 ```
 
-because the content will be removed, it can be used to test the template itself.
-
-In the blog.html, this content is replaced with your article section.
-In the index.html, this content is replaced by the list of articles. For the index page, you can customize how each article is displayed by providing an HTML template between the start_content and end_content markers. For example:
-
+Variables are accessed using:
 ```html
-<!-- start_content -->
-<div class="post">
-    <h2><a href="$GENERETO['url']">$GENERETO['title']</a></h2>
-    <div class="post-date">$GENERETO['publish_date']</div>
-    <p class="post-description">$GENERETO['description']</p>
-    <img src="$GENERETO['cover_image']" alt="$GENERETO['title']" class="post-image">
-</div>
-<!-- end_content -->
+$GENERETO['variable_name']
 ```
 
-This template will be used for each article in the index, with the variables being replaced with the corresponding metadata from each article. If no template is provided (i.e., the content between start_content and end_content is empty), a default template will be used that displays the title, date, and description.
+> 💡 **Tip**: Use the content between start/end_content markers to preview your template's appearance.
 
-Inside the html templates, you have access to different variables; that take the form of `$GENERETO['variable_name']`:
+## Advanced Features
 
-* `publish_date`: as you defined it in your metadata section. It's YYYY-mm-dd
-* `read_time_minutes`: estimated read time in minutes.
-* `description`: as you defined it in your metadata section.
-* `keywords`: as you defined it in your metadata section.
-* `table_of_contents`: it's a simple `<ul><li>` based list generated from the headings. Each entry will have an id to
-  quickly jump to the right heading.
-* `last_modified_date`: format is like `2023-08-18`. It uses git to get the last modified date. If git is not present,
-  it will use publish date instead.
-* and all the other variables you defined in the metadata section.
-
-## Feed RSS
-
-Genereto will also generate a RSS feed for you, you should advertise it in your html (and somewhere in your website if
-you want):
-
-```
+### RSS Feed
+Genereto automatically generates an RSS feed. Add to your template:
+```html
 <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="rss.xml" />
 ```
 
-### Development and iterating on articles
-
-You can use the `--draft` argument. The supported options are:
-
-* `build`: Default. Builds the draft page, but is not linked anywhere. Useful to share a draft.
-* `dev`: Considers the draft page as a normal page. Useful during development to preview drafts.
-* `hide`: Hides draft pages. They will not be built and will not be linked anywhere.
-
-Adding a new git submodule:
+### TODOs and Comments
+Embed TODOs and comments in your content:
+```markdown
+$GENERETO{TODO: fix this section}
+This is my content $GENERETO{add more details here}
 ```
-git submodule add git@github.com:FedericoPonzi/genereto-template-main.git main
-```
-----
 
-Genereto was presented in [this](https://blog.fponzi.me/2023-05-19-one-complex-setup.html) article.
+### Blog YAML Format
+For tumblr-style blogs, use `blog.yml`:
+```yaml
+entries:
+  - title: My Post
+    publish_date: 2024-01-01
+    description: Quick update
+```
+
+> 💡 **Tip**: YAML entries support all the same metadata fields as markdown articles.
+
+---
+
+For more details, check out the [introduction article](https://blog.fponzi.me/2023-05-19-one-complex-setup.html).
+
+
