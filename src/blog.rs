@@ -303,6 +303,7 @@ entries:
             project_path: "".into(),
             content_path: "content".into(),
             template: "test_template".into(),
+            template_base_path: None,
             title: "Main Title".into(),
             url: "test.com".into(),
             description: "Test description".into(),

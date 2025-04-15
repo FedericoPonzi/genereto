@@ -44,6 +44,9 @@ impl Default for GeneretoConfigBlogRaw {
 #[derive(Serialize, Deserialize, Debug, Clone, Default, PartialEq)]
 pub(crate) struct GeneretoConfigRaw {
     pub template: String,
+    /// Optional path to look for templates. Can be relative or absolute.
+    #[serde(default)]
+    pub template_base_path: Option<PathBuf>,
     /// title of the website - used in rss
     #[serde(default)]
     pub title: String,
@@ -85,12 +88,9 @@ mod tests {
     #[test]
     fn test_load_config_without_blog() {
         let sample_full_config = r#"
-        template_dir_path: a
-        output_dir_path: b
-        project_path: c
-        content_path: d
+        template_base_path: a
         template: test_template
-        title: Test title
+        title: full_config
         url: XXXXXXXXXXXXXXXX
         description: Test description
         default_cover_image: Something.jpg
@@ -101,7 +101,8 @@ mod tests {
         "#;
         let expected_full_config = GeneretoConfigRaw {
             template: "test_template".into(),
-            title: "Test title".into(),
+            template_base_path: Some("a".into()),
+            title: "full_config".into(),
             url: "XXXXXXXXXXXXXXXX".into(),
             description: "Test description".into(),
             default_cover_image: "Something.jpg".into(),
@@ -116,7 +117,8 @@ mod tests {
 
         let expected_no_blog = GeneretoConfigRaw {
             template: "test_template".into(),
-            title: "Test title".into(),
+            template_base_path: None,
+            title: "no_blog".into(),
             url: "XXXXXXXXXXXXXXXX".into(),
             description: "Test description".into(),
             default_cover_image: "Something.jpg".into(),
@@ -130,12 +132,8 @@ mod tests {
         };
 
         let no_blog = r#"
-        template_dir_path: a
-        output_dir_path: b
-        project_path: c
-        content_path: d
         template: test_template
-        title: Test title
+        title: no_blog
         url: XXXXXXXXXXXXXXXX
         description: Test description
         default_cover_image: Something.jpg

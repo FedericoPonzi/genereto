@@ -60,6 +60,7 @@ fn test_blog_generation_with_single_pages_disabled() {
         project_path: project_path.clone(),
         content_path: project_path.join("content"),
         template: "main".into(),
+        template_base_path: None,
         title: "Test".into(),
         url: "http://test.com".into(),
         description: "Test".into(),

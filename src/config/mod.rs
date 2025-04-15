@@ -38,6 +38,8 @@ pub struct GeneretoConfig {
     pub content_path: PathBuf,
     //todo: move to option and if None, use the first item in the templates folder.
     pub template: String,
+    /// Optional path to look for templates. Can be relative or absolute.
+    pub template_base_path: Option<PathBuf>,
     /// title of the website - used in rss
     pub title: String,
     /// url of the website - used in rss.
@@ -80,7 +82,27 @@ impl GeneretoConfig {
         let project_path = project_path.as_ref().to_path_buf();
         let raw_config = GeneretoConfigRaw::load_from_path(&project_path)?;
         let blog = GeneretoConfigBlog::new_from_raw(&project_path, &raw_config);
-        let template_dir_path = project_path.join(TEMPLATES).join(&raw_config.template);
+
+        // Determine template directory path based on template_path and template
+        let template_dir_path = if let Some(template_base_path) = &raw_config.template_base_path {
+            if template_base_path.is_absolute() {
+                if raw_config.template.is_empty() {
+                    template_base_path.clone()
+                } else {
+                    template_base_path.join(&raw_config.template)
+                }
+            } else {
+                let relative_base = project_path.join(template_base_path);
+                if raw_config.template.is_empty() {
+                    relative_base
+                } else {
+                    relative_base.join(&raw_config.template)
+                }
+            }
+        } else {
+            project_path.join(TEMPLATES).join(&raw_config.template)
+        };
+
         let output_dir_path = project_path.join(OUTPUT_DIR);
         let content_path = project_path.join(CONTENT);
         Ok(Self {
@@ -89,6 +111,7 @@ impl GeneretoConfig {
             content_path,
             project_path,
             template: raw_config.template,
+            template_base_path: raw_config.template_base_path,
             title: raw_config.title,
             url: raw_config.url,
             description: raw_config.description,
@@ -117,7 +140,3 @@ impl GeneretoConfig {
         })
     }
 }
-
-
-
-

@@ -81,6 +81,7 @@ The `config.yml` file in your project root defines the site configuration:
 ```yaml
 # Required fields
 template: string           # Template directory name to use
+template_base_path: string     # Optional custom path to templates folder (relative or absolute)
 title: string             # Website title (used in RSS)
 url: string              # Website URL (used in RSS)
 description: string      # Website description (used in RSS)
@@ -97,8 +98,10 @@ blog:
 
 ### Directory Structure
 - `content/`: Markdown files and assets
-- `templates/`: HTML templates
+- `templates/`: Default directory for HTML templates (unless template_base_path is specified)
 - `output/`: Generated site (created automatically)
+
+> 💡 **Note**: When `template_base_path` is specified in config.yml, templates will be searched in that location instead of the default `templates/` directory. The path can be relative to the project root or absolute.
 
 ## Metadata Fields Reference
 
@@ -171,6 +174,8 @@ entries:
 ---
 
 For more details, check out the [introduction article](https://blog.fponzi.me/2023-05-19-one-complex-setup.html).
+
+
 
 
 
