@@ -115,6 +115,7 @@ Available metadata fields for pages and articles:
 | `description` | string | Brief description (first 150 chars if not provided) | Optional |
 | `cover_image` | string | Path to cover image | Optional |
 | `url` | string | External URL for the article | Optional |
+| `current_year` | string | Current year (auto-generated) | Auto |
 
 > ⚠️ **Notes**: 
 > - Articles with TODOs are automatically marked as drafts regardless of `is_draft` setting
@@ -170,5 +171,6 @@ entries:
 ---
 
 For more details, check out the [introduction article](https://blog.fponzi.me/2023-05-19-one-complex-setup.html).
+
 
 

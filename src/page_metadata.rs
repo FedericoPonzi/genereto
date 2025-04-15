@@ -1,5 +1,5 @@
 use crate::parser::get_anchor_id_from_title;
-use chrono::NaiveDate;
+use chrono::{Datelike, NaiveDate};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
@@ -159,6 +159,10 @@ impl PageMetadata {
             ),
             ("$GENERETO['cover_image']", self.cover_image.clone()),
             ("$GENERETO['url']", self.url.clone().unwrap_or_default()),
+            (
+                "$GENERETO['current_year']",
+                chrono::Local::now().year().to_string(),
+            ),
         ]
     }
 
@@ -375,7 +379,9 @@ fn remove_after_last_character(input: &str, character: char) -> String {
 mod test {
     use crate::page_metadata::{
         contains_todos, generate_table_of_contents, get_description, remove_after_last_character,
+        PageMetadata,
     };
+    use chrono::Datelike;
     use std::assert_eq;
 
     #[test]
@@ -455,5 +461,28 @@ mod test {
         const TEST_INPUT: &str = "## Introduction {#introduction}\
         \nThis is a test description. $GENERETO{TODO: finish this page}";
         assert!(contains_todos(TEST_INPUT));
+    }
+
+    #[test]
+    fn test_current_year_variable() {
+        let metadata = PageMetadata {
+            title: "Test".to_string(),
+            publish_date: "2024-01-01".to_string(),
+            keywords: "test".to_string(),
+            reading_time_mins: "1".to_string(),
+            description: "test".to_string(),
+            file_name: "test.html".to_string(),
+            table_of_contents: "".to_string(),
+            last_modified_date: "2024-01-01".to_string(),
+            cover_image: "test.jpg".to_string(),
+            is_draft: false,
+            add_title: false,
+            url: None,
+        };
+        let variables = metadata.get_variables();
+        let current_year = chrono::Local::now().year().to_string();
+        assert!(variables
+            .iter()
+            .any(|(key, value)| *key == "$GENERETO['current_year']" && *value == current_year));
     }
 }
