@@ -77,7 +77,7 @@ fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, PageMet
     let content = add_ids_to_headings(content);
 
     let metadata: PageMetadataRaw = serde_yaml::from_str(metadata)
-        .context("Failed to deserialize metadata, did you remember to put the metadata section?")?;
+        .context(format!("Failed to deserialize metadata, did you remember to put the metadata section? Metadata: '{}'", metadata))?;
     Ok((content, metadata))
 }
 
