@@ -141,7 +141,6 @@ fn build_articles(
                 &yaml_path,
                 default_cover_image,
             );
-            debug!("Cover image: {}", metadata.cover_image);
             articles.push(metadata);
         }
     }

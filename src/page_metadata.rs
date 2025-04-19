@@ -138,6 +138,11 @@ impl PageMetadata {
                 }
                 // assume it's in a folder named the same way as this page
                 // for blog.yml; that would be blog.yml/images
+                // so skip "blog.yml/"
+                if file_name == "blog.yml" {
+                    debug!("Cover image starts with blog.yml/, skipping replacing filename");
+                    return cover_image.to_string();
+                }
                 format!("{}/{}", &file_name.replace(".html", ""), cover_image)
             }
             None => default_cover_image.to_string(),
