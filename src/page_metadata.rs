@@ -89,10 +89,16 @@ impl PageMetadata {
             .then(|| generate_table_of_contents(page_content))
             .unwrap_or_default();
         let has_todos = contains_todos(page_content);
+        let has_future_date = is_future_date(&page_metadata.publish_date);
+        
         if has_todos && !page_metadata.is_draft {
             info!("File {} has todos - setting is_draft to true.", file_name);
         }
-        page_metadata.is_draft = page_metadata.is_draft || has_todos;
+        if has_future_date && !page_metadata.is_draft {
+            info!("File {} has future publish date - setting is_draft to true.", file_name);
+        }
+        
+        page_metadata.is_draft = page_metadata.is_draft || has_todos || has_future_date;
         page_metadata.title = if page_metadata.is_draft {
             format!("[DRAFT] {}", page_metadata.title)
         } else {
@@ -238,6 +244,20 @@ fn get_last_modified_date(publish_date: &str, file_path: &Path) -> String {
     } else {
         last_modified_date
     }
+}
+
+/// Check if the publish date is in the future
+fn is_future_date(publish_date: &str) -> bool {
+    if publish_date.is_empty() {
+        return false;
+    }
+    
+    if let Ok(date) = NaiveDate::parse_from_str(publish_date, "%Y-%m-%d") {
+        let today = chrono::Local::now().date_naive();
+        return date > today;
+    }
+    
+    false
 }
 
 /// Search page_content for "$GENERETO{TO DO: string.
@@ -487,6 +507,59 @@ mod test {
     }
 
     #[test]
+    fn test_future_date_as_draft() {
+        // Get tomorrow's date in YYYY-MM-DD format
+        let tomorrow = chrono::Local::now().date_naive().succ_opt().unwrap();
+        let tomorrow_str = tomorrow.format("%Y-%m-%d").to_string();
+        
+        // Get yesterday's date in YYYY-MM-DD format
+        let yesterday = chrono::Local::now().date_naive().pred_opt().unwrap();
+        let yesterday_str = yesterday.format("%Y-%m-%d").to_string();
+        
+        // Create metadata with future date
+        let mut metadata_raw = PageMetadataRaw {
+            title: "Future Post".to_string(),
+            publish_date: tomorrow_str,
+            is_draft: false,
+            keywords: "test".to_string(),
+            show_table_of_contents: false,
+            add_title: false,
+            description: None,
+            cover_image: None,
+            url: None,
+            custom_metadata: HashMap::new(),
+        };
+        
+        // Create a temporary file path
+        let temp_path = std::path::Path::new("test_file.md");
+        
+        // Create PageMetadata with future date
+        let metadata = PageMetadata::new(
+            metadata_raw.clone(),
+            "Test content",
+            temp_path,
+            "default_cover.jpg",
+        );
+        
+        // Check that it's marked as draft
+        assert!(metadata.is_draft, "Future date should be marked as draft");
+        assert!(metadata.title.starts_with("[DRAFT]"), "Title should be prefixed with [DRAFT]");
+        
+        // Now test with past date
+        metadata_raw.publish_date = yesterday_str;
+        let metadata = PageMetadata::new(
+            metadata_raw,
+            "Test content",
+            temp_path,
+            "default_cover.jpg",
+        );
+        
+        // Check that it's not marked as draft
+        assert!(!metadata.is_draft, "Past date should not be marked as draft");
+        assert!(!metadata.title.starts_with("[DRAFT]"), "Title should not be prefixed with [DRAFT]");
+    }
+
+    #[test]
     fn test_custom_metadata() {
         let mut custom_metadata = HashMap::new();
         custom_metadata.insert("co_authors".to_string(), "John Doe, Jane Smith".to_string());
@@ -552,3 +625,6 @@ project_url: https://github.com/example
         );
     }
 }
+
+
+

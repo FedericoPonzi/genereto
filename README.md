@@ -70,7 +70,7 @@ genereto --project-path <PATH> --drafts-options <OPTION>
 ```
 
 Draft options:
-- `build` (default): Builds draft pages but doesn't link them
+- `build` (default): Builds draft pages but doesn't link them (from the index page).
 - `dev`: Treats drafts as normal pages
 - `hide`: Completely skips draft pages
 
@@ -110,7 +110,7 @@ Available metadata fields for pages and articles:
 | Field | Type | Description | Default |
 |-------|------|-------------|---------|
 | `title` | string | Page/article title | Required |
-| `publish_date` | string | Publication date (YYYY-mm-dd) | Optional |
+| `publish_date` | string | Publication date (YYYY-mm-dd). Posts with future dates are treated as drafts. | Optional |
 | `is_draft` | bool | Draft status | `false` |
 | `keywords` | string | Comma-separated keywords | Optional |
 | `show_table_of_contents` | bool | Enable ToC generation | `false` |
@@ -123,6 +123,7 @@ Available metadata fields for pages and articles:
 
 > ⚠️ **Notes**: 
 > - Articles with TODOs are automatically marked as drafts regardless of `is_draft` setting
+> - Articles with future publish dates are automatically marked as drafts
 > - If no description is provided, the first 150 characters of content will be used
 > - Cover images can be relative paths or full URLs
 
