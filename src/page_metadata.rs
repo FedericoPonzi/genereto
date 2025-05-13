@@ -64,8 +64,10 @@ pub struct PageMetadata {
     pub cover_image: String,
     pub is_draft: bool,
     pub add_title: bool,
-    /// Optional URL for external links
-    pub url: Option<String>,
+    /// Optional article URL - used for external links
+    pub article_url: Option<String>,
+    /// Base website url. https://www.example.com
+    pub website_url: String,
     /// Custom metadata fields that will be available as $GENERETO['field_name']
     pub custom_metadata: HashMap<String, String>,
 }
@@ -76,6 +78,7 @@ impl PageMetadata {
         page_content: &str,
         file_path: &Path,
         default_cover_image: &str,
+        website_url: &str,
     ) -> Self {
         let file_name = file_path
             .file_name()
@@ -90,14 +93,17 @@ impl PageMetadata {
             .unwrap_or_default();
         let has_todos = contains_todos(page_content);
         let has_future_date = is_future_date(&page_metadata.publish_date);
-        
+
         if has_todos && !page_metadata.is_draft {
             info!("File {} has todos - setting is_draft to true.", file_name);
         }
         if has_future_date && !page_metadata.is_draft {
-            info!("File {} has future publish date - setting is_draft to true.", file_name);
+            info!(
+                "File {} has future publish date - setting is_draft to true.",
+                file_name
+            );
         }
-        
+
         page_metadata.is_draft = page_metadata.is_draft || has_todos || has_future_date;
         page_metadata.title = if page_metadata.is_draft {
             format!("[DRAFT] {}", page_metadata.title)
@@ -122,7 +128,8 @@ impl PageMetadata {
             add_title: page_metadata.add_title,
             file_name,
             table_of_contents,
-            url: page_metadata.url,
+            article_url: page_metadata.url,
+            website_url: website_url.to_string(),
             custom_metadata: page_metadata.custom_metadata,
         }
     }
@@ -177,7 +184,10 @@ impl PageMetadata {
                 self.table_of_contents.clone(),
             ),
             ("$GENERETO['cover_image']", self.cover_image.clone()),
-            ("$GENERETO['url']", self.url.clone().unwrap_or_default()),
+            (
+                "$GENERETO['url']",
+                self.article_url.clone().unwrap_or_default(),
+            ),
             (
                 "$GENERETO['current_year']",
                 chrono::Local::now().year().to_string(),
@@ -251,12 +261,12 @@ fn is_future_date(publish_date: &str) -> bool {
     if publish_date.is_empty() {
         return false;
     }
-    
+
     if let Ok(date) = NaiveDate::parse_from_str(publish_date, "%Y-%m-%d") {
         let today = chrono::Local::now().date_naive();
         return date > today;
     }
-    
+
     false
 }
 
@@ -511,11 +521,11 @@ mod test {
         // Get tomorrow's date in YYYY-MM-DD format
         let tomorrow = chrono::Local::now().date_naive().succ_opt().unwrap();
         let tomorrow_str = tomorrow.format("%Y-%m-%d").to_string();
-        
+
         // Get yesterday's date in YYYY-MM-DD format
         let yesterday = chrono::Local::now().date_naive().pred_opt().unwrap();
         let yesterday_str = yesterday.format("%Y-%m-%d").to_string();
-        
+
         // Create metadata with future date
         let mut metadata_raw = PageMetadataRaw {
             title: "Future Post".to_string(),
@@ -529,22 +539,26 @@ mod test {
             url: None,
             custom_metadata: HashMap::new(),
         };
-        
+
         // Create a temporary file path
         let temp_path = std::path::Path::new("test_file.md");
-        
+
         // Create PageMetadata with future date
         let metadata = PageMetadata::new(
             metadata_raw.clone(),
             "Test content",
             temp_path,
             "default_cover.jpg",
+            "https://fponzi.me",
         );
-        
+
         // Check that it's marked as draft
         assert!(metadata.is_draft, "Future date should be marked as draft");
-        assert!(metadata.title.starts_with("[DRAFT]"), "Title should be prefixed with [DRAFT]");
-        
+        assert!(
+            metadata.title.starts_with("[DRAFT]"),
+            "Title should be prefixed with [DRAFT]"
+        );
+
         // Now test with past date
         metadata_raw.publish_date = yesterday_str;
         let metadata = PageMetadata::new(
@@ -552,11 +566,18 @@ mod test {
             "Test content",
             temp_path,
             "default_cover.jpg",
+            "https://fponzi.me",
         );
-        
+
         // Check that it's not marked as draft
-        assert!(!metadata.is_draft, "Past date should not be marked as draft");
-        assert!(!metadata.title.starts_with("[DRAFT]"), "Title should not be prefixed with [DRAFT]");
+        assert!(
+            !metadata.is_draft,
+            "Past date should not be marked as draft"
+        );
+        assert!(
+            !metadata.title.starts_with("[DRAFT]"),
+            "Title should not be prefixed with [DRAFT]"
+        );
     }
 
     #[test]
@@ -580,7 +601,8 @@ mod test {
             cover_image: "test.jpg".to_string(),
             is_draft: false,
             add_title: false,
-            url: None,
+            article_url: None,
+            website_url: "https://fponzi.me".to_string(),
             custom_metadata,
         };
 
@@ -625,6 +647,3 @@ project_url: https://github.com/example
         );
     }
 }
-
-
-

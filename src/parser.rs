@@ -13,8 +13,10 @@ pub fn load_compile_write(
     drafts_options: &DraftsOptions,
     destination_path: &Path,
     template_raw: &str,
+    website_url: &str,
 ) -> anyhow::Result<Option<PageMetadata>> {
-    let (content, metadata) = load_compile(default_cover_image, entry_path, template_raw)?;
+    let (content, metadata) =
+        load_compile(default_cover_image, entry_path, template_raw, website_url)?;
     if metadata.is_draft && drafts_options.is_hide() {
         return Ok(None);
     }
@@ -25,6 +27,7 @@ pub fn load_compile(
     default_cover_image: &str,
     entry_path: &Path,
     template_raw: &str,
+    website_url: &str,
 ) -> anyhow::Result<(String, PageMetadata)> {
     let source_content = fs::read_to_string(entry_path)?;
     let (intermediate_content, metadata_raw) = compile_page_phase_1(&source_content)?;
@@ -34,6 +37,7 @@ pub fn load_compile(
         metadata_raw,
         default_cover_image,
         entry_path,
+        website_url,
     )?;
     Ok((content, metadata))
 }
@@ -45,8 +49,15 @@ pub fn compile_page_phase_2(
     metadata_raw: PageMetadataRaw,
     default_cover_image: &str,
     entry_path: &Path,
+    website_url: &str,
 ) -> anyhow::Result<(String, PageMetadata)> {
-    let metadata = PageMetadata::new(metadata_raw, &content, entry_path, default_cover_image);
+    let metadata = PageMetadata::new(
+        metadata_raw,
+        &content,
+        entry_path,
+        default_cover_image,
+        website_url,
+    );
 
     let mut final_page = template_raw.to_string();
 

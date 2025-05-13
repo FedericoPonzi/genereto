@@ -140,6 +140,7 @@ fn build_articles(
                 "", // No content for YAML entries
                 &yaml_path,
                 default_cover_image,
+                &genereto_config.url,
             );
             articles.push(metadata);
         }
@@ -149,42 +150,43 @@ fn build_articles(
     let blog_folder = genereto_config
         .content_path
         .join(BLOG_ENTRIES_FOLDER_RELATIVE_PATH);
-    if blog_folder.exists() {
-        for entry in fs::read_dir(&blog_folder)? {
-            let entry_path = entry?.path();
-            let entry_path_display = entry_path.display().to_string();
-            let destination_path = genereto_config.get_blog_dest_path(&entry_path);
-            info!("Compiling {entry_path_display} to {destination_path:?}.");
-            if entry_path.is_dir() {
-                copy_directory_recursively(&entry_path, &destination_path)?;
-            } else if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "md" {
-                let article_opt = if genereto_config.blog.generate_single_pages {
-                    load_compile_write(
-                        default_cover_image,
-                        &entry_path,
-                        drafts_options,
-                        &destination_path,
-                        &template_raw,
-                    )
-                    .with_context(|| format!("Failed to build page {entry_path_display}"))?
-                } else {
-                    // When single pages are disabled, still parse metadata but skip file generation
-                    let (_, md) = crate::parser::load_compile(
-                        default_cover_image,
-                        &entry_path,
-                        &template_raw,
-                    )
-                    .with_context(|| {
-                        format!("Failed to parse metadata for {entry_path_display}")
-                    })?;
-                    Some(md)
-                };
-                if let Some(md) = article_opt {
-                    articles.push(md);
-                }
+    if !blog_folder.exists() {
+        return Ok(articles);
+    }
+    for entry in fs::read_dir(&blog_folder)? {
+        let entry_path = entry?.path();
+        let entry_path_display = entry_path.display().to_string();
+        let destination_path = genereto_config.get_blog_dest_path(&entry_path);
+        info!("Compiling {entry_path_display} to {destination_path:?}.");
+        if entry_path.is_dir() {
+            copy_directory_recursively(&entry_path, &destination_path)?;
+        } else if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "md" {
+            let article_opt = if genereto_config.blog.generate_single_pages {
+                load_compile_write(
+                    default_cover_image,
+                    &entry_path,
+                    drafts_options,
+                    &destination_path,
+                    &template_raw,
+                    &genereto_config.url,
+                )
+                .with_context(|| format!("Failed to build page {entry_path_display}"))?
             } else {
-                warn!("Found entry which is not a file nor a directory: {entry_path:?}. Skipping.");
+                // When single pages are disabled, still parse metadata but skip file generation
+                let (_, md) = crate::parser::load_compile(
+                    default_cover_image,
+                    &entry_path,
+                    &template_raw,
+                    &genereto_config.url,
+                )
+                .with_context(|| format!("Failed to parse metadata for {entry_path_display}"))?;
+                Some(md)
+            };
+            if let Some(md) = article_opt {
+                articles.push(md);
             }
+        } else {
+            warn!("Found entry which is not a file nor a directory: {entry_path:?}. Skipping.");
         }
     }
     Ok(articles)
@@ -273,7 +275,8 @@ entries:
                 cover_image: "cover1.jpg".to_string(),
                 is_draft: false,
                 add_title: false,
-                url: None,
+                article_url: None,
+                website_url: "test.com".to_string(),
                 custom_metadata: Default::default(),
             },
             PageMetadata {
@@ -288,7 +291,8 @@ entries:
                 cover_image: "cover2.jpg".to_string(),
                 is_draft: false,
                 add_title: false,
-                url: None,
+                article_url: None,
+                website_url: "test.com".to_string(),
                 custom_metadata: Default::default(),
             },
         ];

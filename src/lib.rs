@@ -123,6 +123,7 @@ fn compile_pages(
                 drafts_options,
                 &destination_path,
                 &template_raw,
+                &genereto_config.url,
             )
             .with_context(|| format!("Failed to build page {entry_path:?}"))?;
         } else {
