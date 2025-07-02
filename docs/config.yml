@@ -1,0 +1,5 @@
+template: main
+title: Genereto Documentation
+url: https://gh.fponzi.me/genereto
+description: Documentation for Genereto static site generator
+default_cover_image: ../assets/genereto-logo.jpg

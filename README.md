@@ -107,19 +107,19 @@ blog:
 
 Available metadata fields for pages and articles:
 
-| Field | Type | Description | Default |
-|-------|------|-------------|---------|
-| `title` | string | Page/article title | Required |
+| Field | Type | Description                                                                   | Default |
+|-------|------|-------------------------------------------------------------------------------|---------|
+| `title` | string | Page/article title                                                            | Required |
 | `publish_date` | string | Publication date (YYYY-mm-dd). Posts with future dates are treated as drafts. | Optional |
-| `is_draft` | bool | Draft status | `false` |
-| `keywords` | string | Comma-separated keywords | Optional |
-| `show_table_of_contents` | bool | Enable ToC generation | `false` |
-| `add_title` | bool | Auto-add H1 title from metadata | `false` |
-| `description` | string | Brief description (first 150 chars if not provided) | Optional |
-| `cover_image` | string | Path to cover image | Optional |
-| `url` | string | External URL for the article | Optional |
-| `current_year` | string | Current year (auto-generated) | Auto |
-| `custom_fields` | any | Any additional key-value pairs | Optional |
+| `is_draft` | bool | Draft status                                                                  | `false` |
+| `keywords` | string | Comma-separated keywords                                                      | Optional |
+| `show_table_of_contents` | bool | Enable ToC generation                                                         | `false` |
+| `add_title` | bool | Auto-add H1 title from metadata                                               | `false` |
+| `description` | string | Brief description (first 150 chars if not provided)                           | Optional |
+| `cover_image` | string | Path to cover image                                                           | Optional |
+| `url` | string | External URL for the article. This will be available as article_url.          | Optional |
+| `current_year` | string | Current year (auto-generated)                                                 | Auto |
+| `custom_fields` | any | Any additional key-value pairs                                                | Optional |
 
 > ⚠️ **Notes**: 
 > - Articles with TODOs are automatically marked as drafts regardless of `is_draft` setting
