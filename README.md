@@ -41,7 +41,6 @@ cargo run -- generate-project --project-path ./my-site
 
 2. Add content in `my-site/content/`:
 ```markdown
----
 title: My First Page
 description: Welcome to my site
 ---
@@ -153,7 +152,6 @@ $GENERETO['variable_name']
 You can add any custom key-value pairs to your page metadata, which will be available in templates as `$GENERETO['key']`:
 
 ```markdown
----
 title: My Collaborative Post
 publish_date: 2024-01-01
 co_authors: John Doe, Jane Smith
