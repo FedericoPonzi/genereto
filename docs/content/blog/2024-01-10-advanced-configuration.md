@@ -1,4 +1,3 @@
----
 title: Advanced Configuration
 publish_date: 2024-01-10
 description: Deep dive into Genereto's configuration options

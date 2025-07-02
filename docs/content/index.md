@@ -1,4 +1,3 @@
----
 title: Genereto
 description: A simple static site generator to handle different kinds of simple static websites
 add_title: true

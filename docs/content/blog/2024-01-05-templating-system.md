@@ -1,4 +1,3 @@
----
 title: Templating System
 publish_date: 2024-01-05
 description: Understanding Genereto's simple but powerful templating system

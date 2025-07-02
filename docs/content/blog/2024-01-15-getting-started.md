@@ -1,4 +1,3 @@
----
 title: Getting Started with Genereto
 publish_date: 2024-01-15
 description: Learn how to create your first static site with Genereto
