@@ -147,7 +147,7 @@ Content here will be replaced
 
 Variables are accessed using:
 ```html
-$GENERETO['variable_name']
+&#36;GENERETO['variable_name']
 ```
 
 > 💡 **Tip**: Use the content between start/end_content markers to preview your template's appearance.
@@ -155,7 +155,7 @@ $GENERETO['variable_name']
 ## Advanced Features
 
 ### Custom Metadata
-You can add any custom key-value pairs to your page metadata, which will be available in templates as `$GENERETO['key']`:
+You can add any custom key-value pairs to your page metadata, which will be available in templates as `&#36;GENERETO['key']`:
 
 ```markdown
 ---
@@ -166,8 +166,8 @@ project_url: https://github.com/example
 ---
 
 # My Post
-Written by $GENERETO['co_authors']
-Check out the project at $GENERETO['project_url']
+Written by &#36;GENERETO['co_authors']
+Check out the project at &#36;GENERETO['project_url']
 ```
 
 Any key-value pair that isn't a standard metadata field will be treated as custom metadata and made available in templates.
@@ -181,8 +181,8 @@ Genereto automatically generates an RSS feed. Add to your template:
 ### TODOs and Comments
 Embed TODOs and comments in your content:
 ```markdown
-$GENERETO{TODO: fix this section}
-This is my content $GENERETO{add more details here}
+&#36;GENERETO&#123;TODO: fix this section&#125;
+This is my content &#36;GENERETO&#123;add more details here&#125;
 ```
 
 ### Blog YAML Format
