@@ -79,17 +79,35 @@ pub fn compile_page_phase_2(
 
 // Split the source content into the metadata and the content
 fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, PageMetadataRaw)> {
-    let pattern = Regex::new(r"---+\n").unwrap();
-    let mut fields: Vec<&str> = pattern.splitn(source_content, 2).collect();
-    if fields.len() < 2 {
-        return Err(anyhow::anyhow!("Failed to find metadata in page"));
-    }
-    let (metadata, content) = (fields.remove(0), fields.remove(0));
-    let content = add_ids_to_headings(content);
+    let trimmed_content = source_content.trim_start();
+    
+    if trimmed_content.starts_with("---") {
+        // Standard frontmatter format: ---\nmetadata\n---\ncontent
+        let pattern = Regex::new(r"---+\n").unwrap();
+        let mut fields: Vec<&str> = pattern.splitn(trimmed_content, 3).collect();
+        if fields.len() < 3 {
+            return Err(anyhow::anyhow!("Failed to find metadata in page"));
+        }
+        let (_, metadata, content) = (fields.remove(0), fields.remove(0), fields.remove(0));
+        let content = add_ids_to_headings(content);
+        
+        let metadata: PageMetadataRaw = serde_yaml::from_str(metadata)
+            .context(format!("Failed to deserialize metadata, did you remember to put the metadata section? Metadata: '{}'", metadata))?;
+        Ok((content, metadata))
+    } else {
+        // Legacy format: metadata\n---\ncontent
+        let pattern = Regex::new(r"---+\n").unwrap();
+        let mut fields: Vec<&str> = pattern.splitn(source_content, 2).collect();
+        if fields.len() < 2 {
+            return Err(anyhow::anyhow!("Failed to find metadata in page"));
+        }
+        let (metadata, content) = (fields.remove(0), fields.remove(0));
+        let content = add_ids_to_headings(content);
 
-    let metadata: PageMetadataRaw = serde_yaml::from_str(metadata)
-        .context(format!("Failed to deserialize metadata, did you remember to put the metadata section? Metadata: '{}'", metadata))?;
-    Ok((content, metadata))
+        let metadata: PageMetadataRaw = serde_yaml::from_str(metadata)
+            .context(format!("Failed to deserialize metadata, did you remember to put the metadata section? Metadata: '{}'", metadata))?;
+        Ok((content, metadata))
+    }
 }
 
 pub(crate) fn compile_markdown_to_html(markdown_input: &str) -> String {
@@ -226,5 +244,35 @@ some code!!
         let expected = "hello-world";
         let output = super::get_anchor_id_from_title(input);
         assert_eq!(output, expected);
+    }
+
+    #[test]
+    fn test_compile_page_phase_1_standard_frontmatter() {
+        let source_content = "---\ntitle: Test Page\ndescription: A test\n---\n\n# Content\nThis is content.";
+        let result = super::compile_page_phase_1(source_content);
+        assert!(result.is_ok());
+        let (content, metadata) = result.unwrap();
+        assert!(content.contains("# Content"));
+        assert_eq!(metadata.title, "Test Page");
+    }
+
+    #[test]
+    fn test_compile_page_phase_1_legacy_frontmatter() {
+        let source_content = "title: Test Page\ndescription: A test\n---\n\n# Content\nThis is content.";
+        let result = super::compile_page_phase_1(source_content);
+        assert!(result.is_ok());
+        let (content, metadata) = result.unwrap();
+        assert!(content.contains("# Content"));
+        assert_eq!(metadata.title, "Test Page");
+    }
+
+    #[test]
+    fn test_compile_page_phase_1_with_leading_whitespace() {
+        let source_content = "\n\n---\ntitle: Test Page\ndescription: A test\n---\n\n# Content\nThis is content.";
+        let result = super::compile_page_phase_1(source_content);
+        assert!(result.is_ok());
+        let (content, metadata) = result.unwrap();
+        assert!(content.contains("# Content"));
+        assert_eq!(metadata.title, "Test Page");
     }
 }
