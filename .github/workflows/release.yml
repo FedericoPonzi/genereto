@@ -12,12 +12,12 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu
-      
+
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -28,20 +28,17 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      
+
       - name: Build release binary
         run: cargo build --release --target x86_64-unknown-linux-gnu
-      
-      - name: Strip binary
-        run: strip target/x86_64-unknown-linux-gnu/release/genereto
-      
+
       - name: Create release archive
         run: |
           mkdir -p release
           cp target/x86_64-unknown-linux-gnu/release/genereto release/
           cp README.md LICENSE release/ 2>/dev/null || true
           tar -czf genereto-${{ github.ref_name }}-linux-x86_64.tar.gz -C release .
-      
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

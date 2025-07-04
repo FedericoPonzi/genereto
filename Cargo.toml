@@ -2,7 +2,7 @@
 name = "genereto"
 version = "0.1.0"
 authors = ["Federico Ponzi <isaacisback92@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,12 +11,19 @@ tempfile = "~3"
 
 [dependencies]
 log = "~0.4"
-env_logger = "~0.11"
-pulldown-cmark = "^0.12"
-serde = { version = "~1.0", features = ["derive"] }
+env_logger = { version = "~0.11", default-features = false }
+pulldown-cmark = { version = "^0.12", default-features = false, features = ["html"] }
+serde = { version = "~1.0", features = ["derive"], default-features = false }
 serde_yaml = "~0.9"
 regex = "~1"
 anyhow = "~1.0"
-clap = { version = "4.2.7", features = ["derive"] }
-chrono = "~0.4"
-rss = "2.0.6"
+clap = { version = "4.2.7", default-features = false, features = ["derive", "std"] }
+chrono = { version = "~0.4", default-features = false, features = ["std", "clock"] }
+rss = { version = "2.0.6", default-features = false, features = ["builders"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
