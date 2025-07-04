@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Configuration - Genereto</title>
+    <meta name="description" content="Deep dive into Genereto's configuration options">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <a href="index.html"><img src="assets/genereto-logo.jpg" alt="Genereto Logo" class="logo"></a>
+    <h1><a href="index.html">Genereto Documentation</a></h1>
+</div>
+
+<h1 id="advanced-configuration">Advanced Configuration</h1>
+<p>Genereto offers many configuration options to customize your site generation.</p>
+<h2 id="template-configuration">Template Configuration</h2>
+<p>You can specify custom template paths and configure blog settings:</p>
+<pre><code class="language-yaml">template: main
+template_base_path: ./custom-templates
+blog:
+  base_template: article.html
+  generate_single_pages: true
+</code></pre>
+<h2 id="custom-metadata">Custom Metadata</h2>
+<p>Add any custom fields to your content metadata and access them in templates using <code>$GENERETO['field_name']</code>.</p>
+
+
+<footer style="margin-top: 40px; text-align: center; color: #666;">
+    <p>Generated with <a href="https://github.com/FedericoPonzi/genereto">Genereto</a></p>
+</footer>
+</body>
+</html>

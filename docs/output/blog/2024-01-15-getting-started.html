@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started with Genereto - Genereto</title>
+    <meta name="description" content="Learn how to create your first static site with Genereto">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <a href="index.html"><img src="assets/genereto-logo.jpg" alt="Genereto Logo" class="logo"></a>
+    <h1><a href="index.html">Genereto Documentation</a></h1>
+</div>
+
+<h1 id="getting-started-with-genereto">Getting Started with Genereto</h1>
+<p>This guide will walk you through creating your first static site with Genereto.</p>
+<h2 id="installation">Installation</h2>
+<p>First, make sure you have Rust installed, then clone the repository:</p>
+<pre><code class="language-bash">git clone https://github.com/FedericoPonzi/genereto.git
+cd genereto
+cargo build --release
+</code></pre>
+<h2 id="your-first-site">Your First Site</h2>
+<p>Create a new project:</p>
+<pre><code class="language-bash">./target/release/genereto generate-project --project-path ./my-site
+</code></pre>
+<p>This creates the basic structure you need to get started.</p>
+
+
+<footer style="margin-top: 40px; text-align: center; color: #666;">
+    <p>Generated with <a href="https://github.com/FedericoPonzi/genereto">Genereto</a></p>
+</footer>
+</body>
+</html>
