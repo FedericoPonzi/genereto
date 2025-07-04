@@ -118,7 +118,7 @@ fn compile_pages(
         } else if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "md" {
             // TODO: test. any other non-md file is copied over to the output folder.
             let _page_opt = load_compile_write(
-                &genereto_config.default_cover_image,
+                "",
                 &entry_path,
                 drafts_options,
                 &destination_path,

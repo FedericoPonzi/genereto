@@ -27,7 +27,6 @@ pub struct GeneretoConfig {
     pub url: String,
     /// description of the website - used in rss.
     pub description: String,
-    pub default_cover_image: String,
     pub blog: GeneretoConfigBlog,
 }
 
@@ -38,6 +37,7 @@ pub struct GeneretoConfigBlog {
     pub destination: PathBuf,
     pub generate_single_pages: bool,
     pub title: Option<String>,
+    pub default_cover_image: Option<String>,
 }
 impl GeneretoConfigBlog {
     fn new_from_raw(
@@ -56,6 +56,7 @@ impl GeneretoConfigBlog {
             destination,
             generate_single_pages: raw_config.blog.generate_single_pages,
             title: raw_config.blog.title.clone(),
+            default_cover_image: Option::from(raw_config.blog.default_cover_image.clone()),
         }
     }
 }
@@ -91,7 +92,6 @@ impl GeneretoConfig {
             title: raw_config.title,
             url: raw_config.url,
             description: raw_config.description,
-            default_cover_image: raw_config.default_cover_image,
             blog,
         })
     }

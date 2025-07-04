@@ -16,6 +16,8 @@ pub(crate) struct GeneretoConfigBlogRaw {
     pub(crate) generate_single_pages: bool,
     #[serde(default)]
     pub(crate) title: Option<String>,
+    #[serde(default)]
+    pub(crate) default_cover_image: String,
 }
 
 fn index_html() -> PathBuf {
@@ -37,6 +39,7 @@ impl Default for GeneretoConfigBlogRaw {
             destination: blog_destination(),
             generate_single_pages: default_single_pages(),
             title: None,
+            default_cover_image: String::new(),
         }
     }
 }
@@ -57,8 +60,7 @@ pub(crate) struct GeneretoConfigRaw {
     /// description of the website - used in rss.
     #[serde(default)]
     pub description: String,
-    #[serde(default)]
-    pub default_cover_image: String,
+
     #[serde(default)]
     // this is not an option because there is a default choice for each BlogConfig field
     // (in the Default trait impl)
@@ -94,11 +96,11 @@ mod tests {
         title: full_config
         url: XXXXXXXXXXXXXXXX
         description: Test description
-        default_cover_image: Something.jpg
         blog:
             base_template: blog-index.html
             index_name: blog.html
             destination: some/directory/folder
+            default_cover_image: Something.jpg
         "#;
         let expected_full_config = GeneretoConfigRaw {
             template: "test_template".into(),
@@ -106,13 +108,13 @@ mod tests {
             title: "full_config".into(),
             url: "XXXXXXXXXXXXXXXX".into(),
             description: "Test description".into(),
-            default_cover_image: "Something.jpg".into(),
             blog: GeneretoConfigBlogRaw {
                 base_template: "blog-index.html".into(),
                 index_name: "blog.html".into(),
                 destination: "some/directory/folder".into(),
                 generate_single_pages: true,
                 title: None,
+                default_cover_image: "Something.jpg".into(),
             },
         };
 
@@ -122,13 +124,13 @@ mod tests {
             title: "no_blog".into(),
             url: "XXXXXXXXXXXXXXXX".into(),
             description: "Test description".into(),
-            default_cover_image: "Something.jpg".into(),
             blog: GeneretoConfigBlogRaw {
                 base_template: "index.html".into(),
                 index_name: "index.html".into(),
                 destination: "".into(),
                 generate_single_pages: true,
                 title: None,
+                default_cover_image: String::new(),
             },
         };
 
@@ -137,7 +139,6 @@ mod tests {
         title: no_blog
         url: XXXXXXXXXXXXXXXX
         description: Test description
-        default_cover_image: Something.jpg
         "#;
         for (expected, cfg) in [
             (expected_full_config, sample_full_config),

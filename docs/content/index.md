@@ -59,7 +59,7 @@ cargo run -- --project-path ./my-site/genereto-project
 ```
 
 > 💡 **Tip**: Use the sample project as reference: check out `sample-genereto-project` folder in this repository.
-> The generate project command can be used to clone this repository.
+> The generate project command will basically clone this folder.
 
 ## CLI Reference
 
@@ -84,13 +84,12 @@ Draft options:
 The `config.yml` file in your project root defines the site configuration:
 
 ```yaml
-# Required fields
-template: string           # Template directory name to use
-template_base_path: string     # Optional custom path to templates folder (relative or absolute)
-title: string             # Website title (used in RSS)
-url: string              # Website URL (used in RSS)
-description: string      # Website description (used in RSS)
-default_cover_image: string # Default image for pages without cover
+template: string              # Template directory name to use.
+template_base_path: string    # Custom path to templates folder (relative or absolute). By default will use project-path + "templates"
+title: string                 # Website title (used in RSS)
+url: string                   # Website URL (used in RSS)
+description: string           # Website description (used in RSS)
+default_cover_image: string   # Default image for pages without cover
 
 # Blog configuration (optional)
 blog:

@@ -55,12 +55,12 @@ template: main
 title: Test
 url: http://test.com
 description: Test blog description
-default_cover_image: cover.jpg
 blog:
   base_template: blog.html
   index_name: index.html
   destination: blog
   generate_single_pages: true
+  default_cover_image: cover.jpg
 "#;
     // write to file:
     fs::write(project_path.join("config.yml"), raw_config)?;

@@ -22,13 +22,13 @@ fn test_load_config_without_blog() {
         title: Test title
         url: XXXXXXXXXXXXXXXX
         description: Test description
-        default_cover_image: Something.jpg
         blog:
             base_template: blog-index.html
             index_name: blog.html
             destination: some/directory/folder
             generate_single_pages: false
             title: Custom Blog Title
+            default_cover_image: Something.jpg
         "#;
     let expected_full_config = GeneretoConfig {
         template_dir_path: PathBuf::from("/custom/template/path/test_template"),
@@ -40,10 +40,10 @@ fn test_load_config_without_blog() {
         title: "Test title".into(),
         url: "XXXXXXXXXXXXXXXX".into(),
         description: "Test description".into(),
-        default_cover_image: "Something.jpg".into(),
         blog: GeneretoConfigBlog {
             base_template: "blog-index.html".into(),
             index_name: "blog.html".into(),
+            default_cover_image: Some("Something.jpg".into()),
             destination: "some/directory/folder".into(),
             generate_single_pages: false,
             title: Some("Custom Blog Title".into()),
@@ -60,13 +60,13 @@ fn test_load_config_without_blog() {
         title: "Test title".into(),
         url: "XXXXXXXXXXXXXXXX".into(),
         description: "Test description".into(),
-        default_cover_image: "Something.jpg".into(),
         blog: GeneretoConfigBlog {
             base_template: "index.html".into(),
             index_name: "index.html".into(),
             destination: "".into(),
             generate_single_pages: true,
             title: None,
+            default_cover_image: Some("".into()),
         },
     };
 
@@ -84,7 +84,6 @@ fn test_load_config_without_blog() {
         title: Test title
         url: XXXXXXXXXXXXXXXX
         description: Test description
-        default_cover_image: Something.jpg
         "#;
 
     let empty_template = r#"
@@ -93,7 +92,6 @@ fn test_load_config_without_blog() {
         title: Test title
         url: XXXXXXXXXXXXXXXX
         description: Test description
-        default_cover_image: Something.jpg
         "#;
 
     for (expected, cfg) in [
@@ -126,7 +124,10 @@ fn test_load_config_without_blog() {
         assert_eq!(expected.title, received.title);
         assert_eq!(expected.url, received.url);
         assert_eq!(expected.description, received.description);
-        assert_eq!(expected.default_cover_image, received.default_cover_image);
+        assert_eq!(
+            expected.blog.default_cover_image,
+            received.blog.default_cover_image
+        );
         assert_eq!(expected.blog.title, received.blog.title);
     }
 

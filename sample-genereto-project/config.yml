@@ -6,8 +6,6 @@ title: My Website
 description: The best website in the world.
 # used in RSS.
 url: https://blog.fponzi.me
-# used in metadata, and passed to the template
-# default_cover_image: res/cover.jpg
 # blog:
 #     # this is a path relative the template folder
 #     # for the template to use for the blog index.
@@ -17,3 +15,5 @@ url: https://blog.fponzi.me
 #     index_name: index.html
 #     # offset from the output folder
 #     destination: blog/
+#     # default cover image for blog posts
+#     default_cover_image: res/cover.jpg

@@ -64,12 +64,13 @@ fn test_blog_generation_with_single_pages_disabled() {
         title: "Test".into(),
         url: "http://test.com".into(),
         description: "Test".into(),
-        default_cover_image: "".into(),
+
         blog: GeneretoConfigBlog {
             base_template: PathBuf::from("blog.html"),
             index_name: PathBuf::from("index.html"),
             destination: PathBuf::from("blog"),
             generate_single_pages: false,
+            default_cover_image: Some("Something.jpg".into()),
             title: None,
         },
     };

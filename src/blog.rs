@@ -129,7 +129,11 @@ fn build_articles(
         .join(BLOG_ENTRY_TEMPLATE_FILENAME);
     let template_raw = fs::read_to_string(template_path)
         .context(format!("reading template path {:?}", template_path))?;
-    let default_cover_image = &genereto_config.default_cover_image;
+    let default_cover_image = &genereto_config
+        .blog
+        .default_cover_image
+        .clone()
+        .unwrap_or_default();
 
     // First try to load from blog.yml if it exists
     let yaml_path = genereto_config.content_path.join(BLOG_ENTRIES_FILE_NAME);
@@ -139,7 +143,7 @@ fn build_articles(
                 entry,
                 "", // No content for YAML entries
                 &yaml_path,
-                default_cover_image,
+                &default_cover_image,
                 &genereto_config.url,
             );
             articles.push(metadata);
@@ -316,13 +320,14 @@ entries:
             title: "Main Title".into(),
             url: "test.com".into(),
             description: "Test description".into(),
-            default_cover_image: "cover.jpg".into(),
+
             blog: GeneretoConfigBlog {
                 base_template: "blog-index.html".into(),
                 index_name: "blog.html".into(),
                 destination: "".into(),
                 generate_single_pages: true,
                 title: Some("Custom Blog Title".into()),
+                default_cover_image: Some("cover.jpg".into()),
             },
         };
 
