@@ -17,18 +17,22 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="../assets/genereto-logo.jpg" alt="Genereto Logo" class="logo">
-        <h1>Genereto Documentation</h1>
-    </div>
-    
-    <!-- start_content -->
-    <h1>Welcome to Genereto</h1>
-    <p>This is the documentation for Genereto static site generator.</p>
-    <!-- end_content -->
-    
-    <footer style="margin-top: 40px; text-align: center; color: #666;">
-        <p>Generated with <a href="https://github.com/FedericoPonzi/genereto">Genereto</a></p>
-    </footer>
+<div class="header">
+    <img src="assets/genereto-logo.jpg" alt="Genereto Logo" class="logo">
+    <h1>Genereto Documentation</h1>
+</div>
+
+<!-- start_content -->
+<h1>Blog</h1>
+<p>Tutorials, guides, and tips for using Genereto.</p>
+
+<div class="blog-posts">
+    $GENERETO['blog_entries']
+</div>
+<!-- end_content -->
+
+<footer style="margin-top: 40px; text-align: center; color: #666;">
+    <p>Generated with <a href="https://github.com/FedericoPonzi/genereto">Genereto</a></p>
+</footer>
 </body>
 </html>

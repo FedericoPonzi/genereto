@@ -9,11 +9,11 @@ Genereto uses a simple variable replacement system for templates.
 
 ## Basic Usage
 
-Variables are accessed using the `$GENERETO['variable_name']` syntax:
+Variables are accessed using the `&#36;GENERETO['variable_name']` syntax:
 
 ```html
-<title>$GENERETO['title']</title>
-<meta name="description" content="$GENERETO['description']">
+<title>&#36;GENERETO['title']</title>
+<meta name="description" content="&#36;GENERETO['description']">
 ```
 
 ## Content Replacement

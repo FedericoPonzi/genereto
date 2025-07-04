@@ -323,7 +323,7 @@ fn get_description(article: &str, limit: usize) -> String {
         }
     }
 
-    truncate_text(&plaintext.trim(), limit)
+    truncate_text(plaintext.trim(), limit)
 }
 
 fn remove_links(buff: String) -> String {

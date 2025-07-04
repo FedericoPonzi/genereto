@@ -8,8 +8,6 @@ A simple static site generator to handle different kinds of simple static websit
 🔗 **[GitHub Repository](https://github.com/FedericoPonzi/genereto)** - Source code, issues, and releases  
 📖 **[Read the Blog →](blog)** - Tutorials, guides, and tips for using Genereto
 
-[<img src="assets/genereto-logo.jpg" width="300" align="center">](https://github.com/FedericoPonzi/genereto/raw/main/assets/genereto-logo.jpg)
-
 ## Table of Contents
 - [Features](#features)
 - [Quick Start Tutorial](#quick-start-tutorial)
@@ -22,12 +20,12 @@ A simple static site generator to handle different kinds of simple static websit
 ## Features
 
 With Genereto, you can:
-* Generate a simple static website with a single page or multiple pages
-* Generate a blog with articles
-* Generate a tumblr style website
-* Generate a simple static website along with a blog
+* Generate a simple static website with a single or multiple pages.
+* Generate a blog with articles.
+* Generate a tumblr style website.
+* Generate a simple static website along with a blog - like this website.
 
-You should use genereto if you want:
+You should use Genereto if you want:
 * A complete and easy way to create a static website
 * Metadata stored along with the website content written in Markdown
 * A super simple templating system
@@ -35,8 +33,8 @@ You should use genereto if you want:
 * And more:
     * TODOs and comments embeddable in your pages
     * Drafts support
-    * Tumblr style website
-    * RSS feed generation
+    * Tumblr style websites
+    * Automatic RSS feed generation
 
 ## Quick Start Tutorial
 
@@ -45,7 +43,7 @@ You should use genereto if you want:
 cargo run -- generate-project --project-path ./my-site
 ```
 
-2. Add content in `my-site/content/`:
+2. Create a new file in `my-site/content/index.md`:
 ```markdown
 ---
 title: My First Page
@@ -57,10 +55,11 @@ This is my first page.
 
 3. Build your site:
 ```bash
-cargo run -- --project-path ./my-site
+cargo run -- --project-path ./my-site/genereto-project
 ```
 
-> 💡 **Tip**: Use the sample project as reference: check out `sample-genereto-project` in this repository.
+> 💡 **Tip**: Use the sample project as reference: check out `sample-genereto-project` folder in this repository.
+> The generate project command can be used to clone this repository.
 
 ## CLI Reference
 

@@ -13,7 +13,7 @@ const SAMPLE_IMAGE: &[u8] =
 pub fn generate_project(project_path: &Path, override_git: bool) -> anyhow::Result<()> {
     // check if project_path has a .git directory.
     // if it doesn't and override_git is false, this script could cause irreversible overwrites.
-    if !project_path.join(".git").exists() && !override_git {
+    if project_path.exists() && !project_path.join(".git").exists() && !override_git {
         bail!(".git directory not found. This script could cause irreversible overwrites. Please initialize a git repo using `git init` or use --override-git flag. Exiting.")
     }
     // create directories:
@@ -52,4 +52,3 @@ pub fn generate_project(project_path: &Path, override_git: bool) -> anyhow::Resu
 
     Ok(())
 }
-

@@ -21,4 +21,4 @@ blog:
 
 ## Custom Metadata
 
-Add any custom fields to your content metadata and access them in templates using `$GENERETO['field_name']`.
+Add any custom fields to your content metadata and access them in templates using `&#36;GENERETO['field_name']`.

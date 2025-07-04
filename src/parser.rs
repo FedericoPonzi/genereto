@@ -74,13 +74,14 @@ pub fn compile_page_phase_2(
 
     final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
     let final_page = metadata.apply(final_page);
+    let final_page = final_page.replace("&amp;#36;", "$");
     Ok((final_page, metadata))
 }
 
 // Split the source content into the metadata and the content
 fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, PageMetadataRaw)> {
     let trimmed_content = source_content.trim_start();
-    
+
     if trimmed_content.starts_with("---") {
         // Standard frontmatter format: ---\nmetadata\n---\ncontent
         let pattern = Regex::new(r"---+\n").unwrap();
@@ -90,7 +91,7 @@ fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, PageMet
         }
         let (_, metadata, content) = (fields.remove(0), fields.remove(0), fields.remove(0));
         let content = add_ids_to_headings(content);
-        
+
         let metadata: PageMetadataRaw = serde_yaml::from_str(metadata)
             .context(format!("Failed to deserialize metadata, did you remember to put the metadata section? Metadata: '{}'", metadata))?;
         Ok((content, metadata))
@@ -248,7 +249,8 @@ some code!!
 
     #[test]
     fn test_compile_page_phase_1_standard_frontmatter() {
-        let source_content = "---\ntitle: Test Page\ndescription: A test\n---\n\n# Content\nThis is content.";
+        let source_content =
+            "---\ntitle: Test Page\ndescription: A test\n---\n\n# Content\nThis is content.";
         let result = super::compile_page_phase_1(source_content);
         assert!(result.is_ok());
         let (content, metadata) = result.unwrap();
@@ -258,7 +260,8 @@ some code!!
 
     #[test]
     fn test_compile_page_phase_1_legacy_frontmatter() {
-        let source_content = "title: Test Page\ndescription: A test\n---\n\n# Content\nThis is content.";
+        let source_content =
+            "title: Test Page\ndescription: A test\n---\n\n# Content\nThis is content.";
         let result = super::compile_page_phase_1(source_content);
         assert!(result.is_ok());
         let (content, metadata) = result.unwrap();
@@ -268,7 +271,8 @@ some code!!
 
     #[test]
     fn test_compile_page_phase_1_with_leading_whitespace() {
-        let source_content = "\n\n---\ntitle: Test Page\ndescription: A test\n---\n\n# Content\nThis is content.";
+        let source_content =
+            "\n\n---\ntitle: Test Page\ndescription: A test\n---\n\n# Content\nThis is content.";
         let result = super::compile_page_phase_1(source_content);
         assert!(result.is_ok());
         let (content, metadata) = result.unwrap();

@@ -5,7 +5,7 @@ description: Documentation for Genereto static site generator
 default_cover_image: ../assets/genereto-logo.jpg
 
 blog:
-  base_template: blog.html
+  base_template: blog-index.html
   index_name: index.html
   destination: blog/
-  title: Genereto Documentation
+  title: Genereto Blog

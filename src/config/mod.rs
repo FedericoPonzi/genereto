@@ -105,7 +105,7 @@ impl GeneretoConfig {
         self.inner_get_dest_path(entry_path, &self.output_dir_path)
     }
     fn inner_get_dest_path(&self, entry_path: &Path, base_path: &Path) -> PathBuf {
-        println!("entry path: {entry_path:?}");
+        debug!("entry path: {entry_path:?}");
 
         let name = entry_path.file_name().unwrap().to_str().unwrap();
         // unwraps needed because these returns optional
