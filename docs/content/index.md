@@ -89,15 +89,15 @@ template_base_path: string    # Custom path to templates folder (relative or abs
 title: string                 # Website title (used in RSS)
 url: string                   # Website URL (used in RSS)
 description: string           # Website description (used in RSS)
-default_cover_image: string   # Default image for pages without cover
 
 # Blog configuration (optional)
 blog:
-  base_template: index.html  # Template for blog's article pages
-  index_name: index.html    # Name of the blog index file
-  destination: ""           # Blog output subdirectory
-  generate_single_pages: true # Generate individual article pages
-  title: string            # Optional blog-specific title
+  default_cover_image: string  # Default image for pages without cover
+  base_template: index.html    # Template for blog's article pages
+  index_name: index.html       # Name of the blog index file
+  destination: ""              # Blog output subdirectory
+  generate_single_pages: true  # Generate individual article pages
+  title: string                # Optional blog-specific title
 ```
 
 ### Directory Structure
