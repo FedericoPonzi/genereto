@@ -38,9 +38,23 @@ You should use Genereto if you want:
 
 ## Quick Start Tutorial
 
+### Installation
+
+**Recommended**: Download the latest pre-built binary for Linux from [GitHub Releases](https://github.com/FedericoPonzi/genereto/releases/latest)
+
+```bash
+# Download and extract
+wget https://github.com/FedericoPonzi/genereto/releases/latest/download/genereto-*-linux-x86_64.tar.gz
+tar -xzf genereto-*-linux-x86_64.tar.gz
+```
+
+**Alternative**: Build from source with `cargo build --release`
+
+### Usage
+
 1. Create a new project:
 ```bash
-cargo run -- generate-project --project-path ./my-site
+./genereto generate-project --project-path ./my-site
 ```
 
 2. Create a new file in `my-site/content/index.md`:
@@ -55,7 +69,7 @@ This is my first page.
 
 3. Build your site:
 ```bash
-cargo run -- --project-path ./my-site/genereto-project
+./genereto --project-path ./my-site
 ```
 
 > 💡 **Tip**: Use the sample project as reference: check out `sample-genereto-project` folder in this repository.

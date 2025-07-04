@@ -8,6 +8,22 @@ A simple static site generator to handle different kinds of simple static websit
 
 ## Quick Start
 
+### Download Pre-built Binary (Recommended)
+
+1. Download the latest release for Linux from [GitHub Releases](https://github.com/FedericoPonzi/genereto/releases/latest)
+2. Extract the archive: `tar -xzf genereto-*.tar.gz`
+3. Use the binary:
+
+```bash
+# Create a new project
+./genereto generate-project --project-path ./my-site
+
+# Build your site
+./genereto --project-path ./my-site
+```
+
+### Build from Source
+
 ```bash
 # Clone and build
 git clone https://github.com/FedericoPonzi/genereto.git
