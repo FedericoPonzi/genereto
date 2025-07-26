@@ -30,6 +30,7 @@
 <ul>
 <li><a href="#features">Features</a></li>
 <li><a href="#quick-start-tutorial">Quick Start Tutorial</a></li>
+<li><a href="#github-action">GitHub Action</a></li>
 <li><a href="#cli-reference">CLI Reference</a></li>
 <li><a href="#config-reference">Config Reference</a></li>
 <li><a href="#metadata-fields-reference">Metadata Fields Reference</a></li>
@@ -92,6 +93,55 @@ This is my first page.
 <p>💡 <strong>Tip</strong>: Use the sample project as reference: check out <code>sample-genereto-project</code> folder in this repository.
 The generate project command will basically clone this folder.</p>
 </blockquote>
+<h2 id="github-action">GitHub Action</h2>
+<p>Deploy your Genereto site to GitHub Pages or any CI/CD pipeline with our official GitHub Action:</p>
+<pre><code class="language-yaml">- name: Build site
+  uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+  with:
+    project-path: './docs'
+</code></pre>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>🚀 <strong>Fast builds</strong> - Uses pre-built binaries instead of compiling from source</li>
+<li>⚡ <strong>Simple setup</strong> - Just one step in your workflow</li>
+<li>🔧 <strong>Configurable</strong> - Support for custom versions and paths</li>
+<li>✅ <strong>Reliable</strong> - Built-in validation and error handling</li>
+</ul>
+<p><strong>Complete GitHub Pages example:</strong></p>
+<pre><code class="language-yaml">name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ 'docs/**' ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build with Genereto
+        id: build
+        uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Upload to Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ steps.build.outputs.output-path }}
+          
+      - name: Deploy to Pages
+        uses: actions/deploy-pages@v4
+</code></pre>
+<p>📖 <strong><a href="blog/2024-01-20-github-pages-setup.html">Read the complete GitHub Pages setup guide →</a></strong></p>
 <h2 id="cli-reference">CLI Reference</h2>
 <pre><code class="language-bash"># Basic usage
 genereto --project-path &lt;PATH&gt;

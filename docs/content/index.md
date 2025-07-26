@@ -11,6 +11,7 @@ A simple static site generator to handle different kinds of simple static websit
 ## Table of Contents
 - [Features](#features)
 - [Quick Start Tutorial](#quick-start-tutorial)
+- [GitHub Action](#github-action)
 - [CLI Reference](#cli-reference)
 - [Config Reference](#config-reference)
 - [Metadata Fields Reference](#metadata-fields-reference)
@@ -74,6 +75,61 @@ This is my first page.
 
 > 💡 **Tip**: Use the sample project as reference: check out `sample-genereto-project` folder in this repository.
 > The generate project command will basically clone this folder.
+
+## GitHub Action
+
+Deploy your Genereto site to GitHub Pages or any CI/CD pipeline with our official GitHub Action:
+
+```yaml
+- name: Build site
+  uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+  with:
+    project-path: './docs'
+```
+
+**Benefits:**
+- 🚀 **Fast builds** - Uses pre-built binaries instead of compiling from source
+- ⚡ **Simple setup** - Just one step in your workflow
+- 🔧 **Configurable** - Support for custom versions and paths
+- ✅ **Reliable** - Built-in validation and error handling
+
+**Complete GitHub Pages example:**
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ 'docs/**' ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build with Genereto
+        id: build
+        uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Upload to Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ steps.build.outputs.output-path }}
+          
+      - name: Deploy to Pages
+        uses: actions/deploy-pages@v4
+```
+
+📖 **[Read the complete GitHub Pages setup guide →](blog/2024-01-20-github-pages-setup.html)**
 
 ## CLI Reference
 
