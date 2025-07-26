@@ -88,14 +88,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        
-      - name: Build genereto
-        run: cargo build --release
-        
-      - name: Generate documentation
-        run: ./target/release/genereto --project-path ./docs
+      - name: Build site with Genereto
+        id: build
+        uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+        with:
+          project-path: './docs'
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -103,12 +100,12 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './docs/output'
+          path: ${{ steps.build.outputs.output-path }}
 
   deploy:
     environment:
       name: github-pages
-      url: $&amp;#123;&amp;#123; steps.deployment.outputs.page_url &amp;#125;&amp;#125;
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -155,16 +152,41 @@ blog:
 <h2 id="step-5-deploy">Step 5: Deploy</h2>
 <p>Push your changes to the main branch. The workflow will:</p>
 <ol>
-<li>Build Genereto from source</li>
-<li>Generate your static site</li>
+<li>Download the latest Genereto binary</li>
+<li>Generate your static site using the custom action</li>
 <li>Deploy it to GitHub Pages</li>
 </ol>
 <p>Your site will be available at <code>https://yourusername.github.io/your-repo</code>.</p>
+<h2 id="benefits-of-using-the-custom-action">Benefits of Using the Custom Action</h2>
+<p>The new Genereto GitHub Action provides several advantages:</p>
+<ul>
+<li><strong>Faster builds</strong>: No need to compile Rust code from source</li>
+<li><strong>Simpler setup</strong>: Just one step instead of multiple build steps</li>
+<li><strong>Automatic updates</strong>: Uses the latest Genereto release by default</li>
+<li><strong>Better reliability</strong>: Pre-built binaries reduce build failures</li>
+<li><strong>Version control</strong>: Pin to specific Genereto versions when needed</li>
+</ul>
+<h2 id="advanced-usage">Advanced Usage</h2>
+<h3 id="use-a-specific-version">Use a Specific Version</h3>
+<pre><code class="language-yaml">- name: Build site with specific version
+  uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+  with:
+    project-path: './docs'
+    genereto-version: 'v0.2.0'
+</code></pre>
+<h3 id="custom-output-path">Custom Output Path</h3>
+<pre><code class="language-yaml">- name: Build site with custom output
+  uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+  with:
+    project-path: './website'
+    output-path: 'dist'
+</code></pre>
 <h2 id="tips">Tips</h2>
 <ul>
 <li>Use <code>paths</code> in your workflow to only trigger builds when content changes</li>
 <li>Add <code>workflow_dispatch</code> to manually trigger deployments</li>
-<li>Consider using separate workflows for CI and deployment</li>
+<li>The action automatically validates your project structure and provides helpful error messages</li>
+<li>Check the <a href="https://github.com/FedericoPonzi/genereto/tree/main/.github/actions/build-site">action documentation</a> for more examples</li>
 </ul>
 
 

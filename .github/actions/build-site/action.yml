@@ -1,0 +1,77 @@
+name: 'Build Site with Genereto'
+description: 'Build a static site using Genereto static site generator'
+author: 'Federico Ponzi'
+
+inputs:
+  project-path:
+    description: 'Path to the Genereto project directory'
+    required: false
+    default: './docs'
+  genereto-version:
+    description: 'Version of Genereto to use (defaults to latest release)'
+    required: false
+    default: 'latest'
+  output-path:
+    description: 'Path where the generated site will be output (relative to project-path)'
+    required: false
+    default: 'output'
+
+outputs:
+  output-path:
+    description: 'Full path to the generated site output directory'
+    value: ${{ steps.build.outputs.output-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download Genereto binary
+      shell: bash
+      run: |
+        if [ "${{ inputs.genereto-version }}" = "latest" ]; then
+          DOWNLOAD_URL=$(curl -s https://api.github.com/repos/FedericoPonzi/genereto/releases/latest | grep "browser_download_url.*linux.*tar.gz" | cut -d '"' -f 4)
+        else
+          DOWNLOAD_URL="https://github.com/FedericoPonzi/genereto/releases/download/${{ inputs.genereto-version }}/genereto-${{ inputs.genereto-version }}-linux.tar.gz"
+        fi
+        
+        echo "Downloading Genereto from: $DOWNLOAD_URL"
+        curl -L "$DOWNLOAD_URL" -o genereto.tar.gz
+        tar -xzf genereto.tar.gz
+        chmod +x genereto
+        
+        # Move to a location in PATH
+        sudo mv genereto /usr/local/bin/genereto
+        
+        # Verify installation
+        genereto --version
+
+    - name: Build site
+      id: build
+      shell: bash
+      run: |
+        echo "Building site with project path: ${{ inputs.project-path }}"
+        
+        # Check if project path exists
+        if [ ! -d "${{ inputs.project-path }}" ]; then
+          echo "Error: Project path '${{ inputs.project-path }}' does not exist"
+          exit 1
+        fi
+        
+        # Build the site
+        genereto --project-path "${{ inputs.project-path }}"
+        
+        # Set output path
+        OUTPUT_PATH="${{ inputs.project-path }}/${{ inputs.output-path }}"
+        echo "output-path=$OUTPUT_PATH" >> $GITHUB_OUTPUT
+        
+        # Verify output was generated
+        if [ ! -d "$OUTPUT_PATH" ]; then
+          echo "Error: Output directory '$OUTPUT_PATH' was not created"
+          exit 1
+        fi
+        
+        echo "Site successfully built at: $OUTPUT_PATH"
+        ls -la "$OUTPUT_PATH"
+
+branding:
+  icon: 'file-text'
+  color: 'blue'

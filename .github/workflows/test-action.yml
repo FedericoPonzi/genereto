@@ -1,0 +1,49 @@
+name: Test Build Site Action
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/actions/build-site/**'
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Test build site action
+        id: build
+        uses: ./.github/actions/build-site
+        with:
+          project-path: './docs'
+          
+      - name: Verify output
+        run: |
+          echo "Output path: ${{ steps.build.outputs.output-path }}"
+          ls -la "${{ steps.build.outputs.output-path }}"
+          
+          # Check that key files exist
+          if [ ! -f "${{ steps.build.outputs.output-path }}/index.html" ]; then
+            echo "Error: index.html not found"
+            exit 1
+          fi
+          
+          if [ ! -f "${{ steps.build.outputs.output-path }}/rss.xml" ]; then
+            echo "Error: rss.xml not found"
+            exit 1
+          fi
+          
+          if [ ! -d "${{ steps.build.outputs.output-path }}/blog" ]; then
+            echo "Error: blog directory not found"
+            exit 1
+          fi
+          
+          echo "✅ All expected files found!"
+          
+      - name: Upload test artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-site-output
+          path: ${{ steps.build.outputs.output-path }}

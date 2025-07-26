@@ -37,6 +37,24 @@ cargo build --release
 ./target/release/genereto --project-path ./my-site
 ```
 
+## GitHub Action
+
+Use Genereto in your CI/CD pipeline with our official GitHub Action:
+
+```yaml
+- name: Build site
+  uses: FedericoPonzi/genereto/.github/actions/build-site@v0.1.0-ga
+  with:
+    project-path: './docs'
+```
+
+Perfect for:
+- 🚀 **GitHub Pages deployment** - No need to build from source
+- ⚡ **Fast CI builds** - Uses pre-built binaries
+- 🔧 **Easy setup** - Just one step in your workflow
+
+[View Action Documentation](./.github/actions/build-site/README.md)
+
 ## Features
 
 - Generate static websites and blogs
@@ -45,5 +63,6 @@ cargo build --release
 - RSS feed generation
 - Draft support and TODOs
 - Fast compilation
+- GitHub Action for CI/CD
 
 For complete documentation, tutorials, and examples, visit **[federicoPonzi.github.io/genereto](https://federicoPonzi.github.io/genereto)**
