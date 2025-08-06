@@ -633,7 +633,7 @@ keywords: test
 co_authors: John Doe, Jane Smith
 project_url: https://github.com/example
 "#;
-        let metadata: PageMetadataRaw = serde_yaml::from_str(yaml).unwrap();
+        let metadata: PageMetadataRaw = serde_yaml_ng::from_str(yaml).unwrap();
         assert_eq!(metadata.title, "Test Page");
         assert_eq!(
             metadata.custom_metadata.get("co_authors"),

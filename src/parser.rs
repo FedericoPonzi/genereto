@@ -92,7 +92,7 @@ fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, PageMet
         let (_, metadata, content) = (fields.remove(0), fields.remove(0), fields.remove(0));
         let content = add_ids_to_headings(content);
 
-        let metadata: PageMetadataRaw = serde_yaml::from_str(metadata)
+        let metadata: PageMetadataRaw = serde_yaml_ng::from_str(metadata)
             .context(format!("Failed to deserialize metadata, did you remember to put the metadata section? Metadata: '{}'", metadata))?;
         Ok((content, metadata))
     } else {
@@ -105,7 +105,7 @@ fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, PageMet
         let (metadata, content) = (fields.remove(0), fields.remove(0));
         let content = add_ids_to_headings(content);
 
-        let metadata: PageMetadataRaw = serde_yaml::from_str(metadata)
+        let metadata: PageMetadataRaw = serde_yaml_ng::from_str(metadata)
             .context(format!("Failed to deserialize metadata, did you remember to put the metadata section? Metadata: '{}'", metadata))?;
         Ok((content, metadata))
     }

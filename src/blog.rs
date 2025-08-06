@@ -23,7 +23,7 @@ impl BlogEntries {
         if !path.exists() {
             return Ok(None);
         }
-        let entries: BlogEntries = serde_yaml::from_reader(&fs::File::open(path)?)?;
+        let entries: BlogEntries = serde_yaml_ng::from_reader(&fs::File::open(path)?)?;
         Ok(Some(entries))
     }
 }

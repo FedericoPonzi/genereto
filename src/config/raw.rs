@@ -79,7 +79,7 @@ impl GeneretoConfigRaw {
             );
         }
         let config_file: Self =
-            serde_yaml::from_reader(&File::open(project_path.join(CONFIG_FILENAME))?)?;
+            serde_yaml_ng::from_reader(&File::open(project_path.join(CONFIG_FILENAME))?)?;
         Ok(config_file)
     }
 }
@@ -144,7 +144,7 @@ mod tests {
             (expected_full_config, sample_full_config),
             (expected_no_blog, no_blog),
         ] {
-            let received: GeneretoConfigRaw = serde_yaml::from_str(cfg).unwrap();
+            let received: GeneretoConfigRaw = serde_yaml_ng::from_str(cfg).unwrap();
             assert_eq!(received, expected);
         }
     }
