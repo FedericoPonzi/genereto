@@ -12,11 +12,13 @@ pub use project_generation::generate_project;
 pub mod blog;
 
 use crate::fs_util::copy_directory_recursively;
+use crate::jinja_processor::JinjaProcessor;
 use crate::parser::load_compile_write;
 use crate::rss_generation::generate_rss;
 
 mod config;
 mod fs_util;
+mod jinja_processor;
 mod page_metadata;
 mod parser;
 mod project_generation;
@@ -99,6 +101,12 @@ fn compile_pages(
     genereto_config: &GeneretoConfig,
     drafts_options: &DraftsOptions,
 ) -> anyhow::Result<()> {
+    let mut jinja_processor = if genereto_config.enable_jinja {
+        Some(JinjaProcessor::new())
+    } else {
+        None
+    };
+
     for entry in fs::read_dir(&genereto_config.content_path)? {
         let entry_path = entry?.path();
         let template_path = &genereto_config
@@ -124,6 +132,9 @@ fn compile_pages(
                 &destination_path,
                 &template_raw,
                 &genereto_config.url,
+                genereto_config,
+                jinja_processor.as_mut(),
+                template_path,
             )
             .with_context(|| format!("Failed to build page {entry_path:?}"))?;
         } else {

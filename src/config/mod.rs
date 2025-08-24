@@ -27,6 +27,8 @@ pub struct GeneretoConfig {
     pub url: String,
     /// description of the website - used in rss.
     pub description: String,
+    /// enable Jinja template processing
+    pub enable_jinja: bool,
     pub blog: GeneretoConfigBlog,
 }
 
@@ -92,6 +94,7 @@ impl GeneretoConfig {
             title: raw_config.title,
             url: raw_config.url,
             description: raw_config.description,
+            enable_jinja: raw_config.enable_jinja,
             blog,
         })
     }

@@ -20,6 +20,7 @@ anyhow = "~1.0"
 clap = { version = "4.2.7", default-features = false, features = ["derive", "std", "help"] }
 chrono = { version = "~0.4", default-features = false, features = ["std", "clock"] }
 rss = { version = "2.0.6", default-features = false, features = ["builders"] }
+minijinja = { version = "2", default-features = false, features = ["serde", "loader"] }
 
 [profile.release]
 opt-level = "z"

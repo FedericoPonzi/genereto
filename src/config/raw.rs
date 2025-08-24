@@ -60,6 +60,9 @@ pub(crate) struct GeneretoConfigRaw {
     /// description of the website - used in rss.
     #[serde(default)]
     pub description: String,
+    /// enable Jinja template processing
+    #[serde(default)]
+    pub enable_jinja: bool,
 
     #[serde(default)]
     // this is not an option because there is a default choice for each BlogConfig field
@@ -108,6 +111,7 @@ mod tests {
             title: "full_config".into(),
             url: "XXXXXXXXXXXXXXXX".into(),
             description: "Test description".into(),
+            enable_jinja: false,
             blog: GeneretoConfigBlogRaw {
                 base_template: "blog-index.html".into(),
                 index_name: "blog.html".into(),
@@ -124,6 +128,7 @@ mod tests {
             title: "no_blog".into(),
             url: "XXXXXXXXXXXXXXXX".into(),
             description: "Test description".into(),
+            enable_jinja: false,
             blog: GeneretoConfigBlogRaw {
                 base_template: "index.html".into(),
                 index_name: "index.html".into(),

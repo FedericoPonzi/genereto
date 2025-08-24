@@ -1,8 +1,9 @@
 use crate::config::GeneretoConfig;
+use crate::jinja_processor::JinjaProcessor;
 use crate::page_metadata::{PageMetadata, PageMetadataRaw};
 
 use crate::fs_util::copy_directory_recursively;
-use crate::parser::{load_compile_write, END_PATTERN, START_PATTERN};
+use crate::parser::{load_compile, load_compile_write, END_PATTERN, START_PATTERN};
 use crate::DraftsOptions;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
@@ -135,6 +136,12 @@ fn build_articles(
         .clone()
         .unwrap_or_default();
 
+    let mut jinja_processor = if genereto_config.enable_jinja {
+        Some(JinjaProcessor::new())
+    } else {
+        None
+    };
+
     // First try to load from blog.yml if it exists
     let yaml_path = genereto_config.content_path.join(BLOG_ENTRIES_FILE_NAME);
     if let Some(blog_entries) = BlogEntries::load_from_path(&yaml_path)? {
@@ -173,15 +180,21 @@ fn build_articles(
                     &destination_path,
                     &template_raw,
                     &genereto_config.url,
+                    genereto_config,
+                    jinja_processor.as_mut(),
+                    template_path,
                 )
                 .with_context(|| format!("Failed to build page {entry_path_display}"))?
             } else {
                 // When single pages are disabled, still parse metadata but skip file generation
-                let (_, md) = crate::parser::load_compile(
+                let (_, md) = load_compile(
                     default_cover_image,
                     &entry_path,
                     &template_raw,
                     &genereto_config.url,
+                    genereto_config,
+                    jinja_processor.as_mut(),
+                    template_path,
                 )
                 .with_context(|| format!("Failed to parse metadata for {entry_path_display}"))?;
                 Some(md)
@@ -320,6 +333,7 @@ entries:
             title: "Main Title".into(),
             url: "test.com".into(),
             description: "Test description".into(),
+            enable_jinja: false,
 
             blog: GeneretoConfigBlog {
                 base_template: "blog-index.html".into(),

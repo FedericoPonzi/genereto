@@ -6,6 +6,8 @@ title: My Website
 description: The best website in the world.
 # used in RSS.
 url: https://blog.fponzi.me
+# Enable Jinja2 template processing for advanced templating features
+# enable_jinja: true
 # blog:
 #     # this is a path relative the template folder
 #     # for the template to use for the blog index.

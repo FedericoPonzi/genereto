@@ -1,5 +1,7 @@
+use crate::jinja_processor::JinjaProcessor;
 use crate::page_metadata::{PageMetadata, PageMetadataRaw};
 use crate::DraftsOptions;
+use crate::GeneretoConfig;
 use anyhow::Context;
 use regex::Regex;
 use std::fs;
@@ -14,9 +16,12 @@ pub fn load_compile_write(
     destination_path: &Path,
     template_raw: &str,
     website_url: &str,
+    config: &GeneretoConfig,
+    jinja_processor: Option<&mut JinjaProcessor>,
+    template_path: &Path,
 ) -> anyhow::Result<Option<PageMetadata>> {
     let (content, metadata) =
-        load_compile(default_cover_image, entry_path, template_raw, website_url)?;
+        load_compile(default_cover_image, entry_path, template_raw, website_url, config, jinja_processor, template_path)?;
     if metadata.is_draft && drafts_options.is_hide() {
         return Ok(None);
     }
@@ -28,6 +33,9 @@ pub fn load_compile(
     entry_path: &Path,
     template_raw: &str,
     website_url: &str,
+    config: &GeneretoConfig,
+    jinja_processor: Option<&mut JinjaProcessor>,
+    template_path: &Path,
 ) -> anyhow::Result<(String, PageMetadata)> {
     let source_content = fs::read_to_string(entry_path)?;
     let (intermediate_content, metadata_raw) = compile_page_phase_1(&source_content)?;
@@ -38,6 +46,9 @@ pub fn load_compile(
         default_cover_image,
         entry_path,
         website_url,
+        config,
+        jinja_processor,
+        template_path,
     )?;
     Ok((content, metadata))
 }
@@ -50,6 +61,9 @@ pub fn compile_page_phase_2(
     default_cover_image: &str,
     entry_path: &Path,
     website_url: &str,
+    config: &GeneretoConfig,
+    jinja_processor: Option<&mut JinjaProcessor>,
+    template_path: &Path,
 ) -> anyhow::Result<(String, PageMetadata)> {
     let metadata = PageMetadata::new(
         metadata_raw,
@@ -59,23 +73,41 @@ pub fn compile_page_phase_2(
         website_url,
     );
 
-    let mut final_page = template_raw.to_string();
-
     // If add_title is true, add an H1 with the page title at the top of the content
     let content_with_title = if metadata.add_title {
         format!("# {}\n\n{}", metadata.title, content)
     } else {
-        content
+        content.clone()
     };
 
     let html_content = compile_markdown_to_html(&filter_out_comments(&content_with_title));
-    let start = final_page.find(START_PATTERN).unwrap();
-    let end = final_page.find(END_PATTERN).unwrap();
 
-    final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
+    // Process Jinja template if enabled and processor is available
+    let mut final_page = if config.enable_jinja {
+        if let Some(processor) = jinja_processor {
+            processor.process_template(template_path, config, Some(&metadata), Some(&html_content))
+                .unwrap_or_else(|_| template_raw.to_string())
+        } else {
+            template_raw.to_string()
+        }
+    } else {
+        template_raw.to_string()
+    };
+
+    // Apply traditional template processing if Jinja didn't handle it or isn't enabled
+    if !config.enable_jinja || !final_page.contains(&html_content_placeholder()) {
+        if let (Some(start), Some(end)) = (final_page.find(START_PATTERN), final_page.find(END_PATTERN)) {
+            final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
+        }
+    }
+    
     let final_page = metadata.apply(final_page);
     let final_page = final_page.replace("&amp;#36;", "$");
     Ok((final_page, metadata))
+}
+
+fn html_content_placeholder() -> String {
+    "{{content}}".to_string()
 }
 
 // Split the source content into the metadata and the content
