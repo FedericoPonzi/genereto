@@ -1,0 +1,22 @@
+template: 'main' # select a template - name of the folder in templates/
+output_dirname: 'output' # name for the folder that holds the generated files
+
+# Site metadata (used in RSS, meta tags, and templates)
+title: 'Genereto Demo Site (Legacy)'
+description: 'A demonstration site using traditional Genereto templating without Jinja2'
+url: 'https://your-site.com'
+
+# Enable Jinja2 template processing for advanced templating features
+# Uncomment the line below to enable Jinja2 templates
+# enable_jinja: true
+blog:
+#     # this is a path relative the template folder
+#     # for the template to use for the blog index.
+     base_template: blog-index.html
+#     # blog index file name. Useful if you want to have a blog index in the root directory
+#     # along with an index.html.
+     index_name: blog.html
+#     # offset from the output folder
+#     destination: blog/
+#     # default cover image for blog posts
+#     default_cover_image: res/cover.jpg

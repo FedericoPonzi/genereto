@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{page.title}} - {{site.title}}</title>
+    <meta name="description" content="{{page.description if page.description else site.description}}">
+    {% if page.keywords %}
+    <meta name="keywords" content="{{page.keywords}}">
+    {% endif %}
+    {% if page.author %}
+    <meta name="author" content="{{page.author}}">
+    {% endif %}
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{page.title}}">
+    <meta property="og:description" content="{{page.description}}">
+    <meta property="og:url" content="{{site.url}}/{{page.file_name}}">
+    {% if page.cover_image %}
+    <meta property="og:image" content="{{site.url}}/{{page.cover_image}}">
+    {% endif %}
+    {% if page.publish_date %}
+    <meta property="article:published_time" content="{{page.publish_date}}">
+    {% endif %}
+    {% if page.author %}
+    <meta property="article:author" content="{{page.author}}">
+    {% endif %}
+    
+    <link rel="stylesheet" href="../res/styles.css">
+    <script src="../res/tex-chtml.js" defer></script>
+    <script src="../res/prism.js" defer></script>
+    <link rel="stylesheet" href="../res/prism.css">
+</head>
+<body>
+    <header class="container">
+        <h1><a href="{{site.url}}">{{site.title}}</a></h1>
+        <p>{{site.description}}</p>
+    </header>
+    
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="../about.html">About</a></li>
+                <li><a href="../jinja-templates.html">Jinja2 Guide</a></li>
+                <li><a href="../blog.html" class="active">Blog</a></li>
+                <li><a href="https://github.com/FedericoPonzi/genereto" target="_blank" rel="noopener">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <main>
+        <div class="content-container">
+            <article class="blog-post">
+                {% if page.cover_image %}
+                <img src="{{page.cover_image}}" alt="{{page.title}}" class="cover-image" style="width: 100%; height: 250px; object-fit: cover; border-radius: 12px; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                {% endif %}
+                
+                <header>
+                    <h1>{{page.title}}</h1>
+                    <div class="article-meta">
+                        {% if page.publish_date %}
+                        <time datetime="{{page.publish_date}}">📅 {{page.publish_date}}</time>
+                        {% endif %}
+                        {% if page.reading_time_mins %}
+                        <span class="reading-time">⏱️ {{page.reading_time_mins}} min read</span>
+                        {% endif %}
+                        {% if page.author %}
+                        <span class="author">✍️ {{page.author}}</span>
+                        {% endif %}
+                        {% if page.is_draft %}
+                        <span style="background: var(--warning-color); color: white; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Draft</span>
+                        {% endif %}
+                    </div>
+                </header>
+                
+                <div class="content">
+                    {{content}}
+                </div>
+                
+                {% if page.custom_metadata %}
+                <div class="card">
+                    <h3>Post Details</h3>
+                    <div class="metadata-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                        {% for key, value in page.custom_metadata %}
+                        <div class="meta-item" style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <strong style="color: var(--text-secondary); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em;">{{key | title}}</strong>
+                            <span style="background: var(--primary-color); color: white; padding: 0.5rem 1rem; border-radius: var(--radius-md); font-weight: 500; text-align: center;">{{value}}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if page.keywords %}
+                <footer class="article-footer">
+                    <div class="tags">
+                        <strong>Tags:</strong> 
+                        {% for tag in page.keywords.split(', ') %}
+                        <span class="tag" style="display: inline-block; background: var(--bg-accent); color: var(--text-primary); padding: 0.375rem 0.875rem; border-radius: var(--radius-md); margin: 0.25rem 0.25rem 0.25rem 0; font-size: 0.875rem; font-weight: 500; transition: all 0.2s ease;">{{tag.strip()}}</span>
+                        {% endfor %}
+                    </div>
+                </footer>
+                {% endif %}
+                
+                <!-- Navigation between posts -->
+                <nav class="post-nav" style="margin-top: 3rem; padding: 1.5rem 0; border-top: 1px solid var(--border-light);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <a href="../blog.html" class="btn btn-secondary">← Back to Blog</a>
+                        <a href="../index.html" class="btn btn-primary">Go Home</a>
+                    </div>
+                </nav>
+            </article>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>© 2024 {{site.title}}. Generated by <a href="https://github.com/FedericoPonzi/genereto" target="_blank" rel="noopener">Genereto</a></p>
+            <p><a href="{{site.url}}">{{site.url}}</a></p>
+        </div>
+    </footer>
+</body>
+</html>

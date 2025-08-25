@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World from Genereto with Jinja2! | Genereto Demo Site (Jinja2)</title>
+    <link rel="stylesheet" href="res/styles.css">
+    <meta name="description" content="Getting started with advanced Jinja2 templating - your first enhanced blog post">
+    <meta name="keywords" content="genereto, jinja2, blog, first post, templating, advanced features">
+    <meta name="author" content="Jinja2 Demo Author">
+</head>
+<body>
+    <nav class="navbar">
+        <h1><a href="../index.html">Genereto Demo Site (Jinja2)</a></h1>
+        <div>
+            <a href="../index.html">Home</a>
+            <a href="../about.html">About</a>
+            <a href="../blog.html">Blog</a>
+        </div>
+    </nav>
+    
+    <main class="main-content">
+        <article class="blog-post">
+            <header>
+                <h1>Hello World from Genereto with Jinja2!</h1>
+                <div class="meta">
+                    <span>By Jinja2 Demo Author</span>
+                    <span>Published 2024-05-04</span>
+                    <span>2 min read</span>
+                </div>
+                <div class="tags">Tags: genereto, jinja2, blog, first post, templating, advanced features</div>
+            </header>
+            
+            <div class="content">
+                <h1 id="hello-world-from-genereto-with-jinja2-">Hello World from Genereto with Jinja2! 🌍✨</h1>
+<p>Welcome to your first blog post with <strong>Genereto</strong> and <strong>Jinja2 templating</strong>! This post demonstrates the advanced features available when you enable Jinja2, including rich metadata display, conditionals, and dynamic content generation.</p>
+<h2 id="what-makes-genereto-special">What Makes Genereto Special?</h2>
+<p>Genereto is designed to be <strong>fast</strong>, <strong>simple</strong>, and <strong>powerful</strong>:</p>
+<h3 id="-lightning-fast">🚀 Lightning Fast</h3>
+<p>Built in Rust for maximum performance. Generate hundreds of pages in milliseconds.</p>
+<h3 id="-markdownfirst">📝 Markdown-First</h3>
+<p>Write your content in Markdown with rich YAML frontmatter support for metadata.</p>
+<h3 id="-flexible-templating">🎨 Flexible Templating</h3>
+<p>Choose between simple <code>$GENERETO['field']</code> templates or powerful Jinja2 templates with conditionals, loops, and inheritance.</p>
+<h3 id="-modern-web-standards">📱 Modern Web Standards</h3>
+<p>Responsive design, dark mode, accessibility, and modern CSS out of the box.</p>
+<h2 id="rich-metadata-support">Rich Metadata Support</h2>
+<p>This post demonstrates various metadata fields in the frontmatter:</p>
+<pre><code class="language-yaml">---
+title: "Hello World from Genereto with Jinja2!"
+description: "Getting started with advanced Jinja2 templating"
+keywords: "genereto, jinja2, blog, first post, templating"
+publish_date: "2024-05-04"
+reading_time: "3"
+author: "Jinja2 Demo Author"
+difficulty: "Beginner"
+category: "Tutorial" 
+featured: "true"
+---
+</code></pre>
+<p>All of these fields are available in your Jinja2 templates!</p>
+<h2 id="jinja2-template-features">Jinja2 Template Features</h2>
+<p>With Jinja2 enabled, you can use:</p>
+<h3 id="conditionals">Conditionals</h3>
+<pre><code class="language-html">{% if page.author %}
+&lt;meta name="author" content="{{page.author}}"&gt;
+{% endif %}
+</code></pre>
+<h3 id="loops">Loops</h3>
+<pre><code class="language-html">{% for keyword in page.keywords.split(', ') %}
+&lt;span class="tag"&gt;{{keyword.strip()}}&lt;/span&gt;
+{% endfor %}
+</code></pre>
+<h3 id="template-inheritance">Template Inheritance</h3>
+<pre><code class="language-html">{% extends "base.html" %}
+{% block content %}
+&lt;h1&gt;{{page.title}}&lt;/h1&gt;
+{% endblock %}
+</code></pre>
+<h2 id="code-highlighting">Code Highlighting</h2>
+<p>Genereto supports syntax highlighting for code blocks:</p>
+<pre><code class="language-rust">fn main() {
+    println!("Hello, Genereto with Jinja2!");
+    
+    let features = vec![
+        "Fast generation",
+        "Markdown support", 
+        "Jinja2 templates",
+        "Blog functionality",
+        "Conditional logic",
+        "Dynamic navigation",
+    ];
+    
+    for feature in features {
+        println!("✓ {}", feature);
+    }
+}
+</code></pre>
+<pre><code class="language-yaml"># config.yml
+title: 'My Awesome Site'
+description: 'Built with Genereto'
+url: 'https://mysite.com'
+enable_jinja: true
+
+blog:
+  base_template: main/blog-index.html
+  destination: blog/
+  generate_single_pages: true
+</code></pre>
+<h2 id="advanced-features-preview">Advanced Features Preview</h2>
+<p>With Jinja2 templates enabled, you can:</p>
+<ul>
+<li><strong>Use conditionals</strong>: Show content based on page metadata</li>
+<li><strong>Loop over data</strong>: Generate navigation, tag lists, related posts</li>
+<li><strong>Template inheritance</strong>: Create consistent layouts</li>
+<li><strong>Custom filters</strong>: Process content dynamically</li>
+<li><strong>Macros</strong>: Reusable template components</li>
+</ul>
+<h2 id="next-steps">Next Steps</h2>
+<p>Now that you've seen your first Jinja2 blog post, here's what to do next:</p>
+<ol>
+<li><strong>Explore Templates</strong> - Check out the Jinja2 templates in <code>templates/main/</code></li>
+<li><strong>Customize Styling</strong> - Edit <code>templates/main/res/styles.css</code></li>
+<li><strong>Add More Content</strong> - Create more Markdown files in <code>content/</code></li>
+<li><strong>Try Advanced Features</strong> - Use conditionals, loops, and inheritance</li>
+</ol>
+<div class="alert alert-success">
+<strong>🎉 Congratulations!</strong> You're now ready to build amazing static sites with Genereto and Jinja2!
+</div>
+<hr />
+<p>Ready to create your next post? Just create a new <code>.md</code> file in the <code>content/blog/</code> directory and start writing! ✍️</p>
+
+            </div>
+            
+            <footer class="post-footer">
+                <h3>Jinja2 Metadata Demo</h3>
+                <ul>
+                    <li><strong>Category:</strong> Tutorial</li>
+                    <li><strong>Difficulty:</strong> Beginner</li>
+                    <li><strong>Featured:</strong> true</li>
+                </ul>
+                <p><a href="../blog.html">← Back to Blog</a></p>
+            </footer>
+        </article>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Genereto Demo Site (Jinja2) | Built with Genereto + Jinja2</p>
+    </footer>
+</body>
+</html>

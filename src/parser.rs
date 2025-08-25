@@ -85,8 +85,16 @@ pub fn compile_page_phase_2(
     // Process Jinja template if enabled and processor is available
     let mut final_page = if config.enable_jinja {
         if let Some(processor) = jinja_processor {
-            processor.process_template(template_path, config, Some(&metadata), Some(&html_content))
-                .unwrap_or_else(|_| template_raw.to_string())
+            match processor.process_template(template_path, config, Some(&metadata), Some(&html_content)) {
+                Ok(result) => {
+                    eprintln!("Jinja2 processing successful for template: {:?}", template_path);
+                    result
+                },
+                Err(e) => {
+                    eprintln!("Jinja2 processing failed for template: {:?}, error: {}", template_path, e);
+                    template_raw.to_string()
+                }
+            }
         } else {
             template_raw.to_string()
         }

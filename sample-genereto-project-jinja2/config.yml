@@ -1,0 +1,12 @@
+title: 'Genereto Demo Site (Jinja2)'
+description: 'A demonstration site showing the power of Genereto with Jinja2 templating'
+url: 'https://demo.genereto.dev'
+author: 'Genereto Team'
+keywords: 'genereto, static site generator, rust, jinja2, templates'
+template: 'main'
+enable_jinja: true
+
+blog:
+  base_template: blog-index.html
+  destination: blog/
+  generate_single_pages: true

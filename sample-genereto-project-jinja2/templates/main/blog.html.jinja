@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{page.title}} | {{site.title}}</title>
+    <link rel="stylesheet" href="res/styles.css">
+    <meta name="description" content="{{page.description}}">
+    <meta name="keywords" content="{{page.keywords}}">
+    <meta name="author" content="{{page.custom_metadata.author}}">
+</head>
+<body>
+    <nav class="navbar">
+        <h1><a href="../index.html">{{site.title}}</a></h1>
+        <div>
+            <a href="../index.html">Home</a>
+            <a href="../about.html">About</a>
+            <a href="../blog.html">Blog</a>
+        </div>
+    </nav>
+    
+    <main class="main-content">
+        <article class="blog-post">
+            <header>
+                <h1>{{page.title}}</h1>
+                <div class="meta">
+                    <span>By {{page.custom_metadata.author}}</span>
+                    <span>Published {{page.publish_date}}</span>
+                    <span>{{page.reading_time_mins}} min read</span>
+                </div>
+                <div class="tags">Tags: {{page.keywords}}</div>
+            </header>
+            
+            <div class="content">
+                {{content}}
+            </div>
+            
+            <footer class="post-footer">
+                <h3>Jinja2 Metadata Demo</h3>
+                <ul>
+                    <li><strong>Category:</strong> {{page.custom_metadata.category}}</li>
+                    <li><strong>Difficulty:</strong> {{page.custom_metadata.difficulty}}</li>
+                    <li><strong>Featured:</strong> {{page.custom_metadata.featured}}</li>
+                </ul>
+                <p><a href="../blog.html">← Back to Blog</a></p>
+            </footer>
+        </article>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 {{site.title}} | Built with Genereto + Jinja2</p>
+    </footer>
+</body>
+</html>

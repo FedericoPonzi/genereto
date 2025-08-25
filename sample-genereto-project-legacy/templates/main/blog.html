@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$GENERETO['title']</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;0,1000;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900;1,1000&display=swap" rel="stylesheet">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css" integrity="sha512-/mZ1FHPkg6EKcxo0fKXF51ak6Cr2ocgDi5ytaTBjsQZIH/RNs6GF6+oId/vPe3eJB836T36nXwVh/WBl/cWT4w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="res/styles.css">
+    <meta name="description" content="$GENERETO['description']">
+    <meta name="keywords" content="$GENERETO['keywords']">
+    <meta name="author" content="Federico Ponzi">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="$GENERETO['title']">
+    <meta property="og:description" content="$GENERETO['description']">
+    <meta property="og:url" content="https://blog.fponzi.me/$GENERETO['file_name']">
+</head>
+<body>
+<div class="navbar">
+    <h1 class="navbar-title">Federico Ponzi's Blog</h1>
+    <div class="navbar-links">
+        <a href="https://fponzi.me">Home</a>
+        <a href="index.html">Blog</a>
+    </div>
+</div>
+
+<div class="container">
+    <article>
+        <h1 class="post-title">$GENERETO['title']</h1>
+        <p class="post-meta">Published on $GENERETO['publish_date'] | $GENERETO['read_time_minutes'] min read</p>
+        <!-- start_content -->
+        <small>This will be hidden in the final output.</small>
+        <h1>Hello world!</h1>
+        <p>This is the first blog entry.</p>
+        <pre><code class="language-rust">
+use anyhow::{Context, Result};
+use clap::Parser;
+use horust::horust::ExitStatus;
+use horust::horust::HorustConfig;
+use horust::Horust;
+use log::{error, info};
+
+#[derive(clap::Parser, Debug)]
+#[clap(author, about)]
+/// Horust is a complete supervisor and init system, designed for running in containers.
+struct Opts {
+    #[clap(long, default_value = "/etc/horust/horust.toml")]
+    /// Horust's path to config.
+    config_path: PathBuf,
+
+    #[clap(flatten)]
+    horust_config: HorustConfig,
+
+    #[clap(long)]
+    /// Print a sample service file with all the possible options
+    sample_service: bool,
+
+    #[clap(long = "services-path", default_value = "/etc/horust/services")]
+    /// Path to service file or a directory containing services to run. You can provide more than one argument to load multiple directories / services.
+    services_paths: Vec<PathBuf>,
+
+    #[clap(required = false, last = true)]
+    /// Specify a command to run instead of load services path. Useful if you just want to use the reaping capability. Prefix your command with --
+    command: Vec<String>,
+}
+        </code></pre>
+        <h1>h1 title</h1>
+        <h2>h2 title</h2>
+        <h3>h3 title</h3>
+        <p>CloudFront functions also allow updating HTTP responses. We could write a function to add important HTTP security headers to each response, but a better way would be to configure and use a response header policy. Using a response header policy is declarative and requires no additional code.</p>
+        <p>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</p>
+        <p>CloudFront functions also allow updating HTTP responses. We could write a function to add important HTTP security headers to each response, but a better way would be to configure and use a response header policy. Using a response header policy is declarative and requires no additional code.</p>
+        <p>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</p>
+        <p>CloudFront functions also allow updating HTTP responses. We could write a function to add important HTTP security headers to each response, but a better way would be to configure and use a response header policy. Using a response header policy is declarative and requires no additional code.</p>
+        <p>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</p>
+        <p>CloudFront functions also allow updating HTTP responses. We could write a function to add important HTTP security headers to each response, but a better way would be to configure and use a response header policy. Using a response header policy is declarative and requires no additional code.</p>
+        <p>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</p>
+        <ul>
+            <li>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</li>
+            <li>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</li>
+            <li>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</li>
+        </ul>
+        <p>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</p>
+        <ol>
+            <li>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</li>
+            <li>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</li>
+            <li>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</li>
+        </ol>
+        <p>Some headers can improve the security of your website by directing browser to behave in a certain way. For example, the HTTP <code>Strict-Transport-Security</code> header (HSTS) indicates to the browser to use HTTPS when performing future requests. Another important header is the <code>Content-Security-Policy</code> header which restricts which resources the browser can load for the page, for example, by allowing content to be loaded only from the site's origin.</p>
+
+        <!-- end_content -->
+    </article>
+    <footer><h2>About the author</h2>
+        <img src="/res/profile.jpg" class="profile" alt="Federico Ponzi's profile picture">
+        <p>Hello! I'm Federico Ponzi, I'm a Software Development Engineer at AWS working on the dataplane of AWS CloudFront. I'm interested in distributed systems and operating systems.</p>
+        <p>If you have questions, comments or just want to say hi, please reach out: <a href="https://twitter.com/federico_ponzi">Twitter</a>, <a rel="me" href="https://discuss.systems/@federicoponzi">Mastodon</a>, <a href="https://www.linkedin.com/in/federicoponzi/">Linkedin</a>, <a href="https://github.com/FedericoPonzi">Github</a>. You can also reach out via email using x@y where x is "me" and y is this domain.</p>
+    </footer>
+</div>
+
+<footer class="footer">
+    <p>&copy; 2023 Federico Ponzi. The opinions expressed here do not represent the views of my current or past employers.<p>
+    <p>This website was generated with <a href="https://github.com/FedericoPonzi/genereto">Genereto</a>.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js" integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-javascript.min.js" integrity="sha512-yvw5BDA/GQu8umskpIOBhX2pDLrdOiriaK4kVxtD28QEGLV5rscmCfDjkrx52tIgzLgwzs1FsALV6eYDpGnEkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-rust.min.js" integrity="sha512-IEKBKuVt5ZJgNK9ExBPa4m5KkTKhOgxJ+22LHUEOkKO/i/A4GLgbUApFf3LdsjXEoSdwOZOiUdWBxp/zDt1+fg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-yaml.min.js" integrity="sha512-epBuSQcDNi/0lmCXr7cGjqWcfnzXe4m/GdIFFNDcQ7v/JF4H8I+l4wmVQiYO6NkLGSDo3LR7HaUfUL/5sjWtXg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-typescript.min.js" integrity="sha512-Hb168WC7SiCJ1GlGPHBb5ol0ResC6n5wu+5V8FTT5inC5ajLgBSm2hpQBvDq1YG2KqXr7UanlfQqRy6VEb1/kQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-bash.min.js" integrity="sha512-35RBtvuCKWANuRid6RXP2gYm4D5RMieVL/xbp6KiMXlIqgNrI7XRUh9HurE8lKHW4aRpC0TZU3ZfqG8qmQ35zA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-c.min.js" integrity="sha512-EWIJI7uQnA8ClViH2dvhYsNA7PHGSwSg03FAfulqpsFiTPHfhdQIvhkg/l3YpuXOXRF2Dk0NYKIl5zemrl1fmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</body>
+</html>

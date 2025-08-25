@@ -3,7 +3,7 @@ use std::path::Path;
 
 const SAMPLE_BLOG_PAGE: &str = include_str!("../sample-genereto-project/templates/main/blog.html");
 const SAMPLE_INDEX_PAGE: &str =
-    include_str!("../sample-genereto-project/templates/main/index.html");
+    include_str!("../sample-genereto-project/templates/main/index.html.jinja");
 const SAMPLE_CONFIG_FILE: &str = include_str!("../sample-genereto-project/config.yml");
 const SAMPLE_CONTENT_PAGE: &str =
     include_str!("../sample-genereto-project/content/blog/2024-05-04-hello-world.md");

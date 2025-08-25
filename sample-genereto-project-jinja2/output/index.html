@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Genereto with Jinja2! | Genereto Demo Site (Jinja2)</title>
+    <link rel="stylesheet" href="res/styles.css">
+    <meta name="description" content="Experience the power of Jinja2 templating with this advanced static site generator">
+    <meta name="keywords" content="genereto, jinja2, templates, rust, static site generator">
+    <meta name="author" content="">
+</head>
+<body>
+    <nav class="navbar">
+        <h1><a href="index.html">Genereto Demo Site (Jinja2)</a></h1>
+        <div>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="blog.html">Blog</a>
+        </div>
+    </nav>
+    
+    <main class="main-content">
+        <h1>Welcome to Genereto with Jinja2!</h1>
+        <p class="description">Experience the power of Jinja2 templating with this advanced static site generator</p>
+        
+        <div class="content">
+            <h1 id="welcome-to-genereto-with-jinja2-">Welcome to Genereto with Jinja2! 🚀</h1>
+<p>This demonstrates a <strong>Genereto</strong> static site with <strong>Jinja2 templating enabled</strong>.</p>
+<h2 id="key-features">Key Features</h2>
+<ul>
+<li><strong>Fast Generation</strong>: Built in Rust for maximum performance</li>
+<li><strong>Jinja2 Templates</strong>: Advanced templating with conditionals and loops</li>
+<li><strong>Blog Support</strong>: Built-in blog functionality with RSS feeds</li>
+<li><strong>Markdown Support</strong>: Write content in Markdown with rich frontmatter</li>
+</ul>
+<h2 id="jinja2-template-features">Jinja2 Template Features</h2>
+<p>With Jinja2 enabled, you can use:</p>
+<h3 id="variables">Variables</h3>
+<pre><code class="language-html">{{page.title}} - {{site.title}}
+</code></pre>
+<h3 id="conditionals">Conditionals</h3>
+<pre><code class="language-html">{% if page.author %}
+&lt;p&gt;By {{page.author}}&lt;/p&gt;
+{% endif %}
+</code></pre>
+<h3 id="loops">Loops</h3>
+<pre><code class="language-html">{% for tag in page.keywords.split(', ') %}
+&lt;span&gt;{{tag}}&lt;/span&gt;
+{% endfor %}
+</code></pre>
+<h2 id="quick-start">Quick Start</h2>
+<ol>
+<li><strong>Edit Content</strong>: Modify files in <code>content/</code> directory</li>
+<li><strong>Customize Templates</strong>: Edit <code>templates/main/*.html.jinja</code> files</li>
+<li><strong>Configure</strong>: Update <code>config.yml</code> settings</li>
+<li><strong>Generate</strong>: Run <code>genereto --project-path .</code></li>
+</ol>
+<p>Check out the <a href="blog.html">blog</a> for more examples!</p>
+
+        </div>
+        
+        <div class="jinja2-demo">
+            <h2>🎯 Jinja2 Template Demo</h2>
+            <p>This page demonstrates Jinja2 templating features:</p>
+            <ul>
+                <li><strong>Page Title:</strong> Welcome to Genereto with Jinja2!</li>
+                <li><strong>Site Title:</strong> Genereto Demo Site (Jinja2)</li>
+                <li><strong>Description:</strong> Experience the power of Jinja2 templating with this advanced static site generator</li>
+                <li><strong>Keywords:</strong> genereto, jinja2, templates, rust, static site generator</li>
+            </ul>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Genereto Demo Site (Jinja2) | Built with Genereto + Jinja2</p>
+    </footer>
+</body>
+</html>

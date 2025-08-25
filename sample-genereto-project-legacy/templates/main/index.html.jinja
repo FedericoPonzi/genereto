@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page.title %}{{page.title}} - {{site.title}}{% else %}{{site.title}}{% endif %}</title>
+    <meta name="description" content="{{page.description if page.description else site.description}}">
+    {% if page.keywords %}
+    <meta name="keywords" content="{{page.keywords}}">
+    {% endif %}
+    {% if page.author %}
+    <meta name="author" content="{{page.author}}">
+    {% endif %}
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{page.title if page.title else site.title}}">
+    <meta property="og:description" content="{{page.description if page.description else site.description}}">
+    <meta property="og:url" content="{{site.url}}">
+    {% if page.cover_image %}
+    <meta property="og:image" content="{{site.url}}/{{page.cover_image}}">
+    {% endif %}
+    
+    <link rel="stylesheet" href="res/styles.css">
+    <script src="res/tex-chtml.js" defer></script>
+    <script src="res/prism.js" defer></script>
+    <link rel="stylesheet" href="res/prism.css">
+</head>
+<body>
+    <header class="container">
+        <h1><a href="{{site.url}}">{{site.title}}</a></h1>
+        <p>{{site.description}}</p>
+    </header>
+    
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="index.html" {% if page.title == "Welcome to Your Genereto Site" %}class="active"{% endif %}>Home</a></li>
+                <li><a href="about.html" {% if page.title == "About This Site" %}class="active"{% endif %}>About</a></li>
+                <li><a href="jinja-templates.html" {% if page.title == "Advanced Templating with Jinja2" %}class="active"{% endif %}>Jinja2 Guide</a></li>
+                <li><a href="blog.html">Blog</a></li>
+                <li><a href="https://github.com/FedericoPonzi/genereto" target="_blank" rel="noopener">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <main>
+        <div class="{% if page.title %}content-container{% else %}container{% endif %}">
+            {% if page.title %}
+            <article>
+                {% if page.cover_image %}
+                <img src="{{page.cover_image}}" alt="{{page.title}}" class="cover-image" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 1.5rem;">
+                {% endif %}
+                
+                <header>
+                    <h1>{{page.title}}</h1>
+                    {% if page.publish_date or page.reading_time_mins or page.author %}
+                    <div class="article-meta">
+                        {% if page.publish_date %}
+                        <time datetime="{{page.publish_date}}">📅 {{page.publish_date}}</time>
+                        {% endif %}
+                        {% if page.reading_time_mins %}
+                        <span class="reading-time">⏱️ {{page.reading_time_mins}} min read</span>
+                        {% endif %}
+                        {% if page.author %}
+                        <span class="author">✍️ {{page.author}}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </header>
+                
+                <div class="content">
+                    {{content}}
+                </div>
+                
+                {% if page.custom_metadata %}
+                <footer class="card">
+                    <h3>Additional Information</h3>
+                    <div class="metadata-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        {% for key, value in page.custom_metadata %}
+                        <div class="meta-item">
+                            <strong>{{key | title}}:</strong> 
+                            <span class="badge">{{value}}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </footer>
+                {% endif %}
+                
+                {% if page.keywords %}
+                <div class="tags" style="margin-top: 2rem; padding: 1rem 0; border-top: 1px solid var(--border-light);">
+                    <strong>Tags:</strong> 
+                    {% for tag in page.keywords.split(', ') %}
+                    <span class="tag" style="display: inline-block; background: var(--bg-accent); padding: 0.25rem 0.75rem; border-radius: var(--radius-sm); margin: 0.25rem 0.25rem 0.25rem 0; font-size: 0.875rem;">{{tag}}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </article>
+            {% else %}
+            <div class="content">
+                {{content}}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>© 2024 {{site.title}}. Generated by <a href="https://github.com/FedericoPonzi/genereto" target="_blank" rel="noopener">Genereto</a></p>
+            <p><a href="{{site.url}}">{{site.url}}</a></p>
+        </div>
+    </footer>
+</body>
+</html>

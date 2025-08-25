@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World from Genereto!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;0,1000;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900;1,1000&display=swap" rel="stylesheet">    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css" integrity="sha512-/mZ1FHPkg6EKcxo0fKXF51ak6Cr2ocgDi5ytaTBjsQZIH/RNs6GF6+oId/vPe3eJB836T36nXwVh/WBl/cWT4w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="res/styles.css">
+    <meta name="description" content="Getting started with the Genereto static site generator - your first blog post">
+    <meta name="keywords" content="genereto, blog, first post, getting started">
+    <meta name="author" content="Federico Ponzi">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Hello World from Genereto!">
+    <meta property="og:description" content="Getting started with the Genereto static site generator - your first blog post">
+    <meta property="og:url" content="https://blog.fponzi.me/2024-05-04-hello-world.html">
+</head>
+<body>
+<div class="navbar">
+    <h1 class="navbar-title">Federico Ponzi's Blog</h1>
+    <div class="navbar-links">
+        <a href="https://fponzi.me">Home</a>
+        <a href="index.html">Blog</a>
+    </div>
+</div>
+
+<div class="container">
+    <article>
+        <h1 class="post-title">Hello World from Genereto!</h1>
+        <p class="post-meta">Published on 2024-05-04 | 2 min read</p>
+        <h1 id="hello-world-from-genereto-">Hello World from Genereto! 🌍</h1>
+<p>Welcome to your first blog post with <strong>Genereto</strong>! This post demonstrates the key features of the static site generator and shows you what's possible.</p>
+<h2 id="what-makes-genereto-special">What Makes Genereto Special?</h2>
+<p>Genereto is designed to be <strong>fast</strong>, <strong>simple</strong>, and <strong>powerful</strong>:</p>
+<h3 id="-lightning-fast">🚀 Lightning Fast</h3>
+<p>Built in Rust for maximum performance. Generate hundreds of pages in milliseconds.</p>
+<h3 id="-markdownfirst">📝 Markdown-First</h3>
+<p>Write your content in Markdown with rich YAML frontmatter support for metadata.</p>
+<h3 id="-flexible-templating">🎨 Flexible Templating</h3>
+<p>Choose between simple <code>$GENERETO['field']</code> templates or powerful Jinja2 templates with conditionals, loops, and inheritance.</p>
+<h3 id="-modern-web-standards">📱 Modern Web Standards</h3>
+<p>Responsive design, dark mode, accessibility, and modern CSS out of the box.</p>
+<h2 id="rich-metadata-support">Rich Metadata Support</h2>
+<p>This post demonstrates various metadata fields in the frontmatter:</p>
+<pre><code class="language-yaml">---
+title: "Hello World from Genereto!"
+description: "Getting started with Genereto"
+keywords: "genereto, blog, first post"
+publish_date: "2024-05-04"
+---
+</code></pre>
+<p>All of these fields are available in your templates!</p>
+<h2 id="image-support">Image Support</h2>
+<p>You can include images in your posts. Here's the Rust mascot, <strong>Ferris the Crab</strong> 🦀:</p>
+<p><img src="./rustacean.png" alt="Ferris the Rustacean" /></p>
+<p>Images are automatically copied to the output directory and linked correctly.</p>
+<h2 id="code-highlighting">Code Highlighting</h2>
+<p>Genereto supports syntax highlighting for code blocks:</p>
+<pre><code class="language-rust">fn main() {
+    println!("Hello, Genereto!");
+    
+    let features = vec![
+        "Fast generation",
+        "Markdown support", 
+        "Jinja2 templates",
+        "Blog functionality",
+    ];
+    
+    for feature in features {
+        println!("✓ {}", feature);
+    }
+}
+</code></pre>
+<pre><code class="language-yaml"># config.yml
+title: 'My Awesome Site'
+description: 'Built with Genereto'
+url: 'https://mysite.com'
+enable_jinja: true
+
+blog:
+  base_template: blog-index.html
+  destination: blog/
+  generate_single_pages: true
+</code></pre>
+<h2 id="typography-and-content">Typography and Content</h2>
+<p>Genereto renders beautiful typography out of the box:</p>
+<h3 id="headers-look-great">Headers Look Great</h3>
+<p>From H1 through H6, all headers are properly styled with consistent spacing and hierarchy.</p>
+<h3 id="lists-are-clean">Lists Are Clean</h3>
+<p><strong>Unordered lists:</strong></p>
+<ul>
+<li>Fast site generation</li>
+<li>Markdown support with frontmatter</li>
+<li>Jinja2 template engine</li>
+<li>Responsive design</li>
+<li>Dark mode support</li>
+</ul>
+<p><strong>Ordered lists:</strong></p>
+<ol>
+<li>Create your content in Markdown</li>
+<li>Configure your site in <code>config.yml</code></li>
+<li>Run <code>genereto --project-path .</code></li>
+<li>Deploy your generated site</li>
+</ol>
+<h3 id="quotes-stand-out">Quotes Stand Out</h3>
+<blockquote>
+<p>"Genereto makes static site generation simple and fast. The combination of Rust performance with Jinja2 templating is incredibly powerful."</p>
+<p>— Happy Genereto User</p>
+</blockquote>
+<h3 id="tables-work-too">Tables Work Too</h3>
+<table><thead><tr><th>Feature</th><th>Regular Templates</th><th>Jinja2 Templates</th></tr></thead><tbody>
+<tr><td>Variables</td><td><code>$GENERETO['field']</code></td><td><code>{{page.field}}</code></td></tr>
+<tr><td>Conditionals</td><td>❌</td><td>✅</td></tr>
+<tr><td>Loops</td><td>❌</td><td>✅</td></tr>
+<tr><td>Inheritance</td><td>❌</td><td>✅</td></tr>
+<tr><td>Macros</td><td>❌</td><td>✅</td></tr>
+</tbody></table>
+<h2 id="next-steps">Next Steps</h2>
+<p>Now that you've seen your first blog post, here's what to do next:</p>
+<ol>
+<li><strong>Explore Templates</strong> - Check out the Jinja2 templates in <code>templates/main/</code></li>
+<li><strong>Customize Styling</strong> - Edit <code>templates/main/res/styles.css</code></li>
+<li><strong>Add More Content</strong> - Create more Markdown files in <code>content/</code></li>
+<li><strong>Enable Jinja2</strong> - Set <code>enable_jinja: true</code> in <code>config.yml</code></li>
+</ol>
+<div class="alert alert-success">
+<strong>🎉 Congratulations!</strong> You're now ready to build amazing static sites with Genereto!
+</div>
+<h2 id="advanced-features-preview">Advanced Features Preview</h2>
+<p>With Jinja2 templates enabled, you can:</p>
+<ul>
+<li><strong>Use conditionals</strong>: Show content based on page metadata</li>
+<li><strong>Loop over data</strong>: Generate navigation, tag lists, related posts</li>
+<li><strong>Template inheritance</strong>: Create consistent layouts</li>
+<li><strong>Custom filters</strong>: Process content dynamically</li>
+<li><strong>Macros</strong>: Reusable template components</li>
+</ul>
+<p>Check out the <a href="../jinja-templates.html">Jinja2 Templates Guide</a> to learn more!</p>
+<hr />
+<p>Ready to create your next post? Just create a new <code>.md</code> file in the <code>content/blog/</code> directory and start writing! ✍️</p>
+
+    </article>
+    <footer><h2>About the author</h2>
+        <img src="/res/profile.jpg" class="profile" alt="Federico Ponzi's profile picture">
+        <p>Hello! I'm Federico Ponzi, I'm a Software Development Engineer at AWS working on the dataplane of AWS CloudFront. I'm interested in distributed systems and operating systems.</p>
+        <p>If you have questions, comments or just want to say hi, please reach out: <a href="https://twitter.com/federico_ponzi">Twitter</a>, <a rel="me" href="https://discuss.systems/@federicoponzi">Mastodon</a>, <a href="https://www.linkedin.com/in/federicoponzi/">Linkedin</a>, <a href="https://github.com/FedericoPonzi">Github</a>. You can also reach out via email using x@y where x is "me" and y is this domain.</p>
+    </footer>
+</div>
+
+<footer class="footer">
+    <p>&copy; 2023 Federico Ponzi. The opinions expressed here do not represent the views of my current or past employers.<p>
+    <p>This website was generated with <a href="https://github.com/FedericoPonzi/genereto">Genereto</a>.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js" integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-javascript.min.js" integrity="sha512-yvw5BDA/GQu8umskpIOBhX2pDLrdOiriaK4kVxtD28QEGLV5rscmCfDjkrx52tIgzLgwzs1FsALV6eYDpGnEkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-rust.min.js" integrity="sha512-IEKBKuVt5ZJgNK9ExBPa4m5KkTKhOgxJ+22LHUEOkKO/i/A4GLgbUApFf3LdsjXEoSdwOZOiUdWBxp/zDt1+fg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-yaml.min.js" integrity="sha512-epBuSQcDNi/0lmCXr7cGjqWcfnzXe4m/GdIFFNDcQ7v/JF4H8I+l4wmVQiYO6NkLGSDo3LR7HaUfUL/5sjWtXg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-typescript.min.js" integrity="sha512-Hb168WC7SiCJ1GlGPHBb5ol0ResC6n5wu+5V8FTT5inC5ajLgBSm2hpQBvDq1YG2KqXr7UanlfQqRy6VEb1/kQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-bash.min.js" integrity="sha512-35RBtvuCKWANuRid6RXP2gYm4D5RMieVL/xbp6KiMXlIqgNrI7XRUh9HurE8lKHW4aRpC0TZU3ZfqG8qmQ35zA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-c.min.js" integrity="sha512-EWIJI7uQnA8ClViH2dvhYsNA7PHGSwSg03FAfulqpsFiTPHfhdQIvhkg/l3YpuXOXRF2Dk0NYKIl5zemrl1fmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</body>
+</html>

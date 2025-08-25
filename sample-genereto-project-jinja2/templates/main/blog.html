@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$GENERETO['title']</title>
+    <link rel="stylesheet" href="res/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <h1><a href="../index.html">$GENERETO['title']</a></h1>
+        <div>
+            <a href="../index.html">Home</a>
+            <a href="../about.html">About</a>
+            <a href="../blog.html">Blog</a>
+        </div>
+    </nav>
+    
+    <main class="main-content">
+        <article class="blog-post">
+            <header>
+                <h1>$GENERETO['title']</h1>
+                <div class="meta">
+                    <span>Published $GENERETO['publish_date']</span>
+                    <span>$GENERETO['reading_time_mins'] min read</span>
+                </div>
+            </header>
+            
+            <div class="content">
+                $GENERETO['content']
+            </div>
+            
+            <footer class="post-footer">
+                <p><a href="../blog.html">← Back to Blog</a></p>
+            </footer>
+        </article>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Built with Genereto</p>
+    </footer>
+</body>
+</html>

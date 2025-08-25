@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Genereto Demo Site (Jinja2)</title>
+    <link rel="stylesheet" href="res/styles.css">
+    <meta name="description" content="Learn about Genereto and Jinja2 templating">
+    <meta name="keywords" content="about, genereto, jinja2, static site generator">
+    <meta name="author" content="">
+</head>
+<body>
+    <nav class="navbar">
+        <h1><a href="index.html">Genereto Demo Site (Jinja2)</a></h1>
+        <div>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="blog.html">Blog</a>
+        </div>
+    </nav>
+    
+    <main class="main-content">
+        <h1>About</h1>
+        <p class="description">Learn about Genereto and Jinja2 templating</p>
+        
+        <div class="content">
+            <h1 id="about-this-site">About This Site</h1>
+<p>This site demonstrates <strong>Genereto</strong> with <strong>Jinja2 templating</strong> enabled.</p>
+<h2 id="what-is-genereto">What is Genereto?</h2>
+<p>Genereto is a fast static site generator built in <strong>Rust</strong> that supports:</p>
+<ul>
+<li><strong>Markdown</strong> content with YAML frontmatter</li>
+<li><strong>Jinja2</strong> templating for advanced features</li>
+<li><strong>Blog</strong> functionality with RSS feeds</li>
+<li><strong>Fast</strong> generation and modern CSS</li>
+</ul>
+<h2 id="jinja2-features">Jinja2 Features</h2>
+<p>With Jinja2 enabled, you can use:</p>
+<ul>
+<li><strong>Variables</strong>: <code>{{page.title}}</code>, <code>{{site.description}}</code></li>
+<li><strong>Conditionals</strong>: <code>{% if condition %}...{% endif %}</code></li>
+<li><strong>Loops</strong>: <code>{% for item in list %}...{% endfor %}</code></li>
+<li><strong>Custom metadata</strong>: Access any YAML field</li>
+</ul>
+<h2 id="getting-started">Getting Started</h2>
+<ol>
+<li>Edit content in <code>content/</code> directory</li>
+<li>Modify templates in <code>templates/main/</code></li>
+<li>Configure in <code>config.yml</code></li>
+<li>Run: <code>genereto --project-path .</code></li>
+</ol>
+<p>Visit the <a href="blog.html">blog</a> to see more Jinja2 examples in action!</p>
+
+        </div>
+        
+        <div class="jinja2-demo">
+            <h2>🎯 Jinja2 Template Demo</h2>
+            <p>This page demonstrates Jinja2 templating features:</p>
+            <ul>
+                <li><strong>Page Title:</strong> About</li>
+                <li><strong>Site Title:</strong> Genereto Demo Site (Jinja2)</li>
+                <li><strong>Description:</strong> Learn about Genereto and Jinja2 templating</li>
+                <li><strong>Keywords:</strong> about, genereto, jinja2, static site generator</li>
+            </ul>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 Genereto Demo Site (Jinja2) | Built with Genereto + Jinja2</p>
+    </footer>
+</body>
+</html>

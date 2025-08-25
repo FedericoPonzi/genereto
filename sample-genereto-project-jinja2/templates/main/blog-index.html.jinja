@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | {{site.title}}</title>
+    <link rel="stylesheet" href="res/styles.css">
+    <meta name="description" content="Blog posts from {{site.title}}">
+    <meta name="keywords" content="{{site.keywords}}">
+</head>
+<body>
+    <nav class="navbar">
+        <h1><a href="index.html">{{site.title}}</a></h1>
+        <div>
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="blog.html">Blog</a>
+        </div>
+    </nav>
+    
+    <main class="main-content">
+        <h1>Blog</h1>
+        <p>Welcome to the {{site.title}} blog! Here are the latest posts:</p>
+        
+        <div class="blog-posts">
+            {{content}}
+        </div>
+    </main>
+    
+    <footer>
+        <p>Generated with Jinja2 templates by {{site.title}}</p>
+        <p>{{site.description}}</p>
+    </footer>
+</body>
+</html>

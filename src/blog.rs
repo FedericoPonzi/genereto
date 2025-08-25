@@ -72,48 +72,76 @@ pub fn generate_blog(
     Ok(Some(metadatas))
 }
 fn build_index_page(
-    mut template_view: String,
+    template_view: String,
     articles: &[PageMetadata],
     destination_path: &Path,
     drafts_options: &DraftsOptions,
     genereto_config: &GeneretoConfig,
 ) -> anyhow::Result<()> {
-    // Extract the template content between start_content and end_content
-    let start = template_view.find(START_PATTERN).unwrap();
-    let end = template_view.find(END_PATTERN).unwrap();
-    let template_content = &template_view[start + START_PATTERN.len()..end].trim();
+    if genereto_config.enable_jinja {
+        // Use Jinja2 processing for the blog index
+        let mut jinja_processor = JinjaProcessor::new();
+        
+        // Build HTML content for articles
+        let mut html_content = String::new();
+        for md in articles
+            .iter()
+            .filter(|el| el.file_name != "error.html")
+            .filter(|el| !el.is_draft || drafts_options.is_dev())
+        {
+            html_content.push_str(&format!(
+                "<div class=\"post\">\n<h2><a href=\"{}\">{}</a></h2>\n<div class=\"post-date\">{}</div>\n<p class=\"post-description\">{}</p>\n</div>\n",
+                md.file_name, md.title, md.publish_date, md.description
+            ));
+        }
 
-    // If template is empty or just whitespace, fallback to a default template
-    let template_to_use = if template_content.trim().is_empty() {
-        "<div class=\"post\">\n<h2><a href=\"$GENERETO['file_name']\">$GENERETO['title']</a></h2>\n<div class=\"post-date\">$GENERETO['publish_date']</div>\n<p class=\"post-description\">$GENERETO['description']</p>\n</div>\n"
+        // For Jinja2 blog index, we need to use the template file directly
+        let processed_template = jinja_processor.process_template(
+            &genereto_config.blog.base_template,
+            genereto_config,
+            None,
+            Some(&html_content)
+        )?;
+
+        fs::write(destination_path, processed_template).context("Failed writing to output page")?;
     } else {
-        template_content
-    };
+        // Legacy processing (keep existing logic)
+        let mut template_view = template_view;
+        
+        // Extract the template content between start_content and end_content
+        let start = template_view.find(START_PATTERN).unwrap();
+        let end = template_view.find(END_PATTERN).unwrap();
+        let template_content = &template_view[start + START_PATTERN.len()..end].trim();
 
-    let mut html_content = String::new();
-    for md in articles
-        .iter()
-        // error page doesn't need to be shown on the homepage.
-        .filter(|el| el.file_name != "error.html")
-        // if the page is a draft and we are not in dev mode, we need to skip it.
-        .filter(|el| !el.is_draft || drafts_options.is_dev())
-    {
-        // Apply the template for each article
-        let entry_content = md.apply(template_to_use.to_string());
-        html_content.push_str(&entry_content);
-        html_content.push('\n');
+        // If template is empty or just whitespace, fallback to a default template
+        let template_to_use = if template_content.trim().is_empty() {
+            "<div class=\"post\">\n<h2><a href=\"$GENERETO['file_name']\">$GENERETO['title']</a></h2>\n<div class=\"post-date\">$GENERETO['publish_date']</div>\n<p class=\"post-description\">$GENERETO['description']</p>\n</div>\n"
+        } else {
+            template_content
+        };
+
+        let mut html_content = String::new();
+        for md in articles
+            .iter()
+            .filter(|el| el.file_name != "error.html")
+            .filter(|el| !el.is_draft || drafts_options.is_dev())
+        {
+            let entry_content = md.apply(template_to_use.to_string());
+            html_content.push_str(&entry_content);
+            html_content.push('\n');
+        }
+
+        template_view.replace_range(start..end + END_PATTERN.len(), &html_content);
+
+        // Replace the blog title if configured
+        if let Some(blog_title) = &genereto_config.blog.title {
+            template_view = template_view.replace("$GENERETO['title']", blog_title);
+        } else {
+            template_view = template_view.replace("$GENERETO['title']", &genereto_config.title);
+        }
+
+        fs::write(destination_path, template_view).context("Failed writing to output page")?;
     }
-
-    template_view.replace_range(start..end + END_PATTERN.len(), &html_content);
-
-    // Replace the blog title if configured
-    if let Some(blog_title) = &genereto_config.blog.title {
-        template_view = template_view.replace("$GENERETO['title']", blog_title);
-    } else {
-        template_view = template_view.replace("$GENERETO['title']", &genereto_config.title);
-    }
-
-    fs::write(destination_path, template_view).context("Failed writing to output page")?;
     Ok(())
 }
 

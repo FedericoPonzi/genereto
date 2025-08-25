@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Templating with Jinja2 | $GENERETO['site_title']</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/themes/prism.min.css" integrity="sha512-/mZ1FHPkg6EKcxo0fKXF51ak6Cr2ocgDi5ytaTBjsQZIH/RNs6GF6+oId/vPe3eJB836T36nXwVh/WBl/cWT4w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="res/styles.css">
+    
+    <!-- Meta tags -->
+    <meta name="description" content="Learn how to use Jinja2 templates in Genereto for powerful, dynamic website generation">
+    <meta name="keywords" content="jinja2, templates, genereto, static site generator">
+    <meta name="author" content="$GENERETO['author']">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Advanced Templating with Jinja2">
+    <meta property="og:description" content="Learn how to use Jinja2 templates in Genereto for powerful, dynamic website generation">
+    <meta property="og:url" content="">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Advanced Templating with Jinja2">
+    <meta name="twitter:description" content="Learn how to use Jinja2 templates in Genereto for powerful, dynamic website generation">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-brand">
+                <h1>$GENERETO['site_title']</h1>
+            </a>
+            <div class="navbar-nav">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="jinja-templates.html" class="nav-link">Templates Info</a>
+                <a href="blog.html" class="nav-link">Blog</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <header class="page-header">
+                <h1 class="page-title">Advanced Templating with Jinja2</h1>
+                <p class="page-description">Learn how to use Jinja2 templates in Genereto for powerful, dynamic website generation</p>
+                
+                <div class="page-meta">
+                    <div class="meta-item">
+                        <svg class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        <div class="tag-list">
+                            <span class="tag">Legacy Templates</span>
+                            <span class="tag">Simple Syntax</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Page Content -->
+            <article class="content">
+                $GENERETO['content']
+            </article>
+            
+            <!-- Legacy Template Badge -->
+            <section class="template-info">
+                <div class="info-card">
+                    <h3>🔧 Legacy Template Features</h3>
+                    <p>This page is generated using traditional Genereto templates with simple <code>$GENERETO['field']</code> syntax.</p>
+                    <ul>
+                        <li><strong>Variables:</strong> <code>$GENERETO['field']</code></li>
+                        <li><strong>No conditionals:</strong> Simple, straightforward templating</li>
+                        <li><strong>Fast generation:</strong> Minimal processing overhead</li>
+                        <li><strong>Easy to learn:</strong> Basic syntax for quick start</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>$GENERETO['site_title']</h3>
+                    <p>$GENERETO['site_description']</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="jinja-templates.html">Templates</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/FedericoPonzi/genereto" target="_blank" rel="noopener">GitHub</a></li>
+                        <li><a href="https://docs.rs/genereto" target="_blank" rel="noopener">Documentation</a></li>
+                        <li><a href="#" onclick="return false;">RSS Feed</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 Genereto Team. Built with <a href="https://github.com/FedericoPonzi/genereto" target="_blank" rel="noopener">Genereto</a>.</p>
+                <p class="legacy-badge">📄 Using Legacy Templates</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/prism.min.js" integrity="sha512-UOoJElONeUNzQbbKQbjldDf9MwOHqxNz49NNJJ1d90yp+X9edsHyJoAs6O4K19CZGaIdjI5ohK+O2y5lBTW6uQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-yaml.min.js" integrity="sha512-epBuSQcDNi/0lmCXr7cGjqWcfnzXe4m/GdIFFNDcQ7v/JF4H8I+l4wmVQiYO6NkLGSDo3LR7HaUfUL/5sjWtXg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-rust.min.js" integrity="sha512-IEKBKuVt5ZJgNK9ExBPa4m5KkTKhOgxJ+22LHUEOkKO/i/A4GLgbUApFf3LdsjXEoSdwOZOiUdWBxp/zDt1+fg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-bash.min.js" integrity="sha512-35RBtvuCKWANuRid6RXP2gYm4D5RMieVL/xbp6KiMXlIqgNrI7XRUh9HurE8lKHW4aRpC0TZU3ZfqG8qmQ35zA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/9000.0.1/components/prism-javascript.min.js" integrity="sha512-yvw5BDA/GQu8umskpIOBhX2pDLrdOiriaK4kVxtD28QEGLV5rscmCfDjkrx52tIgzLgwzs1FsALV6eYDpGnEkQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</body>
+</html>
