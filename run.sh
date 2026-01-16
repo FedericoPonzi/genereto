@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# simple run script
+# Development run script
 
-(cd blog/ && git submodule update --init --remote --recursive)
-(cd fponzi.me/ && git submodule update --init --remote --recursive)
+# Update fponzi.me repository
+(cd fponzi.me/)
 
-cargo run -- --project-path blog/genereto-project --drafts-options dev
+# Run genereto for all projects with drafts visible
+cargo run -- --project-path fponzi.me/blog --drafts-options dev
 cargo run -- --project-path fponzi.me/home --drafts-options dev
 cargo run -- --project-path fponzi.me/swag --drafts-options dev
