@@ -5,6 +5,25 @@ use regex::Regex;
 use std::fs;
 use std::path::Path;
 
+/// Process $GENERETO_INCLUDE['filename.html'] directives in templates
+/// This allows including reusable template fragments from the template directory
+pub fn process_includes(template_raw: &str, template_dir: &Path) -> anyhow::Result<String> {
+    let include_pattern = Regex::new(r"\$GENERETO_INCLUDE\['([^']+)'\]").unwrap();
+    let mut result = template_raw.to_string();
+
+    for cap in include_pattern.captures_iter(template_raw) {
+        let filename = &cap[1];
+        let include_path = template_dir.join(filename);
+
+        let include_content = fs::read_to_string(&include_path)
+            .with_context(|| format!("Failed to read include file: {}", include_path.display()))?;
+
+        result = result.replace(&cap[0], &include_content);
+    }
+
+    Ok(result)
+}
+
 pub(crate) const START_PATTERN: &str = "<!-- start_content -->";
 pub(crate) const END_PATTERN: &str = "<!-- end_content -->";
 pub fn load_compile_write(

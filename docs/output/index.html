@@ -34,7 +34,11 @@
 <li><a href="#cli-reference">CLI Reference</a></li>
 <li><a href="#config-reference">Config Reference</a></li>
 <li><a href="#metadata-fields-reference">Metadata Fields Reference</a></li>
-<li><a href="#templating-guide">Templating Guide</a></li>
+<li><a href="#templating-guide">Templating Guide</a>
+<ul>
+<li><a href="#template-includes">Template Includes</a></li>
+</ul>
+</li>
 <li><a href="#advanced-features">Advanced Features</a></li>
 </ul>
 <h2 id="features">Features</h2>
@@ -222,6 +226,39 @@ Content here will be replaced
 <p>Variables are accessed using:</p>
 <pre><code class="language-html">$GENERETO['variable_name']
 </code></pre>
+<h3 id="template-includes">Template Includes</h3>
+<p>Reuse template fragments across multiple templates using includes:</p>
+<pre><code class="language-html">$GENERETO_INCLUDE['sidebar.html']
+</code></pre>
+<p>This allows you to:</p>
+<ul>
+<li><strong>Avoid duplication</strong>: Define common elements (sidebars, headers, footers) once</li>
+<li><strong>Maintain consistency</strong>: Update shared elements in one place</li>
+<li><strong>Organize templates</strong>: Keep templates clean and modular</li>
+</ul>
+<p><strong>Example:</strong></p>
+<p>Create reusable template fragments in your template directory:</p>
+<p><code>sidebar.html</code>:</p>
+<pre><code class="language-html">&lt;aside class="sidebar"&gt;
+  &lt;nav&gt;
+    &lt;a href="/"&gt;Home&lt;/a&gt;
+    &lt;a href="/blog"&gt;Blog&lt;/a&gt;
+  &lt;/nav&gt;
+&lt;/aside&gt;
+</code></pre>
+<p>Then include it in your main templates:</p>
+<p><code>blog.html</code>:</p>
+<pre><code class="language-html">&lt;div class="page-wrapper"&gt;
+  $GENERETO_INCLUDE['sidebar.html']
+
+  &lt;div class="container"&gt;
+    &lt;!-- start_content --&gt;
+    Content here
+    &lt;!-- end_content --&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+<p>Include files are loaded from the same directory as the template that references them. Includes can contain any HTML, including other <code>$GENERETO['variable']</code> placeholders.</p>
 <blockquote>
 <p>💡 <strong>Tip</strong>: Use the content between start/end_content markers to preview your template's appearance.</p>
 </blockquote>

@@ -53,6 +53,10 @@ pub fn generate_blog(
             "Failed to read the base template at path: {:?}",
             genereto_config.blog.base_template
         ))?;
+    let template_index_page = crate::parser::process_includes(
+        &template_index_page,
+        &genereto_config.template_dir_path,
+    )?;
     // todo: if there is already an index.html, replace it with blog.html.
     let destination_path = &genereto_config
         .blog
@@ -129,6 +133,10 @@ fn build_articles(
         .join(BLOG_ENTRY_TEMPLATE_FILENAME);
     let template_raw = fs::read_to_string(template_path)
         .context(format!("reading template path {:?}", template_path))?;
+    let template_raw = crate::parser::process_includes(
+        &template_raw,
+        &genereto_config.template_dir_path,
+    )?;
     let default_cover_image = &genereto_config
         .blog
         .default_cover_image

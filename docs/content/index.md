@@ -16,6 +16,7 @@ A simple static site generator to handle different kinds of simple static websit
 - [Config Reference](#config-reference)
 - [Metadata Fields Reference](#metadata-fields-reference)
 - [Templating Guide](#templating-guide)
+  - [Template Includes](#template-includes)
 - [Advanced Features](#advanced-features)
 
 ## Features
@@ -218,6 +219,50 @@ Variables are accessed using:
 ```html
 &#36;GENERETO['variable_name']
 ```
+
+### Template Includes
+
+Reuse template fragments across multiple templates using includes:
+
+```html
+&#36;GENERETO_INCLUDE['sidebar.html']
+```
+
+This allows you to:
+- **Avoid duplication**: Define common elements (sidebars, headers, footers) once
+- **Maintain consistency**: Update shared elements in one place
+- **Organize templates**: Keep templates clean and modular
+
+**Example:**
+
+Create reusable template fragments in your template directory:
+
+`sidebar.html`:
+```html
+<aside class="sidebar">
+  <nav>
+    <a href="/">Home</a>
+    <a href="/blog">Blog</a>
+  </nav>
+</aside>
+```
+
+Then include it in your main templates:
+
+`blog.html`:
+```html
+<div class="page-wrapper">
+  &#36;GENERETO_INCLUDE['sidebar.html']
+
+  <div class="container">
+    <!-- start_content -->
+    Content here
+    <!-- end_content -->
+  </div>
+</div>
+```
+
+Include files are loaded from the same directory as the template that references them. Includes can contain any HTML, including other `&#36;GENERETO['variable']` placeholders.
 
 > 💡 **Tip**: Use the content between start/end_content markers to preview your template's appearance.
 

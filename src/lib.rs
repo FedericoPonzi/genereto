@@ -106,6 +106,10 @@ fn compile_pages(
             .join(PAGE_TEMPLATE_FILENAME);
         let template_raw = fs::read_to_string(template_path)
             .context(format!("Failed to read template file {template_path:?}"))?;
+        let template_raw = parser::process_includes(
+            &template_raw,
+            &genereto_config.template_dir_path,
+        )?;
 
         let entry_path_name = entry_path.file_name().unwrap().to_str().unwrap();
         let destination_path = genereto_config.get_dest_path(&entry_path);
