@@ -224,11 +224,11 @@ Content here will be replaced
 &lt;!-- end_content --&gt;
 </code></pre>
 <p>Variables are accessed using:</p>
-<pre><code class="language-html">$GENERETO['variable_name']
+<pre><code class="language-html">&amp;#36;GENERETO['variable_name']
 </code></pre>
 <h3 id="template-includes">Template Includes</h3>
 <p>Reuse template fragments across multiple templates using includes:</p>
-<pre><code class="language-html">$GENERETO_INCLUDE['sidebar.html']
+<pre><code class="language-html">&amp;#36;GENERETO_INCLUDE['sidebar.html']
 </code></pre>
 <p>This allows you to:</p>
 <ul>
@@ -249,7 +249,7 @@ Content here will be replaced
 <p>Then include it in your main templates:</p>
 <p><code>blog.html</code>:</p>
 <pre><code class="language-html">&lt;div class="page-wrapper"&gt;
-  $GENERETO_INCLUDE['sidebar.html']
+  &amp;#36;GENERETO_INCLUDE['sidebar.html']
 
   &lt;div class="container"&gt;
     &lt;!-- start_content --&gt;
@@ -258,13 +258,13 @@ Content here will be replaced
   &lt;/div&gt;
 &lt;/div&gt;
 </code></pre>
-<p>Include files are loaded from the same directory as the template that references them. Includes can contain any HTML, including other <code>$GENERETO['variable']</code> placeholders.</p>
+<p>Include files are loaded from the same directory as the template that references them. Includes can contain any HTML, including other <code>&amp;#36;GENERETO['variable']</code> placeholders.</p>
 <blockquote>
 <p>💡 <strong>Tip</strong>: Use the content between start/end_content markers to preview your template's appearance.</p>
 </blockquote>
 <h2 id="advanced-features">Advanced Features</h2>
 <h3 id="custom-metadata">Custom Metadata</h3>
-<p>You can add any custom key-value pairs to your page metadata, which will be available in templates as <code>$GENERETO['key']</code>:</p>
+<p>You can add any custom key-value pairs to your page metadata, which will be available in templates as <code>&amp;#36;GENERETO['key']</code>:</p>
 <pre><code class="language-markdown">---
 title: My Collaborative Post
 publish_date: 2024-01-01
@@ -273,8 +273,8 @@ project_url: https://github.com/example
 ---
 
 # My Post
-Written by $GENERETO['co_authors']
-Check out the project at $GENERETO['project_url']
+Written by &amp;#36;GENERETO['co_authors']
+Check out the project at &amp;#36;GENERETO['project_url']
 </code></pre>
 <p>Any key-value pair that isn't a standard metadata field will be treated as custom metadata and made available in templates.</p>
 <h3 id="rss-feed">RSS Feed</h3>
@@ -283,8 +283,8 @@ Check out the project at $GENERETO['project_url']
 </code></pre>
 <h3 id="todos-and-comments">TODOs and Comments</h3>
 <p>Embed TODOs and comments in your content:</p>
-<pre><code class="language-markdown">$GENERETO&amp;#123;TODO: fix this section&amp;#125;
-This is my content $GENERETO&amp;#123;add more details here&amp;#125;
+<pre><code class="language-markdown">&amp;#36;GENERETO&amp;#123;TODO: fix this section&amp;#125;
+This is my content &amp;#36;GENERETO&amp;#123;add more details here&amp;#125;
 </code></pre>
 <h3 id="blog-yaml-format">Blog YAML Format</h3>
 <p>For tumblr-style blogs, use <code>blog.yml</code>:</p>

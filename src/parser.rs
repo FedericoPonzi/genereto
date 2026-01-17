@@ -1,3 +1,4 @@
+use crate::jinja_processor::{PageContext, SiteContext};
 use crate::page_metadata::{PageMetadata, PageMetadataRaw};
 use crate::DraftsOptions;
 use anyhow::Context;
@@ -26,6 +27,9 @@ pub fn process_includes(template_raw: &str, template_dir: &Path) -> anyhow::Resu
 
 pub(crate) const START_PATTERN: &str = "<!-- start_content -->";
 pub(crate) const END_PATTERN: &str = "<!-- end_content -->";
+
+/// Convenience wrapper for backward compatibility
+#[allow(dead_code)]
 pub fn load_compile_write(
     default_cover_image: &str,
     entry_path: &Path,
@@ -34,19 +38,57 @@ pub fn load_compile_write(
     template_raw: &str,
     website_url: &str,
 ) -> anyhow::Result<Option<PageMetadata>> {
-    let (content, metadata) =
-        load_compile(default_cover_image, entry_path, template_raw, website_url)?;
+    load_compile_write_with_jinja(
+        default_cover_image,
+        entry_path,
+        drafts_options,
+        destination_path,
+        template_raw,
+        website_url,
+        None,
+    )
+}
+
+pub fn load_compile_write_with_jinja(
+    default_cover_image: &str,
+    entry_path: &Path,
+    drafts_options: &DraftsOptions,
+    destination_path: &Path,
+    template_raw: &str,
+    website_url: &str,
+    site_context: Option<&SiteContext>,
+) -> anyhow::Result<Option<PageMetadata>> {
+    let (content, metadata) = load_compile_with_jinja(
+        default_cover_image,
+        entry_path,
+        template_raw,
+        website_url,
+        site_context,
+    )?;
     if metadata.is_draft && drafts_options.is_hide() {
         return Ok(None);
     }
     fs::write(destination_path, content).context("Failed writing to output page")?;
     Ok(Some(metadata))
 }
+
+/// Convenience wrapper for backward compatibility
+#[allow(dead_code)]
 pub fn load_compile(
     default_cover_image: &str,
     entry_path: &Path,
     template_raw: &str,
     website_url: &str,
+) -> anyhow::Result<(String, PageMetadata)> {
+    load_compile_with_jinja(default_cover_image, entry_path, template_raw, website_url, None)
+}
+
+pub fn load_compile_with_jinja(
+    default_cover_image: &str,
+    entry_path: &Path,
+    template_raw: &str,
+    website_url: &str,
+    site_context: Option<&SiteContext>,
 ) -> anyhow::Result<(String, PageMetadata)> {
     let source_content = fs::read_to_string(entry_path)?;
     let (intermediate_content, metadata_raw) = compile_page_phase_1(&source_content)?;
@@ -57,11 +99,13 @@ pub fn load_compile(
         default_cover_image,
         entry_path,
         website_url,
+        site_context,
     )?;
     Ok((content, metadata))
 }
 
 /// Compiles the html and applies the metadata substitutions
+/// If site_context is Some, uses Jinja2 template rendering instead of marker-based rendering
 pub fn compile_page_phase_2(
     content: String,
     template_raw: &str,
@@ -69,6 +113,7 @@ pub fn compile_page_phase_2(
     default_cover_image: &str,
     entry_path: &Path,
     website_url: &str,
+    site_context: Option<&SiteContext>,
 ) -> anyhow::Result<(String, PageMetadata)> {
     let metadata = PageMetadata::new(
         metadata_raw,
@@ -78,8 +123,6 @@ pub fn compile_page_phase_2(
         website_url,
     );
 
-    let mut final_page = template_raw.to_string();
-
     // If add_title is true, add an H1 with the page title at the top of the content
     let content_with_title = if metadata.add_title {
         format!("# {}\n\n{}", metadata.title, content)
@@ -88,12 +131,21 @@ pub fn compile_page_phase_2(
     };
 
     let html_content = compile_markdown_to_html(&filter_out_comments(&content_with_title));
-    let start = final_page.find(START_PATTERN).unwrap();
-    let end = final_page.find(END_PATTERN).unwrap();
 
-    final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
-    let final_page = metadata.apply(final_page);
-    let final_page = final_page.replace("&amp;#36;", "$");
+    let final_page = if let Some(site) = site_context {
+        // Use Jinja2 template rendering
+        let page_context = PageContext::from_page_metadata(&metadata);
+        crate::jinja_processor::render_page(template_raw, site, &page_context, &html_content)?
+    } else {
+        // Use traditional marker-based rendering
+        let mut final_page = template_raw.to_string();
+        let start = final_page.find(START_PATTERN).unwrap();
+        let end = final_page.find(END_PATTERN).unwrap();
+        final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
+        let final_page = metadata.apply(final_page);
+        final_page.replace("&amp;#36;", "$")
+    };
+
     Ok((final_page, metadata))
 }
 

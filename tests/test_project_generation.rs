@@ -64,6 +64,7 @@ fn test_blog_generation_with_single_pages_disabled() {
         title: "Test".into(),
         url: "http://test.com".into(),
         description: "Test".into(),
+        enable_jinja: false,
 
         blog: GeneretoConfigBlog {
             base_template: PathBuf::from("blog.html"),

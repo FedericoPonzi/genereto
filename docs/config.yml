@@ -1,4 +1,5 @@
 template: main
+enable_jinja: true
 title: Genereto Documentation
 url: https://gh.fponzi.me/genereto
 description: Documentation for Genereto static site generator

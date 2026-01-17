@@ -1,8 +1,9 @@
 use crate::config::GeneretoConfig;
+use crate::jinja_processor::{PageContext, SiteContext};
 use crate::page_metadata::{PageMetadata, PageMetadataRaw};
 
 use crate::fs_util::copy_directory_recursively;
-use crate::parser::{load_compile_write, END_PATTERN, START_PATTERN};
+use crate::parser::{load_compile_write_with_jinja, END_PATTERN, START_PATTERN};
 use crate::DraftsOptions;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
@@ -43,7 +44,18 @@ pub fn generate_blog(
     debug!("Generating blog");
     fs::create_dir_all(&genereto_config.blog.destination)?;
 
-    let mut metadatas = build_articles(genereto_config, drafts_options)?;
+    // Create site context for Jinja rendering if enabled
+    let site_context = if genereto_config.enable_jinja {
+        Some(SiteContext::new(
+            &genereto_config.title,
+            &genereto_config.url,
+            &genereto_config.description,
+        ))
+    } else {
+        None
+    };
+
+    let mut metadatas = build_articles(genereto_config, drafts_options, site_context.as_ref())?;
 
     // sort by published date
     metadatas.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -70,53 +82,71 @@ pub fn generate_blog(
         destination_path,
         drafts_options,
         genereto_config,
+        site_context.as_ref(),
     )
     .context("Failed to build index page.")?;
     Ok(Some(metadatas))
 }
 fn build_index_page(
-    mut template_view: String,
+    template_view: String,
     articles: &[PageMetadata],
     destination_path: &Path,
     drafts_options: &DraftsOptions,
     genereto_config: &GeneretoConfig,
+    site_context: Option<&SiteContext>,
 ) -> anyhow::Result<()> {
-    // Extract the template content between start_content and end_content
-    let start = template_view.find(START_PATTERN).unwrap();
-    let end = template_view.find(END_PATTERN).unwrap();
-    let template_content = &template_view[start + START_PATTERN.len()..end].trim();
-
-    // If template is empty or just whitespace, fallback to a default template
-    let template_to_use = if template_content.trim().is_empty() {
-        "<div class=\"post\">\n<h2><a href=\"$GENERETO['file_name']\">$GENERETO['title']</a></h2>\n<div class=\"post-date\">$GENERETO['publish_date']</div>\n<p class=\"post-description\">$GENERETO['description']</p>\n</div>\n"
-    } else {
-        template_content
-    };
-
-    let mut html_content = String::new();
-    for md in articles
+    // Filter articles for display
+    let filtered_articles: Vec<&PageMetadata> = articles
         .iter()
         // error page doesn't need to be shown on the homepage.
         .filter(|el| el.file_name != "error.html")
         // if the page is a draft and we are not in dev mode, we need to skip it.
         .filter(|el| !el.is_draft || drafts_options.is_dev())
-    {
-        // Apply the template for each article
-        let entry_content = md.apply(template_to_use.to_string());
-        html_content.push_str(&entry_content);
-        html_content.push('\n');
-    }
+        .collect();
 
-    template_view.replace_range(start..end + END_PATTERN.len(), &html_content);
-
-    // Replace the blog title if configured
-    if let Some(blog_title) = &genereto_config.blog.title {
-        template_view = template_view.replace("$GENERETO['title']", blog_title);
+    let final_content = if let Some(site) = site_context {
+        // Use Jinja2 template rendering
+        let page_contexts: Vec<PageContext> = filtered_articles
+            .iter()
+            .map(|md| PageContext::from_page_metadata(md))
+            .collect();
+        crate::jinja_processor::render_blog_index(&template_view, site, &page_contexts)?
     } else {
-        template_view = template_view.replace("$GENERETO['title']", &genereto_config.title);
-    }
+        // Use traditional marker-based rendering
+        let mut template_view = template_view;
 
-    fs::write(destination_path, template_view).context("Failed writing to output page")?;
+        // Extract the template content between start_content and end_content
+        let start = template_view.find(START_PATTERN).unwrap();
+        let end = template_view.find(END_PATTERN).unwrap();
+        let template_content = &template_view[start + START_PATTERN.len()..end].trim();
+
+        // If template is empty or just whitespace, fallback to a default template
+        let template_to_use = if template_content.trim().is_empty() {
+            "<div class=\"post\">\n<h2><a href=\"$GENERETO['file_name']\">$GENERETO['title']</a></h2>\n<div class=\"post-date\">$GENERETO['publish_date']</div>\n<p class=\"post-description\">$GENERETO['description']</p>\n</div>\n"
+        } else {
+            template_content
+        };
+
+        let mut html_content = String::new();
+        for md in &filtered_articles {
+            // Apply the template for each article
+            let entry_content = md.apply(template_to_use.to_string());
+            html_content.push_str(&entry_content);
+            html_content.push('\n');
+        }
+
+        template_view.replace_range(start..end + END_PATTERN.len(), &html_content);
+
+        // Replace the blog title if configured
+        if let Some(blog_title) = &genereto_config.blog.title {
+            template_view = template_view.replace("$GENERETO['title']", blog_title);
+        } else {
+            template_view = template_view.replace("$GENERETO['title']", &genereto_config.title);
+        }
+        template_view
+    };
+
+    fs::write(destination_path, final_content).context("Failed writing to output page")?;
     Ok(())
 }
 
@@ -125,6 +155,7 @@ fn build_index_page(
 fn build_articles(
     genereto_config: &GeneretoConfig,
     drafts_options: &DraftsOptions,
+    site_context: Option<&SiteContext>,
 ) -> anyhow::Result<Vec<PageMetadata>> {
     debug!("Loading articles metadata");
     let mut articles = vec![];
@@ -174,22 +205,24 @@ fn build_articles(
             copy_directory_recursively(&entry_path, &destination_path)?;
         } else if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "md" {
             let article_opt = if genereto_config.blog.generate_single_pages {
-                load_compile_write(
+                load_compile_write_with_jinja(
                     default_cover_image,
                     &entry_path,
                     drafts_options,
                     &destination_path,
                     &template_raw,
                     &genereto_config.url,
+                    site_context,
                 )
                 .with_context(|| format!("Failed to build page {entry_path_display}"))?
             } else {
                 // When single pages are disabled, still parse metadata but skip file generation
-                let (_, md) = crate::parser::load_compile(
+                let (_, md) = crate::parser::load_compile_with_jinja(
                     default_cover_image,
                     &entry_path,
                     &template_raw,
                     &genereto_config.url,
+                    site_context,
                 )
                 .with_context(|| format!("Failed to parse metadata for {entry_path_display}"))?;
                 Some(md)
@@ -328,6 +361,7 @@ entries:
             title: "Main Title".into(),
             url: "test.com".into(),
             description: "Test description".into(),
+            enable_jinja: false,
 
             blog: GeneretoConfigBlog {
                 base_template: "blog-index.html".into(),
@@ -345,6 +379,7 @@ entries:
             &output_path,
             &drafts_options,
             &config,
+            None, // No jinja mode
         )?;
 
         let output_content = fs::read_to_string(&output_path)?;
@@ -363,6 +398,7 @@ entries:
             &output_path,
             &drafts_options,
             &config,
+            None, // No jinja mode
         )?;
 
         let output_content = fs::read_to_string(&output_path)?;

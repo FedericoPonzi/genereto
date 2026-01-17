@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site.title }}</title>
+    <meta name="description" content="{{ site.description }}">
+    <link rel="stylesheet" href="res/styles.css">
+</head>
+<body>
+    <header>
+        <h1>{{ site.title }}</h1>
+        <p>{{ site.description }}</p>
+    </header>
+
+    <main>
+        <section class="articles">
+            {% for article in articles %}
+            <article class="post">
+                <h2><a href="blog/{{ article.file_name }}">{{ article.title }}</a></h2>
+                <div class="meta">
+                    <span class="date">{{ article.publish_date }}</span>
+                    {% if article.read_time_minutes %}
+                    <span class="read-time">{{ article.read_time_minutes }} min read</span>
+                    {% endif %}
+                </div>
+                {% if article.description %}
+                <p class="description">{{ article.description }}</p>
+                {% endif %}
+            </article>
+            {% endfor %}
+
+            {% if articles|length == 0 %}
+            <p>No articles yet. Check back soon!</p>
+            {% endif %}
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; {{ site.current_year }} {{ site.title }}</p>
+    </footer>
+</body>
+</html>

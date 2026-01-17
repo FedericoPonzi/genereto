@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title }} - {{ site.title }}</title>
+    <meta name="description" content="{{ page.description }}">
+    <meta name="keywords" content="{{ page.keywords }}">
+    <link rel="stylesheet" href="../res/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="../index.html">&larr; Back to {{ site.title }}</a>
+        </nav>
+    </header>
+
+    <main>
+        <article class="post-content">
+            <header class="post-header">
+                <h1>{{ page.title }}</h1>
+                <div class="meta">
+                    <span class="date">Published: {{ page.publish_date }}</span>
+                    {% if page.last_modified_date and page.last_modified_date != page.publish_date %}
+                    <span class="updated">Updated: {{ page.last_modified_date }}</span>
+                    {% endif %}
+                    {% if page.read_time_minutes %}
+                    <span class="read-time">{{ page.read_time_minutes }} min read</span>
+                    {% endif %}
+                </div>
+                {% if page.cover_image %}
+                <img class="cover" src="{{ page.cover_image }}" alt="{{ page.title }}">
+                {% endif %}
+            </header>
+
+            {% if page.table_of_contents %}
+            <nav class="toc">
+                <h2>Table of Contents</h2>
+                {{ page.table_of_contents }}
+            </nav>
+            {% endif %}
+
+            <div class="content">
+                {{ content }}
+            </div>
+        </article>
+    </main>
+
+    <footer>
+        <p>&copy; {{ site.current_year }} {{ site.title }}</p>
+    </footer>
+</body>
+</html>

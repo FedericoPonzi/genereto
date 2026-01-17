@@ -12,11 +12,13 @@ pub use project_generation::generate_project;
 pub mod blog;
 
 use crate::fs_util::copy_directory_recursively;
-use crate::parser::load_compile_write;
+use crate::jinja_processor::SiteContext;
+use crate::parser::load_compile_write_with_jinja;
 use crate::rss_generation::generate_rss;
 
 mod config;
 mod fs_util;
+pub mod jinja_processor;
 mod page_metadata;
 mod parser;
 mod project_generation;
@@ -99,6 +101,17 @@ fn compile_pages(
     genereto_config: &GeneretoConfig,
     drafts_options: &DraftsOptions,
 ) -> anyhow::Result<()> {
+    // Create site context for Jinja rendering if enabled
+    let site_context = if genereto_config.enable_jinja {
+        Some(SiteContext::new(
+            &genereto_config.title,
+            &genereto_config.url,
+            &genereto_config.description,
+        ))
+    } else {
+        None
+    };
+
     for entry in fs::read_dir(&genereto_config.content_path)? {
         let entry_path = entry?.path();
         let template_path = &genereto_config
@@ -121,13 +134,14 @@ fn compile_pages(
             copy_directory_recursively(&entry_path, &destination_path)?;
         } else if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "md" {
             // TODO: test. any other non-md file is copied over to the output folder.
-            let _page_opt = load_compile_write(
+            let _page_opt = load_compile_write_with_jinja(
                 "",
                 &entry_path,
                 drafts_options,
                 &destination_path,
                 &template_raw,
                 &genereto_config.url,
+                site_context.as_ref(),
             )
             .with_context(|| format!("Failed to build page {entry_path:?}"))?;
         } else {

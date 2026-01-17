@@ -1,0 +1,11 @@
+template: main
+enable_jinja: true
+title: My Jinja2 Site
+url: https://example.com
+description: A site using Jinja2 templates
+
+blog:
+  base_template: index.html
+  index_name: index.html
+  destination: blog
+  generate_single_pages: true

@@ -8,3 +8,5 @@ sample-genereto-project/output/
 /fponzi.me/
 /distsys.fponzi.me/
 .amazonq
+docs/output
+sample-genereto-project-jinja2/output

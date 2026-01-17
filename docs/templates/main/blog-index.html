@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$GENERETO['title']</title>
-    <meta name="description" content="$GENERETO['description']">
+    <title>{{ site.title }}</title>
+    <meta name="description" content="{{ site.description }}">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -49,20 +49,53 @@
             max-width: 200px;
             height: auto;
         }
+
+        .articles {
+            list-style: none;
+            padding: 0;
+        }
+
+        .articles li {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .articles .date {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .articles .description {
+            color: #555;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
 <div class="header">
     <a href="index.html"><img src="../assets/genereto-logo.jpg" alt="Genereto Logo" class="logo"></a>
-    <h1><a href="index.html">$GENERETO['title']</a></h1>
-    <a href="../">Back to the homepage.</a>
+    <h1><a href="index.html">{{ site.title }}</a></h1>
+    <a href="../">Back to the homepage</a>
 </div>
 
-<!-- start_content -->
-<li class="post">
-    $GENERETO['publish_date'] - <a href="$GENERETO['file_name']">$GENERETO['title']</a>
-</li>
-<!-- end_content -->
+<h2>Documentation Articles</h2>
+
+<ul class="articles">
+{% for article in articles %}
+    <li>
+        <span class="date">{{ article.publish_date }}</span> -
+        <a href="{{ article.file_name }}">{{ article.title }}</a>
+        {% if article.description %}
+        <p class="description">{{ article.description }}</p>
+        {% endif %}
+    </li>
+{% endfor %}
+</ul>
+
+{% if articles|length == 0 %}
+<p>No articles yet. Check back soon!</p>
+{% endif %}
 
 <footer style="margin-top: 40px; text-align: center; color: #666;">
     <p>Generated with <a href="https://github.com/FedericoPonzi/genereto">Genereto</a></p>
