@@ -34,6 +34,8 @@ pub struct PageMetadataRaw {
     pub cover_image: Option<String>,
     /// Optional URL for external links
     pub url: Option<String>,
+    /// Optional template file override for this specific page
+    pub template_file: Option<String>,
     /// Custom metadata fields that will be available as $GENERETO['field_name']
     #[serde(flatten)]
     pub custom_metadata: HashMap<String, String>,
@@ -68,6 +70,8 @@ pub struct PageMetadata {
     pub article_url: Option<String>,
     /// Base website url. https://www.example.com
     pub website_url: String,
+    /// Optional template file override for this specific page
+    pub template_file: Option<String>,
     /// Custom metadata fields that will be available as $GENERETO['field_name']
     pub custom_metadata: HashMap<String, String>,
 }
@@ -130,6 +134,7 @@ impl PageMetadata {
             table_of_contents,
             article_url: page_metadata.url,
             website_url: website_url.to_string(),
+            template_file: page_metadata.template_file,
             custom_metadata: page_metadata.custom_metadata,
         }
     }
@@ -537,6 +542,7 @@ mod test {
             description: None,
             cover_image: None,
             url: None,
+            template_file: None,
             custom_metadata: HashMap::new(),
         };
 
@@ -603,6 +609,7 @@ mod test {
             add_title: false,
             article_url: None,
             website_url: "https://fponzi.me".to_string(),
+            template_file: None,
             custom_metadata,
         };
 
