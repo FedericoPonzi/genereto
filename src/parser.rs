@@ -80,7 +80,13 @@ pub fn load_compile(
     template_raw: &str,
     website_url: &str,
 ) -> anyhow::Result<(String, PageMetadata)> {
-    load_compile_with_jinja(default_cover_image, entry_path, template_raw, website_url, None)
+    load_compile_with_jinja(
+        default_cover_image,
+        entry_path,
+        template_raw,
+        website_url,
+        None,
+    )
 }
 
 pub fn load_compile_with_jinja(
@@ -139,8 +145,16 @@ pub fn compile_page_phase_2(
     } else {
         // Use traditional marker-based rendering
         let mut final_page = template_raw.to_string();
-        let start = final_page.find(START_PATTERN).unwrap();
-        let end = final_page.find(END_PATTERN).unwrap();
+        let start = final_page.find(START_PATTERN).ok_or_else(|| {
+            anyhow::anyhow!("Start marker `{}` not found in template", START_PATTERN)
+        })?;
+        let end = final_page.find(END_PATTERN).ok_or_else(|| {
+            anyhow::anyhow!(
+                "End marker `{}` not found after start marker in template",
+                END_PATTERN
+            )
+        })?;
+
         final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
         let final_page = metadata.apply(final_page);
         final_page.replace("&amp;#36;", "$")
