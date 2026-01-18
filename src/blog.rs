@@ -3,7 +3,7 @@ use crate::jinja_processor::{PageContext, SiteContext};
 use crate::page_metadata::{PageMetadata, PageMetadataRaw};
 
 use crate::fs_util::copy_directory_recursively;
-use crate::parser::{load_compile_write_with_jinja, END_PATTERN, START_PATTERN};
+use crate::parser::{END_PATTERN, START_PATTERN};
 use crate::DraftsOptions;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
@@ -159,15 +159,13 @@ fn build_articles(
 ) -> anyhow::Result<Vec<PageMetadata>> {
     debug!("Loading articles metadata");
     let mut articles = vec![];
-    let template_path = &genereto_config
-        .template_dir_path
-        .join(BLOG_ENTRY_TEMPLATE_FILENAME);
-    let template_raw = fs::read_to_string(template_path)
-        .context(format!("reading template path {:?}", template_path))?;
-    let template_raw = crate::parser::process_includes(
-        &template_raw,
+
+    // Load the default blog template once before the loop
+    let default_template = crate::parser::load_template(
         &genereto_config.template_dir_path,
+        BLOG_ENTRY_TEMPLATE_FILENAME,
     )?;
+
     let default_cover_image = &genereto_config
         .blog
         .default_cover_image
@@ -182,7 +180,7 @@ fn build_articles(
                 entry,
                 "", // No content for YAML entries
                 &yaml_path,
-                &default_cover_image,
+                default_cover_image,
                 &genereto_config.url,
             );
             articles.push(metadata);
@@ -196,40 +194,59 @@ fn build_articles(
     if !blog_folder.exists() {
         return Ok(articles);
     }
+
     for entry in fs::read_dir(&blog_folder)? {
         let entry_path = entry?.path();
         let entry_path_display = entry_path.display().to_string();
         let destination_path = genereto_config.get_blog_dest_path(&entry_path);
         info!("Compiling {entry_path_display} to {destination_path:?}.");
+
         if entry_path.is_dir() {
             copy_directory_recursively(&entry_path, &destination_path)?;
         } else if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "md" {
-            let article_opt = if genereto_config.blog.generate_single_pages {
-                load_compile_write_with_jinja(
-                    default_cover_image,
-                    &entry_path,
-                    drafts_options,
-                    &destination_path,
-                    &template_raw,
-                    &genereto_config.url,
-                    site_context,
-                )
-                .with_context(|| format!("Failed to build page {entry_path_display}"))?
+            // Read source content and parse metadata first to check for custom template
+            let source_content = fs::read_to_string(&entry_path)
+                .with_context(|| format!("Failed to read blog post {entry_path_display}"))?;
+            let (intermediate_content, metadata_raw) =
+                crate::parser::compile_page_phase_1(&source_content)
+                    .with_context(|| format!("Failed to parse blog post {entry_path_display}"))?;
+
+            // Use custom template if specified, otherwise use default
+            let template_raw = if let Some(ref template_file) = metadata_raw.template_file {
+                crate::parser::load_template(&genereto_config.template_dir_path, template_file)
+                    .with_context(|| {
+                        format!(
+                            "Blog post '{}' specifies template '{}' which could not be loaded",
+                            entry_path_display, template_file
+                        )
+                    })?
             } else {
-                // When single pages are disabled, still parse metadata but skip file generation
-                let (_, md) = crate::parser::load_compile_with_jinja(
-                    default_cover_image,
-                    &entry_path,
-                    &template_raw,
-                    &genereto_config.url,
-                    site_context,
-                )
-                .with_context(|| format!("Failed to parse metadata for {entry_path_display}"))?;
-                Some(md)
+                default_template.clone()
             };
-            if let Some(md) = article_opt {
-                articles.push(md);
+
+            // Compile phase 2 with the selected template
+            let (content, metadata) = crate::parser::compile_page_phase_2(
+                intermediate_content,
+                &template_raw,
+                metadata_raw,
+                default_cover_image,
+                &entry_path,
+                &genereto_config.url,
+                site_context,
+            )
+            .with_context(|| format!("Failed to compile blog post {entry_path_display}"))?;
+
+            // Handle drafts and write output if generating single pages
+            if metadata.is_draft && drafts_options.is_hide() {
+                continue;
             }
+
+            if genereto_config.blog.generate_single_pages {
+                fs::write(&destination_path, content)
+                    .with_context(|| format!("Failed to write blog post to {destination_path:?}"))?;
+            }
+
+            articles.push(metadata);
         } else {
             warn!("Found entry which is not a file nor a directory: {entry_path:?}. Skipping.");
         }
@@ -322,6 +339,7 @@ entries:
                 add_title: false,
                 article_url: None,
                 website_url: "test.com".to_string(),
+                template_file: None,
                 custom_metadata: Default::default(),
             },
             PageMetadata {
@@ -338,6 +356,7 @@ entries:
                 add_title: false,
                 article_url: None,
                 website_url: "test.com".to_string(),
+                template_file: None,
                 custom_metadata: Default::default(),
             },
         ];

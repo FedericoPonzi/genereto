@@ -13,7 +13,6 @@ pub mod blog;
 
 use crate::fs_util::copy_directory_recursively;
 use crate::jinja_processor::SiteContext;
-use crate::parser::load_compile_write_with_jinja;
 use crate::rss_generation::generate_rss;
 
 mod config;
@@ -112,20 +111,17 @@ fn compile_pages(
         None
     };
 
+    // Load the default template once before the loop
+    let default_template = parser::load_template(
+        &genereto_config.template_dir_path,
+        PAGE_TEMPLATE_FILENAME,
+    )?;
+
     for entry in fs::read_dir(&genereto_config.content_path)? {
         let entry_path = entry?.path();
-        let template_path = &genereto_config
-            .template_dir_path
-            .join(PAGE_TEMPLATE_FILENAME);
-        let template_raw = fs::read_to_string(template_path)
-            .context(format!("Failed to read template file {template_path:?}"))?;
-        let template_raw = parser::process_includes(
-            &template_raw,
-            &genereto_config.template_dir_path,
-        )?;
-
         let entry_path_name = entry_path.file_name().unwrap().to_str().unwrap();
         let destination_path = genereto_config.get_dest_path(&entry_path);
+
         if entry_path.is_dir() {
             if entry_path_name == "blog" {
                 debug!("Skipping blog directory from compile pages.");
@@ -133,17 +129,44 @@ fn compile_pages(
             }
             copy_directory_recursively(&entry_path, &destination_path)?;
         } else if entry_path.is_file() && entry_path.extension().unwrap_or_default() == "md" {
-            // TODO: test. any other non-md file is copied over to the output folder.
-            let _page_opt = load_compile_write_with_jinja(
+            // Read source content and parse metadata first to check for custom template
+            let source_content = fs::read_to_string(&entry_path)
+                .with_context(|| format!("Failed to read page {entry_path:?}"))?;
+            let (intermediate_content, metadata_raw) = parser::compile_page_phase_1(&source_content)
+                .with_context(|| format!("Failed to parse page {entry_path:?}"))?;
+
+            // Use custom template if specified, otherwise use default
+            let template_raw = if let Some(ref template_file) = metadata_raw.template_file {
+                parser::load_template(&genereto_config.template_dir_path, template_file)
+                    .with_context(|| {
+                        format!(
+                            "Page '{}' specifies template '{}' which could not be loaded",
+                            entry_path.display(),
+                            template_file
+                        )
+                    })?
+            } else {
+                default_template.clone()
+            };
+
+            // Compile phase 2 with the selected template
+            let (content, metadata) = parser::compile_page_phase_2(
+                intermediate_content,
+                &template_raw,
+                metadata_raw,
                 "",
                 &entry_path,
-                drafts_options,
-                &destination_path,
-                &template_raw,
                 &genereto_config.url,
                 site_context.as_ref(),
             )
-            .with_context(|| format!("Failed to build page {entry_path:?}"))?;
+            .with_context(|| format!("Failed to compile page {entry_path:?}"))?;
+
+            // Handle drafts and write output
+            if metadata.is_draft && drafts_options.is_hide() {
+                continue;
+            }
+            fs::write(&destination_path, content)
+                .with_context(|| format!("Failed to write page to {destination_path:?}"))?;
         } else {
             warn!("Found entry which is not a file nor a directory: {entry_path:?}. Skipping.");
         }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$GENERETO['title']</title>
+    <link rel="stylesheet" href="res/styles.css">
+    <meta name="description" content="$GENERETO['description']">
+    <meta name="keywords" content="$GENERETO['keywords']">
+    <meta property="og:title" content="$GENERETO['title']">
+    <meta property="og:description" content="$GENERETO['description']">
+    <meta property="og:url" content="$GENERETO['url']">
+    <meta property="og:image" content="$GENERETO['cover_image']">
+    <style>
+        /* Landing page specific styles */
+        .landing-hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-bottom: 2rem;
+        }
+        .landing-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .landing-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+$GENERETO_INCLUDE['header.html']
+
+<div class="landing-hero">
+    <h1>$GENERETO['title']</h1>
+    <p>$GENERETO['description']</p>
+</div>
+
+<main class="landing-content">
+    <article>
+        <!-- start_content -->
+        Sample content (replaced during build)
+        <!-- end_content -->
+    </article>
+</main>
+
+$GENERETO_INCLUDE['footer.html']
+
+</body>
+</html>

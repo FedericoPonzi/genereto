@@ -25,6 +25,15 @@ pub fn process_includes(template_raw: &str, template_dir: &Path) -> anyhow::Resu
     Ok(result)
 }
 
+/// Load a template file from the template directory and process includes
+/// Returns the processed template content
+pub fn load_template(template_dir: &Path, template_filename: &str) -> anyhow::Result<String> {
+    let template_path = template_dir.join(template_filename);
+    let template_raw = fs::read_to_string(&template_path)
+        .with_context(|| format!("Failed to read template file '{}'", template_path.display()))?;
+    process_includes(&template_raw, template_dir)
+}
+
 pub(crate) const START_PATTERN: &str = "<!-- start_content -->";
 pub(crate) const END_PATTERN: &str = "<!-- end_content -->";
 
@@ -163,8 +172,9 @@ pub fn compile_page_phase_2(
     Ok((final_page, metadata))
 }
 
-// Split the source content into the metadata and the content
-fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, PageMetadataRaw)> {
+/// Split the source content into the metadata and the content
+/// This function is public so that callers can parse metadata first to check for template_file
+pub fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, PageMetadataRaw)> {
     let trimmed_content = source_content.trim_start();
 
     if trimmed_content.starts_with("---") {
