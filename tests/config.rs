@@ -9,9 +9,9 @@ fn test_load_config_sample_genereto_project_works() {
 
     let config: GeneretoConfig = GeneretoConfig::load_from_folder(PathBuf::from(config_path))
         .expect("Failed to deserialize config");
-    assert_eq!(config.title, "My Website");
-    assert_eq!(config.description, "The best website in the world.");
-    assert_eq!(config.url, "https://blog.fponzi.me");
+    assert_eq!(config.title, "My Awesome Website");
+    assert_eq!(config.description, "A sample website built with Genereto static site generator.");
+    assert_eq!(config.url, "https://example.com");
 }
 
 #[test]

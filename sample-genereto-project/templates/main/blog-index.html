@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Index</title>
+    <link rel="stylesheet" href="res/styles.css">
+    <meta name="description" content="Blog index - browse all articles">
+    <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="rss.xml" />
+</head>
+<body>
+
+$GENERETO_INCLUDE['header.html']
+
+<main class="container">
+    <article>
+        <h1>Blog</h1>
+        <p>Welcome! Browse through all articles:</p>
+        <ul class="blog-list">
+            <!-- start_content -->
+            <li class="blog-item">
+                $GENERETO['publish_date'] - <a href="$GENERETO['file_name']">$GENERETO['title']</a>
+            </li>
+            <!-- end_content -->
+        </ul>
+    </article>
+</main>
+
+$GENERETO_INCLUDE['footer.html']
+
+</body>
+</html>

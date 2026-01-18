@@ -1,11 +1,18 @@
-template: main
-enable_jinja: true
-title: My Jinja2 Site
-url: https://example.com
-description: A site using Jinja2 templates
+# Genereto Sample Project Configuration (Jinja2)
+# This demonstrates all configuration options with Jinja2 templates
 
+template: 'main'
+output_dirname: 'output'
+enable_jinja: true
+
+# Site metadata (used in templates and RSS)
+title: My Awesome Website
+description: A sample website built with Genereto using Jinja2 templates.
+url: https://example.com
+
+# Blog configuration
 blog:
-  base_template: index.html
-  index_name: index.html
-  destination: blog
-  generate_single_pages: true
+    base_template: blog-index.html
+    index_name: index.html
+    destination: blog/
+    default_cover_image: res/default-cover.jpg

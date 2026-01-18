@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - {{ site.title }}</title>
+    <link rel="stylesheet" href="res/styles.css">
+    <meta name="description" content="{{ site.description }}">
+    <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="rss.xml" />
+</head>
+<body>
+
+$GENERETO_INCLUDE['header.html']
+
+<main class="container">
+    <article>
+        <h1>Blog</h1>
+        <p>Welcome! Browse through all articles:</p>
+        <ul class="blog-list">
+            {% for article in articles %}
+            <li class="blog-item">
+                {{ article.publish_date }} - <a href="{{ article.file_name }}">{{ article.title }}</a>
+            </li>
+            {% endfor %}
+            {% if articles|length == 0 %}
+            <li>No articles yet. Check back soon!</li>
+            {% endif %}
+        </ul>
+    </article>
+</main>
+
+$GENERETO_INCLUDE['footer.html']
+
+</body>
+</html>
