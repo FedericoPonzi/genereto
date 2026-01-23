@@ -18,6 +18,8 @@ pub(crate) struct GeneretoConfigBlogRaw {
     pub(crate) title: Option<String>,
     #[serde(default)]
     pub(crate) default_cover_image: String,
+    #[serde(default)]
+    pub(crate) max_entries_per_page: Option<usize>,
 }
 
 fn index_html() -> PathBuf {
@@ -40,6 +42,7 @@ impl Default for GeneretoConfigBlogRaw {
             generate_single_pages: default_single_pages(),
             title: None,
             default_cover_image: String::new(),
+            max_entries_per_page: None,
         }
     }
 }
@@ -119,6 +122,7 @@ mod tests {
                 generate_single_pages: true,
                 title: None,
                 default_cover_image: "Something.jpg".into(),
+                max_entries_per_page: None,
             },
         };
 
@@ -136,6 +140,7 @@ mod tests {
                 generate_single_pages: true,
                 title: None,
                 default_cover_image: String::new(),
+                max_entries_per_page: None,
             },
         };
 

@@ -1,5 +1,5 @@
 use crate::config::GeneretoConfig;
-use crate::jinja_processor::{PageContext, SiteContext};
+use crate::jinja_processor::{PageContext, PaginationContext, SiteContext};
 use crate::page_metadata::{PageMetadata, PageMetadataRaw};
 
 use crate::fs_util::copy_directory_recursively;
@@ -8,7 +8,7 @@ use crate::DraftsOptions;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const BLOG_ENTRIES_FOLDER_RELATIVE_PATH: &str = "blog";
 const BLOG_ENTRIES_FILE_NAME: &str = "blog.yml";
@@ -27,6 +27,49 @@ impl BlogEntries {
         let entries: BlogEntries = serde_yaml_ng::from_reader(&fs::File::open(path)?)?;
         Ok(Some(entries))
     }
+}
+
+/// Given an index filename (e.g. "index.html" or "blog.html") and a page number,
+/// returns the filename for that page.
+/// Page 1 returns the original name; page N >= 2 returns "name-page-N.ext".
+fn get_page_filename(index_name: &Path, page_number: usize) -> PathBuf {
+    if page_number == 1 {
+        return index_name.to_path_buf();
+    }
+    let stem = index_name
+        .file_stem()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or("index");
+    let ext = index_name
+        .extension()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or("html");
+    PathBuf::from(format!("{}-page-{}.{}", stem, page_number, ext))
+}
+
+/// Generates the pagination navigation HTML for marker-based templates.
+fn build_pagination_html(pagination: &PaginationContext) -> String {
+    let mut html = String::from("<nav class=\"pagination\">\n");
+    if pagination.has_prev {
+        html.push_str(&format!(
+            "  <a href=\"{}\" class=\"pagination-prev\">Previous</a>\n",
+            pagination.prev_url
+        ));
+    }
+    html.push_str(&format!(
+        "  <span class=\"pagination-info\">Page {} of {}</span>\n",
+        pagination.current_page, pagination.total_pages
+    ));
+    if pagination.has_next {
+        html.push_str(&format!(
+            "  <a href=\"{}\" class=\"pagination-next\">Next</a>\n",
+            pagination.next_url
+        ));
+    }
+    html.push_str("</nav>");
+    html
 }
 
 pub fn generate_blog(
@@ -69,48 +112,91 @@ pub fn generate_blog(
         &template_index_page,
         &genereto_config.template_dir_path,
     )?;
-    // todo: if there is already an index.html, replace it with blog.html.
-    let destination_path = &genereto_config
-        .blog
-        .destination
-        .join(&genereto_config.blog.index_name);
 
-    // Create an index.html
-    build_index_page(
-        template_index_page,
-        &metadatas,
-        destination_path,
-        drafts_options,
-        genereto_config,
-        site_context.as_ref(),
-    )
-    .context("Failed to build index page.")?;
-    Ok(Some(metadatas))
-}
-fn build_index_page(
-    template_view: String,
-    articles: &[PageMetadata],
-    destination_path: &Path,
-    drafts_options: &DraftsOptions,
-    genereto_config: &GeneretoConfig,
-    site_context: Option<&SiteContext>,
-) -> anyhow::Result<()> {
-    // Filter articles for display
-    let filtered_articles: Vec<&PageMetadata> = articles
+    // Filter articles for display (move filtering before pagination)
+    let filtered_articles: Vec<&PageMetadata> = metadatas
         .iter()
-        // error page doesn't need to be shown on the homepage.
         .filter(|el| el.file_name != "error.html")
-        // if the page is a draft and we are not in dev mode, we need to skip it.
         .filter(|el| !el.is_draft || drafts_options.is_dev())
         .collect();
 
+    if let Some(max_per_page) = genereto_config.blog.max_entries_per_page {
+        // Paginated output
+        let chunks: Vec<&[&PageMetadata]> = filtered_articles.chunks(max_per_page).collect();
+        let total_pages = chunks.len().max(1);
+
+        for (page_idx, chunk) in chunks.iter().enumerate() {
+            let page_number = page_idx + 1;
+            let page_filename = get_page_filename(&genereto_config.blog.index_name, page_number);
+            let destination_path = genereto_config.blog.destination.join(&page_filename);
+
+            let pagination = PaginationContext {
+                current_page: page_number,
+                total_pages,
+                has_prev: page_number > 1,
+                has_next: page_number < total_pages,
+                prev_url: if page_number > 1 {
+                    get_page_filename(&genereto_config.blog.index_name, page_number - 1)
+                        .to_string_lossy()
+                        .into_owned()
+                } else {
+                    String::new()
+                },
+                next_url: if page_number < total_pages {
+                    get_page_filename(&genereto_config.blog.index_name, page_number + 1)
+                        .to_string_lossy()
+                        .into_owned()
+                } else {
+                    String::new()
+                },
+            };
+
+            build_index_page(
+                template_index_page.clone(),
+                chunk,
+                &destination_path,
+                genereto_config,
+                site_context.as_ref(),
+                Some(&pagination),
+            )
+            .with_context(|| format!("Failed to build index page {}.", page_number))?;
+        }
+    } else {
+        // No pagination - single page with all articles
+        let destination_path = genereto_config
+            .blog
+            .destination
+            .join(&genereto_config.blog.index_name);
+
+        build_index_page(
+            template_index_page,
+            &filtered_articles,
+            &destination_path,
+            genereto_config,
+            site_context.as_ref(),
+            None,
+        )
+        .context("Failed to build index page.")?;
+    }
+
+    Ok(Some(metadatas))
+}
+
+fn build_index_page(
+    template_view: String,
+    articles: &[&PageMetadata],
+    destination_path: &Path,
+    genereto_config: &GeneretoConfig,
+    site_context: Option<&SiteContext>,
+    pagination: Option<&PaginationContext>,
+) -> anyhow::Result<()> {
     let final_content = if let Some(site) = site_context {
         // Use Jinja2 template rendering
-        let page_contexts: Vec<PageContext> = filtered_articles
+        let page_contexts: Vec<PageContext> = articles
             .iter()
             .map(|md| PageContext::from_page_metadata(md))
             .collect();
-        crate::jinja_processor::render_blog_index(&template_view, site, &page_contexts)?
+        crate::jinja_processor::render_blog_index(&template_view, site, &page_contexts, pagination)?
     } else {
         // Use traditional marker-based rendering
         let mut template_view = template_view;
@@ -128,7 +214,7 @@ fn build_index_page(
         };
 
         let mut html_content = String::new();
-        for md in &filtered_articles {
+        for md in articles {
             // Apply the template for each article
             let entry_content = md.apply(template_to_use.to_string());
             html_content.push_str(&entry_content);
@@ -136,6 +222,14 @@ fn build_index_page(
         }
 
         template_view.replace_range(start..end + END_PATTERN.len(), &html_content);
+
+        // Replace pagination placeholder
+        let pagination_html = if let Some(p) = pagination {
+            build_pagination_html(p)
+        } else {
+            String::new()
+        };
+        template_view = template_view.replace("$GENERETO['pagination']", &pagination_html);
 
         // Replace the blog title if configured
         if let Some(blog_title) = &genereto_config.blog.title {
@@ -324,50 +418,47 @@ entries:
         let output_path = tmp_dir.path().join("index.html");
 
         // Create test articles
-        let articles = vec![
-            PageMetadata {
-                title: "Test Article 1".to_string(),
-                publish_date: "2024-01-01".to_string(),
-                keywords: "test".to_string(),
-                reading_time_mins: "5".to_string(),
-                description: "Test description 1".to_string(),
-                file_name: "article1.html".to_string(),
-                table_of_contents: "".to_string(),
-                last_modified_date: "2024-01-01".to_string(),
-                cover_image: "cover1.jpg".to_string(),
-                is_draft: false,
-                add_title: false,
-                article_url: None,
-                website_url: "test.com".to_string(),
-                template_file: None,
-                custom_metadata: Default::default(),
-            },
-            PageMetadata {
-                title: "Test Article 2".to_string(),
-                publish_date: "2024-01-02".to_string(),
-                keywords: "test2".to_string(),
-                reading_time_mins: "3".to_string(),
-                description: "Test description 2".to_string(),
-                file_name: "article2.html".to_string(),
-                table_of_contents: "".to_string(),
-                last_modified_date: "2024-01-02".to_string(),
-                cover_image: "cover2.jpg".to_string(),
-                is_draft: false,
-                add_title: false,
-                article_url: None,
-                website_url: "test.com".to_string(),
-                template_file: None,
-                custom_metadata: Default::default(),
-            },
-        ];
+        let article1 = PageMetadata {
+            title: "Test Article 1".to_string(),
+            publish_date: "2024-01-01".to_string(),
+            keywords: "test".to_string(),
+            reading_time_mins: "5".to_string(),
+            description: "Test description 1".to_string(),
+            file_name: "article1.html".to_string(),
+            table_of_contents: "".to_string(),
+            last_modified_date: "2024-01-01".to_string(),
+            cover_image: "cover1.jpg".to_string(),
+            is_draft: false,
+            add_title: false,
+            article_url: None,
+            website_url: "test.com".to_string(),
+            template_file: None,
+            custom_metadata: Default::default(),
+        };
+        let article2 = PageMetadata {
+            title: "Test Article 2".to_string(),
+            publish_date: "2024-01-02".to_string(),
+            keywords: "test2".to_string(),
+            reading_time_mins: "3".to_string(),
+            description: "Test description 2".to_string(),
+            file_name: "article2.html".to_string(),
+            table_of_contents: "".to_string(),
+            last_modified_date: "2024-01-02".to_string(),
+            cover_image: "cover2.jpg".to_string(),
+            is_draft: false,
+            add_title: false,
+            article_url: None,
+            website_url: "test.com".to_string(),
+            template_file: None,
+            custom_metadata: Default::default(),
+        };
+        let articles: Vec<&PageMetadata> = vec![&article1, &article2];
 
         // Test with custom template
         let template = format!(
-            "<!DOCTYPE html><html><body><title>$GENERETO['title']</title>{}\n<div class=\"post\">\n<h2>$GENERETO['title']</h2>\n<p>$GENERETO['description']</p>\n</div>\n{}\n</body></html>",
+            "<!DOCTYPE html><html><body><title>$GENERETO['title']</title>{}\n<div class=\"post\">\n<h2>$GENERETO['title']</h2>\n<p>$GENERETO['description']</p>\n</div>\n{}\n$GENERETO['pagination']\n</body></html>",
             START_PATTERN, END_PATTERN
         );
-
-        let drafts_options = DraftsOptions::Build;
 
         // Test with blog title
         let config = GeneretoConfig {
@@ -389,6 +480,7 @@ entries:
                 generate_single_pages: true,
                 title: Some("Custom Blog Title".into()),
                 default_cover_image: Some("cover.jpg".into()),
+                max_entries_per_page: None,
             },
         };
 
@@ -396,9 +488,9 @@ entries:
             template.clone(),
             &articles,
             &output_path,
-            &drafts_options,
             &config,
             None, // No jinja mode
+            None, // No pagination
         )?;
 
         let output_content = fs::read_to_string(&output_path)?;
@@ -415,14 +507,82 @@ entries:
             template.clone(),
             &articles,
             &output_path,
-            &drafts_options,
             &config,
             None, // No jinja mode
+            None, // No pagination
         )?;
 
         let output_content = fs::read_to_string(&output_path)?;
         assert!(output_content.contains("<title>Main Title</title>"));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_get_page_filename() {
+        let index = PathBuf::from("index.html");
+        assert_eq!(get_page_filename(&index, 1), PathBuf::from("index.html"));
+        assert_eq!(
+            get_page_filename(&index, 2),
+            PathBuf::from("index-page-2.html")
+        );
+        assert_eq!(
+            get_page_filename(&index, 10),
+            PathBuf::from("index-page-10.html")
+        );
+
+        let blog = PathBuf::from("blog.html");
+        assert_eq!(get_page_filename(&blog, 1), PathBuf::from("blog.html"));
+        assert_eq!(
+            get_page_filename(&blog, 3),
+            PathBuf::from("blog-page-3.html")
+        );
+    }
+
+    #[test]
+    fn test_build_pagination_html() {
+        // Test middle page (has both prev and next)
+        let ctx = PaginationContext {
+            current_page: 2,
+            total_pages: 3,
+            has_prev: true,
+            has_next: true,
+            prev_url: "index.html".to_string(),
+            next_url: "index-page-3.html".to_string(),
+        };
+        let html = build_pagination_html(&ctx);
+        assert!(html.contains("pagination-prev"));
+        assert!(html.contains("pagination-next"));
+        assert!(html.contains("index.html"));
+        assert!(html.contains("index-page-3.html"));
+        assert!(html.contains("Page 2 of 3"));
+
+        // Test first page (no prev)
+        let ctx = PaginationContext {
+            current_page: 1,
+            total_pages: 3,
+            has_prev: false,
+            has_next: true,
+            prev_url: String::new(),
+            next_url: "index-page-2.html".to_string(),
+        };
+        let html = build_pagination_html(&ctx);
+        assert!(!html.contains("pagination-prev"));
+        assert!(html.contains("pagination-next"));
+        assert!(html.contains("Page 1 of 3"));
+
+        // Test last page (no next)
+        let ctx = PaginationContext {
+            current_page: 3,
+            total_pages: 3,
+            has_prev: true,
+            has_next: false,
+            prev_url: "index-page-2.html".to_string(),
+            next_url: String::new(),
+        };
+        let html = build_pagination_html(&ctx);
+        assert!(html.contains("pagination-prev"));
+        assert!(!html.contains("pagination-next"));
+        assert!(html.contains("Page 3 of 3"));
     }
 }

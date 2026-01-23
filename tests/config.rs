@@ -48,6 +48,7 @@ fn test_load_config_without_blog() {
             destination: "some/directory/folder".into(),
             generate_single_pages: false,
             title: Some("Custom Blog Title".into()),
+            max_entries_per_page: None,
         },
     };
 
@@ -69,6 +70,7 @@ fn test_load_config_without_blog() {
             generate_single_pages: true,
             title: None,
             default_cover_image: Some("".into()),
+            max_entries_per_page: None,
         },
     };
 

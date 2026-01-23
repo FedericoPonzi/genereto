@@ -76,11 +76,23 @@ pub fn render_page(
     Ok(result)
 }
 
+/// Pagination context available in blog index templates
+#[derive(Debug, Clone, Serialize)]
+pub struct PaginationContext {
+    pub current_page: usize,
+    pub total_pages: usize,
+    pub has_prev: bool,
+    pub has_next: bool,
+    pub prev_url: String,
+    pub next_url: String,
+}
+
 /// Render blog index template with articles list
 pub fn render_blog_index(
     template: &str,
     site: &SiteContext,
     articles: &[PageContext],
+    pagination: Option<&PaginationContext>,
 ) -> anyhow::Result<String> {
     let mut env = Environment::new();
     env.add_template("index", template)?;
@@ -88,6 +100,7 @@ pub fn render_blog_index(
     let result = tmpl.render(context! {
         site => site,
         articles => articles,
+        pagination => pagination,
     })?;
     Ok(result)
 }
@@ -246,7 +259,7 @@ mod tests {
             },
         ];
 
-        let result = render_blog_index(template, &site, &articles).unwrap();
+        let result = render_blog_index(template, &site, &articles, None).unwrap();
 
         assert!(result.contains("<h1>Test Site</h1>"));
         assert!(result.contains("<a href=\"first-post.html\">First Post</a>"));
@@ -273,7 +286,7 @@ mod tests {
         let site = create_test_site_context();
         let articles: Vec<PageContext> = vec![];
 
-        let result = render_blog_index(template, &site, &articles).unwrap();
+        let result = render_blog_index(template, &site, &articles, None).unwrap();
         assert!(result.contains("No articles yet."));
     }
 

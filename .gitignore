@@ -10,3 +10,5 @@ sample-genereto-project/output/
 .amazonq
 docs/output
 sample-genereto-project-jinja2/output
+run.sh
+run-prod.sh

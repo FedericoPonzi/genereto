@@ -40,6 +40,7 @@ pub struct GeneretoConfigBlog {
     pub generate_single_pages: bool,
     pub title: Option<String>,
     pub default_cover_image: Option<String>,
+    pub max_entries_per_page: Option<usize>,
 }
 impl GeneretoConfigBlog {
     fn new_from_raw(
@@ -59,6 +60,7 @@ impl GeneretoConfigBlog {
             generate_single_pages: raw_config.blog.generate_single_pages,
             title: raw_config.blog.title.clone(),
             default_cover_image: Option::from(raw_config.blog.default_cover_image.clone()),
+            max_entries_per_page: raw_config.blog.max_entries_per_page,
         }
     }
 }

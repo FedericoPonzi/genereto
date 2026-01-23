@@ -73,6 +73,7 @@ fn test_blog_generation_with_single_pages_disabled() {
             generate_single_pages: false,
             default_cover_image: Some("Something.jpg".into()),
             title: None,
+            max_entries_per_page: None,
         },
     };
 
