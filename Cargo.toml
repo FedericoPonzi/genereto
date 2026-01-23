@@ -1,7 +1,7 @@
 [package]
 name = "genereto"
-version = "0.3.0"
-authors = ["Federico Ponzi <isaacisback92@gmail.com>"]
+version = "0.4.0"
+authors = ["Federico Ponzi <me@fponzi.me>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
