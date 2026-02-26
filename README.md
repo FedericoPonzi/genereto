@@ -4,7 +4,7 @@ A simple static site generator to handle different kinds of simple static websit
 
 📖 **[View Documentation](https://federicoPonzi.github.io/genereto)** - Complete guide and tutorials
 
-[<img src="https://github.com/FedericoPonzi/genereto/raw/main/assets/genereto-logo.jpg" width="300" align="center">](https://github.com/FedericoPonzi/genereto/raw/main/assets/genereto-logo.jpg)
+[<img src="https://github.com/FedericoPonzi/genereto/raw/main/docs/content/assets/genereto-logo.jpg" width="300" align="center">](https://github.com/FedericoPonzi/genereto/raw/main/docs/content/assets/genereto-logo.jpg)
 
 ## Quick Start
 
