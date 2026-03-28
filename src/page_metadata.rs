@@ -59,6 +59,9 @@ pub struct PageMetadata {
     pub description: String,
     /// Filename of the page
     pub file_name: String,
+    /// Page name without extension (e.g., "2026-03-29-my-article" for "2026-03-29-my-article.md")
+    /// Useful for referencing sibling asset directories in markdown content.
+    pub page_name: String,
     /// Table of contents generated from headings.
     pub table_of_contents: String,
     /// Derived from git.
@@ -84,13 +87,13 @@ impl PageMetadata {
         default_cover_image: &str,
         website_url: &str,
     ) -> Self {
-        let file_name = file_path
-            .file_name()
+        let file_stem = file_path
+            .file_stem()
             .unwrap()
             .to_str()
             .unwrap()
-            .to_string()
-            .replace(".md", ".html");
+            .to_string();
+        let file_name = format!("{}.html", &file_stem);
         let table_of_contents = page_metadata
             .show_table_of_contents
             .then(|| generate_table_of_contents(page_content))
@@ -131,6 +134,7 @@ impl PageMetadata {
             is_draft: page_metadata.is_draft,
             add_title: page_metadata.add_title,
             file_name,
+            page_name: file_stem,
             table_of_contents,
             article_url: page_metadata.url,
             website_url: website_url.to_string(),
@@ -184,6 +188,7 @@ impl PageMetadata {
                 self.description.trim().to_string(),
             ),
             ("$GENERETO['file_name']", self.file_name.clone()),
+            ("$GENERETO['page_name']", self.page_name.clone()),
             (
                 "$GENERETO['table_of_contents']",
                 self.table_of_contents.clone(),
@@ -602,6 +607,7 @@ mod test {
             reading_time_mins: "1".to_string(),
             description: "test".to_string(),
             file_name: "test.html".to_string(),
+            page_name: "test".to_string(),
             table_of_contents: "".to_string(),
             last_modified_date: "2024-01-01".to_string(),
             cover_image: "test.jpg".to_string(),
@@ -652,5 +658,46 @@ project_url: https://github.com/example
             metadata.custom_metadata.get("project_url").unwrap(),
             "https://github.com/example"
         );
+    }
+
+    #[test]
+    fn test_page_name_derived_from_file_path() {
+        let metadata_raw = PageMetadataRaw {
+            title: "Test".to_string(),
+            publish_date: "2024-01-01".to_string(),
+            is_draft: false,
+            keywords: "".to_string(),
+            show_table_of_contents: false,
+            add_title: false,
+            description: None,
+            cover_image: None,
+            url: None,
+            template_file: None,
+            custom_metadata: HashMap::new(),
+        };
+
+        let path = std::path::Path::new("2026-03-29-a-pretty-printer-for-tlaplus.md");
+        let metadata = PageMetadata::new(
+            metadata_raw,
+            "Test content",
+            path,
+            "default.jpg",
+            "https://example.com",
+        );
+
+        assert_eq!(
+            metadata.page_name,
+            "2026-03-29-a-pretty-printer-for-tlaplus"
+        );
+        assert_eq!(
+            metadata.file_name,
+            "2026-03-29-a-pretty-printer-for-tlaplus.html"
+        );
+
+        // Verify page_name is available as a variable
+        let variables = metadata.get_variables();
+        assert!(variables.iter().any(|(key, value)| *key
+            == "$GENERETO['page_name']"
+            && value == "2026-03-29-a-pretty-printer-for-tlaplus"));
     }
 }

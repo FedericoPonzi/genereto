@@ -193,6 +193,7 @@ Available metadata fields for pages and articles:
 | `description` | string | Brief description (first 150 chars if not provided)                           | Optional |
 | `cover_image` | string | Path to cover image                                                           | Optional |
 | `url` | string | External URL for the article. This will be available as article_url.          | Optional |
+| `page_name` | string | Source filename without extension. Useful for referencing sibling asset dirs. | Auto |
 | `current_year` | string | Current year (auto-generated)                                                 | Auto |
 | `custom_fields` | any | Any additional key-value pairs                                                | Optional |
 

@@ -46,6 +46,7 @@ Page-level variables are available in individual page templates:
 | `{{ page.description }}` | Page description |
 | `{{ page.keywords }}` | Page keywords |
 | `{{ page.file_name }}` | Output filename (e.g., `my-post.html`) |
+| `{{ page.page_name }}` | Source filename without extension (e.g., `my-post`). Useful for referencing sibling asset directories in content. |
 | `{{ page.cover_image }}` | Cover image path |
 | `{{ page.table_of_contents }}` | Generated table of contents HTML |
 | `{{ page.read_time_minutes }}` | Estimated reading time |

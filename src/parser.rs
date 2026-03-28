@@ -145,6 +145,11 @@ pub fn compile_page_phase_2(
         content
     };
 
+    // Substitute page_name in content before markdown compilation so that
+    // image references like $GENERETO['page_name']/image.png resolve correctly.
+    let content_with_title =
+        content_with_title.replace("$GENERETO['page_name']", &metadata.page_name);
+
     let html_content = compile_markdown_to_html(&filter_out_comments(&content_with_title));
 
     let final_page = if let Some(site) = site_context {
@@ -373,5 +378,50 @@ some code!!
         let (content, metadata) = result.unwrap();
         assert!(content.contains("# Content"));
         assert_eq!(metadata.title, "Test Page");
+    }
+
+    #[test]
+    fn test_page_name_substituted_in_markdown_image_refs() {
+        use crate::page_metadata::PageMetadataRaw;
+        use std::collections::HashMap;
+        use std::path::Path;
+
+        let content = "![Diagram]($GENERETO['page_name']/diagram.png)\n\nSome text.".to_string();
+        let template = "<!-- start_content -->\n<!-- end_content -->";
+        let metadata_raw = PageMetadataRaw {
+            title: "Test".to_string(),
+            publish_date: "2024-01-01".to_string(),
+            is_draft: false,
+            keywords: "".to_string(),
+            show_table_of_contents: false,
+            add_title: false,
+            description: Some("Test desc".to_string()),
+            cover_image: None,
+            url: None,
+            template_file: None,
+            custom_metadata: HashMap::new(),
+        };
+        let entry_path = Path::new("2026-03-29-a-pretty-printer-for-tlaplus.md");
+
+        let (html, _metadata) = super::compile_page_phase_2(
+            content,
+            template,
+            metadata_raw,
+            "default.jpg",
+            entry_path,
+            "https://example.com",
+            None,
+        )
+        .unwrap();
+
+        assert!(
+            html.contains("2026-03-29-a-pretty-printer-for-tlaplus/diagram.png"),
+            "Expected page_name to be substituted in image src, got: {}",
+            html
+        );
+        assert!(
+            !html.contains("$GENERETO['page_name']"),
+            "page_name placeholder should not remain in output"
+        );
     }
 }
