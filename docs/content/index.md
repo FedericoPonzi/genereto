@@ -217,7 +217,7 @@ Content here will be replaced
 
 Variables are accessed using:
 ```html
-&#36;GENERETO['variable_name']
+$GENERETO['variable_name']
 ```
 
 ### Template Includes
@@ -225,7 +225,7 @@ Variables are accessed using:
 Reuse template fragments across multiple templates using includes:
 
 ```html
-&#36;GENERETO_INCLUDE['sidebar.html']
+$GENERETO_INCLUDE['sidebar.html']
 ```
 
 This allows you to:
@@ -252,7 +252,7 @@ Then include it in your main templates:
 `blog.html`:
 ```html
 <div class="page-wrapper">
-  &#36;GENERETO_INCLUDE['sidebar.html']
+  $GENERETO_INCLUDE['sidebar.html']
 
   <div class="container">
     <!-- start_content -->
@@ -262,14 +262,14 @@ Then include it in your main templates:
 </div>
 ```
 
-Include files are loaded from the same directory as the template that references them. Includes can contain any HTML, including other `&#36;GENERETO['variable']` placeholders.
+Include files are loaded from the same directory as the template that references them. Includes can contain any HTML, including other `$GENERETO['variable']` placeholders.
 
 > 💡 **Tip**: Use the content between start/end_content markers to preview your template's appearance.
 
 ## Advanced Features
 
 ### Custom Metadata
-You can add any custom key-value pairs to your page metadata, which will be available in templates as `&#36;GENERETO['key']`:
+You can add any custom key-value pairs to your page metadata, which will be available in templates as `$GENERETO['key']`:
 
 ```markdown
 ---
@@ -280,8 +280,8 @@ project_url: https://github.com/example
 ---
 
 # My Post
-Written by &#36;GENERETO['co_authors']
-Check out the project at &#36;GENERETO['project_url']
+Written by $GENERETO['co_authors']
+Check out the project at $GENERETO['project_url']
 ```
 
 Any key-value pair that isn't a standard metadata field will be treated as custom metadata and made available in templates.
@@ -295,8 +295,8 @@ Genereto automatically generates an RSS feed. Add to your template:
 ### TODOs and Comments
 Embed TODOs and comments in your content:
 ```markdown
-&#36;GENERETO&#123;TODO: fix this section&#125;
-This is my content &#36;GENERETO&#123;add more details here&#125;
+$GENERETO{TODO: fix this section}
+This is my content $GENERETO{add more details here}
 ```
 
 ### Blog YAML Format
