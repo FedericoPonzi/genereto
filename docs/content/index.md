@@ -320,8 +320,8 @@ Genereto automatically generates an RSS feed. Add to your template:
 ### TODOs and Comments
 Embed TODOs and comments in your content:
 ```markdown
-$GENERETO{TODO: fix this section}
-This is my content $GENERETO{add more details here}
+&#36;GENERETO{TODO: fix this section}
+This is my content &#36;GENERETO{add more details here}
 ```
 
 ### Blog YAML Format
