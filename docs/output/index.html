@@ -162,6 +162,28 @@ genereto --project-path &lt;PATH&gt; --drafts-options &lt;OPTION&gt;
 <li><code>dev</code>: Treats drafts as normal pages</li>
 <li><code>hide</code>: Completely skips draft pages</li>
 </ul>
+<h3 id="verification">Verification</h3>
+<pre><code class="language-bash"># Build and verify
+genereto --project-path &lt;PATH&gt; --verify
+
+# Build and run specific checks only
+genereto --project-path &lt;PATH&gt; --verify assets internal-links
+
+# Verify an already-built project
+genereto verify --project-path &lt;PATH&gt;
+
+# Verify with specific checks
+genereto verify --project-path &lt;PATH&gt; assets cover-image
+</code></pre>
+<p>Available checks:</p>
+<ul>
+<li><code>assets</code> — Missing image/asset files referenced in markdown content</li>
+<li><code>cover-image</code> — <code>cover_image</code> frontmatter points to a nonexistent file</li>
+<li><code>date-mismatch</code> — Filename date prefix doesn't match <code>publish_date</code></li>
+<li><code>empty-links</code> — Markdown links with empty display text <code>[](url)</code></li>
+<li><code>internal-links</code> — Broken local <code>href</code>/<code>src</code> references in generated HTML</li>
+<li><code>external-links</code> — External URL reachability (cached via <code>link_cache.csv</code>, re-checked every 6 months)</li>
+</ul>
 <h2 id="config-reference">Config Reference</h2>
 <p>The <code>config.yml</code> file in your project root defines the site configuration:</p>
 <pre><code class="language-yaml">template: string              # Template directory name to use.
