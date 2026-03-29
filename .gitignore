@@ -12,3 +12,4 @@ docs/output
 sample-genereto-project-jinja2/output
 run.sh
 run-prod.sh
+docs/output/
