@@ -19,9 +19,10 @@ mod config;
 mod fs_util;
 pub mod jinja_processor;
 mod page_metadata;
-mod parser;
+pub mod parser;
 mod project_generation;
 mod rss_generation;
+pub mod verify;
 
 const PAGE_TEMPLATE_FILENAME: &str = "index.html";
 
@@ -112,10 +113,8 @@ fn compile_pages(
     };
 
     // Load the default template once before the loop
-    let default_template = parser::load_template(
-        &genereto_config.template_dir_path,
-        PAGE_TEMPLATE_FILENAME,
-    )?;
+    let default_template =
+        parser::load_template(&genereto_config.template_dir_path, PAGE_TEMPLATE_FILENAME)?;
 
     for entry in fs::read_dir(&genereto_config.content_path)? {
         let entry_path = entry?.path();
@@ -132,8 +131,9 @@ fn compile_pages(
             // Read source content and parse metadata first to check for custom template
             let source_content = fs::read_to_string(&entry_path)
                 .with_context(|| format!("Failed to read page {entry_path:?}"))?;
-            let (intermediate_content, metadata_raw) = parser::compile_page_phase_1(&source_content)
-                .with_context(|| format!("Failed to parse page {entry_path:?}"))?;
+            let (intermediate_content, metadata_raw) =
+                parser::compile_page_phase_1(&source_content)
+                    .with_context(|| format!("Failed to parse page {entry_path:?}"))?;
 
             // Use custom template if specified, otherwise use default
             let template_raw = if let Some(ref template_file) = metadata_raw.template_file {

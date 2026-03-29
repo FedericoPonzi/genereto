@@ -87,12 +87,7 @@ impl PageMetadata {
         default_cover_image: &str,
         website_url: &str,
     ) -> Self {
-        let file_stem = file_path
-            .file_stem()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
+        let file_stem = file_path.file_stem().unwrap().to_str().unwrap().to_string();
         let file_name = format!("{}.html", &file_stem);
         let table_of_contents = page_metadata
             .show_table_of_contents
@@ -696,8 +691,9 @@ project_url: https://github.com/example
 
         // Verify page_name is available as a variable
         let variables = metadata.get_variables();
-        assert!(variables.iter().any(|(key, value)| *key
-            == "$GENERETO['page_name']"
-            && value == "2026-03-29-a-pretty-printer-for-tlaplus"));
+        assert!(variables
+            .iter()
+            .any(|(key, value)| *key == "$GENERETO['page_name']"
+                && value == "2026-03-29-a-pretty-printer-for-tlaplus"));
     }
 }

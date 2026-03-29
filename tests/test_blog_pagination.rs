@@ -81,9 +81,18 @@ $GENERETO['pagination']
     let page1 = fs::read_to_string(project_path.join("output/index.html"))?;
     assert!(page1.contains("Post 5"), "Page 1 should contain Post 5");
     assert!(page1.contains("Post 4"), "Page 1 should contain Post 4");
-    assert!(!page1.contains("Post 3"), "Page 1 should NOT contain Post 3");
-    assert!(!page1.contains("Post 2"), "Page 1 should NOT contain Post 2");
-    assert!(!page1.contains("Post 1"), "Page 1 should NOT contain Post 1");
+    assert!(
+        !page1.contains("Post 3"),
+        "Page 1 should NOT contain Post 3"
+    );
+    assert!(
+        !page1.contains("Post 2"),
+        "Page 1 should NOT contain Post 2"
+    );
+    assert!(
+        !page1.contains("Post 1"),
+        "Page 1 should NOT contain Post 1"
+    );
 
     // Verify page 1 has "Next" link but no "Previous" link
     assert!(
@@ -99,9 +108,18 @@ $GENERETO['pagination']
     let page2 = fs::read_to_string(project_path.join("output/index-page-2.html"))?;
     assert!(page2.contains("Post 3"), "Page 2 should contain Post 3");
     assert!(page2.contains("Post 2"), "Page 2 should contain Post 2");
-    assert!(!page2.contains("Post 5"), "Page 2 should NOT contain Post 5");
-    assert!(!page2.contains("Post 4"), "Page 2 should NOT contain Post 4");
-    assert!(!page2.contains("Post 1"), "Page 2 should NOT contain Post 1");
+    assert!(
+        !page2.contains("Post 5"),
+        "Page 2 should NOT contain Post 5"
+    );
+    assert!(
+        !page2.contains("Post 4"),
+        "Page 2 should NOT contain Post 4"
+    );
+    assert!(
+        !page2.contains("Post 1"),
+        "Page 2 should NOT contain Post 1"
+    );
 
     // Verify page 2 has both prev and next links
     assert!(
@@ -116,7 +134,10 @@ $GENERETO['pagination']
     // Verify page 3 (index-page-3.html) exists and has post 1
     let page3 = fs::read_to_string(project_path.join("output/index-page-3.html"))?;
     assert!(page3.contains("Post 1"), "Page 3 should contain Post 1");
-    assert!(!page3.contains("Post 5"), "Page 3 should NOT contain Post 5");
+    assert!(
+        !page3.contains("Post 5"),
+        "Page 3 should NOT contain Post 5"
+    );
 
     // Verify page 3 has "Previous" link but no "Next" link
     assert!(
@@ -129,9 +150,18 @@ $GENERETO['pagination']
     );
 
     // Verify page info text
-    assert!(page1.contains("Page 1 of 3"), "Page 1 should show 'Page 1 of 3'");
-    assert!(page2.contains("Page 2 of 3"), "Page 2 should show 'Page 2 of 3'");
-    assert!(page3.contains("Page 3 of 3"), "Page 3 should show 'Page 3 of 3'");
+    assert!(
+        page1.contains("Page 1 of 3"),
+        "Page 1 should show 'Page 1 of 3'"
+    );
+    assert!(
+        page2.contains("Page 2 of 3"),
+        "Page 2 should show 'Page 2 of 3'"
+    );
+    assert!(
+        page3.contains("Page 3 of 3"),
+        "Page 3 should show 'Page 3 of 3'"
+    );
 
     Ok(())
 }
@@ -295,10 +325,16 @@ $GENERETO['pagination']
     assert!(project_path.join("output/blog-page-2.html").exists());
 
     let page1 = fs::read_to_string(project_path.join("output/blog.html"))?;
-    assert!(page1.contains("blog-page-2.html"), "Page 1 should link to blog-page-2.html");
+    assert!(
+        page1.contains("blog-page-2.html"),
+        "Page 1 should link to blog-page-2.html"
+    );
 
     let page2 = fs::read_to_string(project_path.join("output/blog-page-2.html"))?;
-    assert!(page2.contains("blog.html"), "Page 2 should link back to blog.html");
+    assert!(
+        page2.contains("blog.html"),
+        "Page 2 should link back to blog.html"
+    );
 
     Ok(())
 }

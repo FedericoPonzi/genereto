@@ -124,11 +124,7 @@ fn test_page_name_in_regular_page() {
     fs::create_dir_all(project_path.join("content/my-page")).unwrap();
     fs::create_dir_all(project_path.join("templates/main")).unwrap();
 
-    fs::write(
-        project_path.join("content/my-page/photo.jpg"),
-        "fake jpg",
-    )
-    .unwrap();
+    fs::write(project_path.join("content/my-page/photo.jpg"), "fake jpg").unwrap();
 
     fs::write(
         project_path.join("config.yml"),
@@ -169,8 +165,8 @@ description: A page with images
     let result = genereto::run(project_path.to_path_buf(), genereto::DraftsOptions::Build);
     assert!(result.is_ok(), "Failed to generate site: {:?}", result);
 
-    let page = fs::read_to_string(project_path.join("output/my-page.html"))
-        .expect("Page should exist");
+    let page =
+        fs::read_to_string(project_path.join("output/my-page.html")).expect("Page should exist");
 
     assert!(
         page.contains("my-page/photo.jpg"),

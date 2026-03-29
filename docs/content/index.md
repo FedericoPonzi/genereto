@@ -150,6 +150,30 @@ Draft options:
 - `dev`: Treats drafts as normal pages
 - `hide`: Completely skips draft pages
 
+### Verification
+
+```bash
+# Build and verify
+genereto --project-path <PATH> --verify
+
+# Build and run specific checks only
+genereto --project-path <PATH> --verify assets internal-links
+
+# Verify an already-built project
+genereto verify --project-path <PATH>
+
+# Verify with specific checks
+genereto verify --project-path <PATH> assets cover-image
+```
+
+Available checks:
+- `assets` — Missing image/asset files referenced in markdown content
+- `cover-image` — `cover_image` frontmatter points to a nonexistent file
+- `date-mismatch` — Filename date prefix doesn't match `publish_date`
+- `empty-links` — Markdown links with empty display text `[](url)`
+- `internal-links` — Broken local `href`/`src` references in generated HTML
+- `external-links` — External URL reachability (cached via `link_cache.csv`, re-checked every 6 months)
+
 ## Config Reference
 
 The `config.yml` file in your project root defines the site configuration:

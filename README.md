@@ -62,6 +62,7 @@ Perfect for:
 - Simple templating system
 - RSS feed generation
 - Draft support and TODOs
+- Built-in verification checks (broken links, missing assets, date mismatches)
 - Fast compilation
 - GitHub Action for CI/CD
 

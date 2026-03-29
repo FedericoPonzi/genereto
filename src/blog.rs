@@ -108,10 +108,8 @@ pub fn generate_blog(
             "Failed to read the base template at path: {:?}",
             genereto_config.blog.base_template
         ))?;
-    let template_index_page = crate::parser::process_includes(
-        &template_index_page,
-        &genereto_config.template_dir_path,
-    )?;
+    let template_index_page =
+        crate::parser::process_includes(&template_index_page, &genereto_config.template_dir_path)?;
 
     // Filter articles for display (move filtering before pagination)
     let filtered_articles: Vec<&PageMetadata> = metadatas
@@ -336,8 +334,9 @@ fn build_articles(
             }
 
             if genereto_config.blog.generate_single_pages {
-                fs::write(&destination_path, content)
-                    .with_context(|| format!("Failed to write blog post to {destination_path:?}"))?;
+                fs::write(&destination_path, content).with_context(|| {
+                    format!("Failed to write blog post to {destination_path:?}")
+                })?;
             }
 
             articles.push(metadata);

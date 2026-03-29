@@ -149,10 +149,7 @@ mod tests {
         let page = create_test_page_context();
 
         let result = render_page(template, &site, &page, "").unwrap();
-        assert_eq!(
-            result,
-            "<html><title>Test Page - Test Site</title></html>"
-        );
+        assert_eq!(result, "<html><title>Test Page - Test Site</title></html>");
     }
 
     #[test]
@@ -204,7 +201,8 @@ mod tests {
 
     #[test]
     fn test_render_page_with_custom_metadata() {
-        let template = "<html><p>Author: {{ page.author }}</p><p>Category: {{ page.category }}</p></html>";
+        let template =
+            "<html><p>Author: {{ page.author }}</p><p>Category: {{ page.category }}</p></html>";
         let site = create_test_site_context();
         let mut page = create_test_page_context();
         page.custom_metadata
