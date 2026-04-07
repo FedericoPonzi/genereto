@@ -162,6 +162,7 @@ category: Technology
 | Feature | Traditional Syntax | Jinja2 Syntax |
 |---------|-------------------|---------------|
 | Variable | `$GENERETO['title']` | `{{ page.title }}` |
+| Site URL | `$GENERETO['url']` | `{{ site.url }}` |
 | Site variable | `$GENERETO['current_year']` | `{{ site.current_year }}` |
 | Content | Markers: `<!-- start_content -->...<!-- end_content -->` | `{{ content }}` |
 | Loops | Not supported | `{% for article in articles %}` |

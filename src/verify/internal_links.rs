@@ -96,4 +96,5 @@ fn should_skip(reference: &str) -> bool {
         || reference.starts_with("data:")
         || reference.starts_with("javascript:")
         || reference.starts_with('#')
+        || reference.contains("{{")
 }

@@ -6,6 +6,7 @@ use crate::fs_util::copy_directory_recursively;
 use crate::parser::{END_PATTERN, START_PATTERN};
 use crate::DraftsOptions;
 use anyhow::Context;
+use chrono::Datelike;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -235,6 +236,17 @@ fn build_index_page(
         } else {
             template_view = template_view.replace("$GENERETO['title']", &genereto_config.title);
         }
+
+        // Replace remaining site-level placeholders in the outer template
+        template_view =
+            template_view.replace("$GENERETO['description']", &genereto_config.description);
+        template_view = template_view.replace("$GENERETO['keywords']", "");
+        template_view = template_view.replace("$GENERETO['url']", &genereto_config.url);
+        template_view = template_view.replace(
+            "$GENERETO['current_year']",
+            &chrono::Local::now().year().to_string(),
+        );
+
         template_view
     };
 

@@ -9,6 +9,7 @@ pub mod date_mismatch;
 pub mod empty_links;
 pub mod external_links;
 pub mod internal_links;
+pub mod unresolved_placeholders;
 
 /// The set of available verification checks.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, clap::ValueEnum)]
@@ -23,6 +24,8 @@ pub enum Check {
     EmptyLinks,
     /// Broken local href/src references in generated HTML
     InternalLinks,
+    /// Unresolved $GENERETO['...'] placeholders in href/src attributes
+    UnresolvedPlaceholders,
     /// External URL reachability (cached via link_cache.csv)
     ExternalLinks,
 }
@@ -35,6 +38,7 @@ impl Check {
             Check::DateMismatch,
             Check::EmptyLinks,
             Check::InternalLinks,
+            Check::UnresolvedPlaceholders,
             Check::ExternalLinks,
         ]
     }
@@ -48,6 +52,7 @@ impl fmt::Display for Check {
             Check::DateMismatch => write!(f, "date-mismatch"),
             Check::EmptyLinks => write!(f, "empty-links"),
             Check::InternalLinks => write!(f, "internal-links"),
+            Check::UnresolvedPlaceholders => write!(f, "unresolved-placeholders"),
             Check::ExternalLinks => write!(f, "external-links"),
         }
     }
@@ -118,6 +123,7 @@ pub fn run_checks(
             Check::DateMismatch => date_mismatch::check(config),
             Check::EmptyLinks => empty_links::check(config),
             Check::InternalLinks => internal_links::check(output_dir),
+            Check::UnresolvedPlaceholders => unresolved_placeholders::check(output_dir),
             Check::ExternalLinks => external_links::check(config, output_dir),
         };
         issues.extend(check_issues);

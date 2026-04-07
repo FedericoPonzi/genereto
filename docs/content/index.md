@@ -172,6 +172,7 @@ Available checks:
 - `date-mismatch` — Filename date prefix doesn't match `publish_date`
 - `empty-links` — Markdown links with empty display text `[](url)`
 - `internal-links` — Broken local `href`/`src` references in generated HTML
+- `unresolved-placeholders` — Unresolved `$GENERETO['...']` placeholders in `href`/`src` attributes
 - `external-links` — External URL reachability (cached via `link_cache.csv`, re-checked every 6 months)
 
 ## Config Reference
@@ -216,7 +217,7 @@ Available metadata fields for pages and articles:
 | `add_title` | bool | Auto-add H1 title from metadata                                               | `false` |
 | `description` | string | Brief description (first 150 chars if not provided)                           | Optional |
 | `cover_image` | string | Path to cover image                                                           | Optional |
-| `url` | string | External URL for the article. This will be available as article_url.          | Optional |
+| `url` | string | External URL for the article. Available as `$GENERETO['article_url']` in marker templates and `page.url` in Jinja. | Optional |
 | `page_name` | string | Source filename without extension. Useful for referencing sibling asset dirs. | Auto |
 | `current_year` | string | Current year (auto-generated)                                                 | Auto |
 | `custom_fields` | any | Any additional key-value pairs                                                | Optional |

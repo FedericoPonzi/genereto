@@ -122,6 +122,7 @@ impl PageMetadata {
                 default_cover_image,
                 page_metadata.cover_image.as_ref(),
                 &file_name,
+                &file_stem,
             ),
             title: page_metadata.title,
             keywords: page_metadata.keywords,
@@ -141,6 +142,7 @@ impl PageMetadata {
         default_cover_image: &str,
         page_cover_image: Option<&String>,
         file_name: &str,
+        file_stem: &str,
     ) -> String {
         debug!("Args:  {default_cover_image:?}, {page_cover_image:?}, {file_name:?}");
         match page_cover_image {
@@ -153,11 +155,10 @@ impl PageMetadata {
                 if cover_image.starts_with("http") {
                     return cover_image.to_string();
                 }
-                // assume it's in a folder named the same way as this page
-                // for blog.yml; that would be blog.yml/images
-                // so skip "blog.yml/"
-                if file_name == "blog.yml" {
-                    debug!("Cover image starts with blog.yml/, skipping replacing filename");
+                // For blog.yml entries, cover_image paths are relative to the content dir
+                // so return them as-is without prefixing the page folder name
+                if file_stem == "blog" {
+                    debug!("Cover image for blog.yml entry, returning as-is");
                     return cover_image.to_string();
                 }
                 format!("{}/{}", &file_name.replace(".html", ""), cover_image)
@@ -189,8 +190,9 @@ impl PageMetadata {
                 self.table_of_contents.clone(),
             ),
             ("$GENERETO['cover_image']", self.cover_image.clone()),
+            ("$GENERETO['url']", self.website_url.clone()),
             (
-                "$GENERETO['url']",
+                "$GENERETO['article_url']",
                 self.article_url.clone().unwrap_or_default(),
             ),
             (
@@ -695,5 +697,68 @@ project_url: https://github.com/example
             .iter()
             .any(|(key, value)| *key == "$GENERETO['page_name']"
                 && value == "2026-03-29-a-pretty-printer-for-tlaplus"));
+    }
+
+    #[test]
+    fn test_get_cover_image_blog_yml_entries() {
+        // For blog.yml entries, cover_image should be returned as-is (no page folder prefix)
+        let result = PageMetadata::get_cover_image(
+            "default.jpg",
+            Some(&"imgs/cover.png".to_string()),
+            "blog.html",
+            "blog",
+        );
+        assert_eq!(result, "imgs/cover.png");
+    }
+
+    #[test]
+    fn test_get_cover_image_regular_page() {
+        // For regular pages, cover_image should be prefixed with page folder
+        let result = PageMetadata::get_cover_image(
+            "default.jpg",
+            Some(&"cover.png".to_string()),
+            "my-post.html",
+            "my-post",
+        );
+        assert_eq!(result, "my-post/cover.png");
+    }
+
+    #[test]
+    fn test_url_variable_is_website_url() {
+        let raw = PageMetadataRaw {
+            title: "Test".to_string(),
+            publish_date: "2024-01-01".to_string(),
+            is_draft: false,
+            keywords: String::new(),
+            show_table_of_contents: false,
+            add_title: false,
+            description: None,
+            cover_image: None,
+            url: Some("https://external-link.com".to_string()),
+            template_file: None,
+            custom_metadata: HashMap::new(),
+        };
+        let path = std::path::PathBuf::from("/tmp/test.md");
+        let metadata =
+            PageMetadata::new(raw, "content", &path, "default.jpg", "https://mysite.com");
+
+        let variables = metadata.get_variables();
+
+        // $GENERETO['url'] should be the website URL, not the article URL
+        assert!(
+            variables
+                .iter()
+                .any(|(k, v)| *k == "$GENERETO['url']" && v == "https://mysite.com"),
+            "url should be the website URL"
+        );
+
+        // $GENERETO['article_url'] should be the frontmatter url field
+        assert!(
+            variables
+                .iter()
+                .any(|(k, v)| *k == "$GENERETO['article_url']"
+                    && v == "https://external-link.com"),
+            "article_url should be the frontmatter url"
+        );
     }
 }

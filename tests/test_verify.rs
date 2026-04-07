@@ -273,6 +273,56 @@ fn test_verify_internal_links_valid() {
 }
 
 #[test]
+fn test_verify_unresolved_placeholders_in_href() {
+    let temp_dir = tempdir().unwrap();
+    let output_dir = temp_dir.path().join("output");
+    fs::create_dir_all(&output_dir).unwrap();
+    fs::write(
+        output_dir.join("index.html"),
+        r#"<html><body><a href="$GENERETO['article_url']">Link</a></body></html>"#,
+    )
+    .unwrap();
+
+    let config = create_test_project(temp_dir.path(), &[]);
+
+    let issues = verify::run_checks(&config, &[Check::UnresolvedPlaceholders], &output_dir);
+    assert!(
+        issues
+            .iter()
+            .any(|i| i.message.contains("Unresolved placeholder")),
+        "Should detect unresolved $GENERETO placeholder in href, got: {:?}",
+        issues.iter().map(|i| &i.message).collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn test_verify_unresolved_placeholders_not_in_code_blocks() {
+    let temp_dir = tempdir().unwrap();
+    let output_dir = temp_dir.path().join("output");
+    fs::create_dir_all(&output_dir).unwrap();
+    // $GENERETO in code blocks and text should NOT be flagged
+    fs::write(
+        output_dir.join("index.html"),
+        r#"<html><body>
+<pre><code>$GENERETO['variable_name']</code></pre>
+<p>Use <code>$GENERETO['key']</code> in templates.</p>
+<a href="about.html">About</a>
+</body></html>"#,
+    )
+    .unwrap();
+    fs::write(output_dir.join("about.html"), "<html></html>").unwrap();
+
+    let config = create_test_project(temp_dir.path(), &[]);
+
+    let issues = verify::run_checks(&config, &[Check::UnresolvedPlaceholders], &output_dir);
+    assert!(
+        issues.is_empty(),
+        "Should not flag $GENERETO in code blocks or text, got: {:?}",
+        issues.iter().map(|i| &i.message).collect::<Vec<_>>()
+    );
+}
+
+#[test]
 fn test_verify_all_checks_no_crash() {
     let temp_dir = tempdir().unwrap();
     let config = create_test_project(
@@ -297,6 +347,7 @@ fn test_verify_all_checks_no_crash() {
         Check::DateMismatch,
         Check::EmptyLinks,
         Check::InternalLinks,
+        Check::UnresolvedPlaceholders,
     ];
     let issues = verify::run_checks(&config, &checks, &output);
     // Just verify it doesn't crash — issue count depends on template
