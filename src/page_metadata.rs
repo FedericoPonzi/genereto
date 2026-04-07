@@ -167,7 +167,7 @@ impl PageMetadata {
         }
     }
     pub fn get_variables(&self) -> Vec<(String, String)> {
-        let variables = vec![
+        let mut variables = vec![
             ("$GENERETO['title']", self.title.trim().to_string()),
             ("$GENERETO['publish_date']", self.publish_date.clone()),
             (
@@ -192,14 +192,17 @@ impl PageMetadata {
             ("$GENERETO['cover_image']", self.cover_image.clone()),
             ("$GENERETO['url']", self.website_url.clone()),
             (
-                "$GENERETO['article_url']",
-                self.article_url.clone().unwrap_or_default(),
-            ),
-            (
                 "$GENERETO['current_year']",
                 chrono::Local::now().year().to_string(),
             ),
         ];
+
+        // Only include article_url if it has a value, so custom_metadata
+        // entries using `article_url:` key are not clobbered with empty string.
+        if let Some(ref article_url) = self.article_url {
+            variables.push(("$GENERETO['article_url']", article_url.clone()));
+        }
+
         let mut variables = variables
             .into_iter()
             .map(|(k, v)| (k.to_string(), v))
