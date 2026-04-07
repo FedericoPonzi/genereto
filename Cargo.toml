@@ -1,6 +1,6 @@
 [package]
 name = "genereto"
-version = "0.4.2"
+version = "0.4.3"
 authors = ["Federico Ponzi <me@fponzi.me>"]
 edition = "2021"
 
