@@ -41,7 +41,7 @@ jobs:
         
       - name: Build site with Genereto
         id: build
-        uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+        uses: FedericoPonzi/genereto/.github/actions/build-site@v0.1.0-ga
         with:
           project-path: './docs'
         
@@ -135,7 +135,7 @@ The new Genereto GitHub Action provides several advantages:
 
 ```yaml
 - name: Build site with specific version
-  uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+  uses: FedericoPonzi/genereto/.github/actions/build-site@v0.1.0-ga
   with:
     project-path: './docs'
     genereto-version: 'v0.2.0'
@@ -145,7 +145,7 @@ The new Genereto GitHub Action provides several advantages:
 
 ```yaml
 - name: Build site with custom output
-  uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+  uses: FedericoPonzi/genereto/.github/actions/build-site@v0.1.0-ga
   with:
     project-path: './website'
     output-path: 'dist'

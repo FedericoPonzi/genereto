@@ -83,7 +83,7 @@ Deploy your Genereto site to GitHub Pages or any CI/CD pipeline with our officia
 
 ```yaml
 - name: Build site
-  uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+  uses: FedericoPonzi/genereto/.github/actions/build-site@v0.1.0-ga
   with:
     project-path: './docs'
 ```
@@ -116,7 +116,7 @@ jobs:
       
       - name: Build with Genereto
         id: build
-        uses: FedericoPonzi/genereto/.github/actions/build-site@v1.0.0-ga
+        uses: FedericoPonzi/genereto/.github/actions/build-site@v0.1.0-ga
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
