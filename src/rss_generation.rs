@@ -28,9 +28,18 @@ fn articles_to_items(url: &str, metadatas: Vec<PageMetadata>) -> Vec<rss::Item> 
         .into_iter()
         .filter(|md| !(md.is_draft || md.file_name == "error.html"))
         .map(|md| {
+            let link = if let Some(permalink) = &md.permalink {
+                format!(
+                    "{}/{}",
+                    url.trim_end_matches('/'),
+                    permalink.trim_start_matches('/')
+                )
+            } else {
+                format!("{}/{}", url, md.file_name)
+            };
             ItemBuilder::default()
                 .title(md.title)
-                .link(format!("{}/{}", url, md.file_name))
+                .link(link)
                 .description(md.description)
                 .pub_date(get_complaint_date(&md.publish_date))
                 .build()

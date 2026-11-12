@@ -21,6 +21,7 @@ pub mod jinja_processor;
 mod page_metadata;
 pub mod parser;
 mod project_generation;
+mod routes;
 mod rss_generation;
 pub mod verify;
 
@@ -57,12 +58,13 @@ impl DraftsOptions {
 pub fn run(project_path: PathBuf, drafts_options: DraftsOptions) -> anyhow::Result<PathBuf> {
     let genereto_config = GeneretoConfig::load_from_folder(project_path)?;
     debug!("GeneretoConfig: {genereto_config:?}");
+    routes::validate(&genereto_config, &drafts_options)?;
     if genereto_config.output_dir_path.exists() {
         fs::remove_dir_all(&genereto_config.output_dir_path)?;
     }
     fs::create_dir_all(&genereto_config.output_dir_path)?;
 
-    let metadata = blog::generate_blog(&genereto_config, &drafts_options)?;
+    let metadata = blog::generate_blog_validated(&genereto_config, &drafts_options)?;
     let has_blog = metadata.is_some();
     if has_blog {
         generate_rss(

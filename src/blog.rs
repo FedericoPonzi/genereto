@@ -16,12 +16,12 @@ const BLOG_ENTRIES_FILE_NAME: &str = "blog.yml";
 const BLOG_ENTRY_TEMPLATE_FILENAME: &str = "blog.html";
 
 #[derive(Debug, Serialize, Deserialize)]
-struct BlogEntries {
-    entries: Vec<PageMetadataRaw>,
+pub(crate) struct BlogEntries {
+    pub(crate) entries: Vec<PageMetadataRaw>,
 }
 
 impl BlogEntries {
-    fn load_from_path(path: &Path) -> anyhow::Result<Option<Self>> {
+    pub(crate) fn load_from_path(path: &Path) -> anyhow::Result<Option<Self>> {
         if !path.exists() {
             return Ok(None);
         }
@@ -33,7 +33,7 @@ impl BlogEntries {
 /// Given an index filename (e.g. "index.html" or "blog.html") and a page number,
 /// returns the filename for that page.
 /// Page 1 returns the original name; page N >= 2 returns "name-page-N.ext".
-fn get_page_filename(index_name: &Path, page_number: usize) -> PathBuf {
+pub(crate) fn get_page_filename(index_name: &Path, page_number: usize) -> PathBuf {
     if page_number == 1 {
         return index_name.to_path_buf();
     }
@@ -73,7 +73,31 @@ fn build_pagination_html(pagination: &PaginationContext) -> String {
     html
 }
 
+/// Builds legacy flat Markdown posts and `blog/<bundle>/index.md` articles.
+///
+/// Bundle assets are copied beside the article's canonical output, excluding
+/// the source index.md. Relative bundle covers use this same public directory.
+/// `permalink: /nested/slug/` selects a site-root route;
+/// `.html` routes are also supported. Percent-encoded UTF-8 is preserved in
+/// public URLs and decoded once for filesystem paths. HTML bodies require
+/// `content_format: html` and must already be sanitized by the caller/importer.
+/// Structured frontmatter is available in Jinja; marker templates can substitute
+/// scalar fields only.
 pub fn generate_blog(
+    genereto_config: &GeneretoConfig,
+    drafts_options: &DraftsOptions,
+) -> anyhow::Result<Option<Vec<PageMetadata>>> {
+    if should_generate_blog(&genereto_config.content_path) {
+        crate::routes::validate(genereto_config, drafts_options)?;
+        // Unlike run(), this entry point does not clear an existing output tree.
+        if genereto_config.output_dir_path.exists() {
+            crate::routes::reject_symlinks(&genereto_config.output_dir_path)?;
+        }
+    }
+    generate_blog_validated(genereto_config, drafts_options)
+}
+
+pub(crate) fn generate_blog_validated(
     genereto_config: &GeneretoConfig,
     drafts_options: &DraftsOptions,
 ) -> anyhow::Result<Option<Vec<PageMetadata>>> {
@@ -207,7 +231,7 @@ fn build_index_page(
 
         // If template is empty or just whitespace, fallback to a default template
         let template_to_use = if template_content.trim().is_empty() {
-            "<div class=\"post\">\n<h2><a href=\"$GENERETO['file_name']\">$GENERETO['title']</a></h2>\n<div class=\"post-date\">$GENERETO['publish_date']</div>\n<p class=\"post-description\">$GENERETO['description']</p>\n</div>\n"
+            "<div class=\"post\">\n<h2><a href=\"$GENERETO['permalink']\">$GENERETO['title']</a></h2>\n<div class=\"post-date\">$GENERETO['publish_date']</div>\n<p class=\"post-description\">$GENERETO['description']</p>\n</div>\n"
         } else {
             template_content
         };
@@ -215,7 +239,7 @@ fn build_index_page(
         let mut html_content = String::new();
         for md in articles {
             // Apply the template for each article
-            let entry_content = md.apply(template_to_use.to_string());
+            let entry_content = md.apply(template_to_use.to_string())?;
             html_content.push_str(&entry_content);
             html_content.push('\n');
         }
@@ -300,7 +324,11 @@ fn build_articles(
     }
 
     for entry in fs::read_dir(&blog_folder)? {
-        let entry_path = entry?.path();
+        let mut entry_path = entry?.path();
+        let bundle = entry_path.is_dir() && entry_path.join("index.md").is_file();
+        if bundle {
+            entry_path = entry_path.join("index.md");
+        }
         let entry_path_display = entry_path.display().to_string();
         let destination_path = genereto_config.get_blog_dest_path(&entry_path);
         info!("Compiling {entry_path_display} to {destination_path:?}.");
@@ -311,9 +339,35 @@ fn build_articles(
             // Read source content and parse metadata first to check for custom template
             let source_content = fs::read_to_string(&entry_path)
                 .with_context(|| format!("Failed to read blog post {entry_path_display}"))?;
-            let (intermediate_content, metadata_raw) =
+            let (intermediate_content, mut metadata_raw) =
                 crate::parser::compile_page_phase_1(&source_content)
                     .with_context(|| format!("Failed to parse blog post {entry_path_display}"))?;
+            let destination_path = crate::routes::article_destination(
+                genereto_config,
+                &entry_path,
+                bundle,
+                metadata_raw.permalink.as_deref(),
+            )?;
+            if bundle {
+                if metadata_raw.permalink.is_none() {
+                    metadata_raw.permalink = Some(crate::routes::bundle_permalink(
+                        genereto_config,
+                        &destination_path,
+                    )?);
+                }
+                if let Some(cover) = &mut metadata_raw.cover_image {
+                    if !cover.is_empty() && !cover.starts_with('/') && !cover.starts_with("http") {
+                        let directory = metadata_raw
+                            .permalink
+                            .as_ref()
+                            .unwrap()
+                            .rsplit_once('/')
+                            .unwrap()
+                            .0;
+                        *cover = format!("{directory}/{cover}");
+                    }
+                }
+            }
 
             // Use custom template if specified, otherwise use default
             let template_raw = if let Some(ref template_file) = metadata_raw.template_file {
@@ -346,9 +400,20 @@ fn build_articles(
             }
 
             if genereto_config.blog.generate_single_pages {
+                fs::create_dir_all(destination_path.parent().unwrap())?;
                 fs::write(&destination_path, content).with_context(|| {
                     format!("Failed to write blog post to {destination_path:?}")
                 })?;
+            }
+            if bundle {
+                let parent = destination_path.parent().unwrap();
+                fs::create_dir_all(parent)?;
+                for asset in fs::read_dir(entry_path.parent().unwrap())? {
+                    let asset = asset?;
+                    if asset.file_name() != "index.md" {
+                        copy_directory_recursively(&asset.path(), &parent.join(asset.file_name()))?;
+                    }
+                }
             }
 
             articles.push(metadata);
@@ -445,6 +510,7 @@ entries:
             article_url: None,
             website_url: "test.com".to_string(),
             template_file: None,
+            permalink: None,
             custom_metadata: Default::default(),
         };
         let article2 = PageMetadata {
@@ -463,6 +529,7 @@ entries:
             article_url: None,
             website_url: "test.com".to_string(),
             template_file: None,
+            permalink: None,
             custom_metadata: Default::default(),
         };
         let articles: Vec<&PageMetadata> = vec![&article1, &article2];

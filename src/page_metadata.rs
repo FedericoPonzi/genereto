@@ -36,14 +36,26 @@ pub struct PageMetadataRaw {
     pub url: Option<String>,
     /// Optional template file override for this specific page
     pub template_file: Option<String>,
+    /// Canonical site-relative route, independent of the source filename.
+    pub permalink: Option<String>,
+    /// `html` preserves an already-reviewed HTML body; absent means Markdown.
+    pub content_format: Option<String>,
+    /// Imported modification day. When present, no git lookup is performed.
+    pub last_modified_date: Option<String>,
     /// Custom metadata fields that will be available as $GENERETO['field_name']
     #[serde(flatten)]
-    pub custom_metadata: HashMap<String, String>,
+    pub custom_metadata: HashMap<String, serde_yaml_ng::Value>,
 }
 
 impl Display for PageMetadataRaw {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Title: {}", self.title)
+    }
+}
+
+impl PageMetadataRaw {
+    pub(crate) fn is_effective_draft(&self, content: &str) -> bool {
+        self.is_draft || contains_todos(content) || is_future_date(&self.publish_date)
     }
 }
 
@@ -64,7 +76,7 @@ pub struct PageMetadata {
     pub page_name: String,
     /// Table of contents generated from headings.
     pub table_of_contents: String,
-    /// Derived from git.
+    /// Imported modification day, or derived from git when absent.
     pub last_modified_date: String,
     pub cover_image: String,
     pub is_draft: bool,
@@ -75,8 +87,9 @@ pub struct PageMetadata {
     pub website_url: String,
     /// Optional template file override for this specific page
     pub template_file: Option<String>,
+    pub permalink: Option<String>,
     /// Custom metadata fields that will be available as $GENERETO['field_name']
-    pub custom_metadata: HashMap<String, String>,
+    pub custom_metadata: HashMap<String, serde_yaml_ng::Value>,
 }
 
 impl PageMetadata {
@@ -106,14 +119,16 @@ impl PageMetadata {
             );
         }
 
-        page_metadata.is_draft = page_metadata.is_draft || has_todos || has_future_date;
+        page_metadata.is_draft = page_metadata.is_effective_draft(page_content);
         page_metadata.title = if page_metadata.is_draft {
             format!("[DRAFT] {}", page_metadata.title)
         } else {
             page_metadata.title
         };
         Self {
-            last_modified_date: get_last_modified_date(&page_metadata.publish_date, file_path),
+            last_modified_date: page_metadata
+                .last_modified_date
+                .unwrap_or_else(|| get_last_modified_date(&page_metadata.publish_date, file_path)),
             reading_time_mins: estimate_reading_time(page_content).to_string(),
             description: page_metadata
                 .description
@@ -135,6 +150,7 @@ impl PageMetadata {
             article_url: page_metadata.url,
             website_url: website_url.to_string(),
             template_file: page_metadata.template_file,
+            permalink: page_metadata.permalink,
             custom_metadata: page_metadata.custom_metadata,
         }
     }
@@ -152,7 +168,7 @@ impl PageMetadata {
                 if cover_image.is_empty() {
                     return default_cover_image.to_string();
                 }
-                if cover_image.starts_with("http") {
+                if cover_image.starts_with("http") || cover_image.starts_with('/') {
                     return cover_image.to_string();
                 }
                 // For blog.yml entries, cover_image paths are relative to the content dir
@@ -186,6 +202,12 @@ impl PageMetadata {
             ("$GENERETO['file_name']", self.file_name.clone()),
             ("$GENERETO['page_name']", self.page_name.clone()),
             (
+                "$GENERETO['permalink']",
+                self.permalink
+                    .clone()
+                    .unwrap_or_else(|| self.file_name.clone()),
+            ),
+            (
                 "$GENERETO['table_of_contents']",
                 self.table_of_contents.clone(),
             ),
@@ -210,17 +232,35 @@ impl PageMetadata {
 
         // Add custom metadata variables
         for (key, value) in &self.custom_metadata {
-            variables.push((format!("$GENERETO['{key}']"), value.clone()));
+            let scalar = match value {
+                serde_yaml_ng::Value::String(value) => value.clone(),
+                serde_yaml_ng::Value::Bool(value) => value.to_string(),
+                serde_yaml_ng::Value::Number(value) => value.to_string(),
+                serde_yaml_ng::Value::Null => String::new(),
+                _ => continue,
+            };
+            variables.push((format!("$GENERETO['{key}']"), scalar));
         }
         variables
     }
 
     // Apply variables to the final page.
-    pub(crate) fn apply(&self, mut final_page: String) -> String {
+    pub(crate) fn apply(&self, mut final_page: String) -> anyhow::Result<String> {
         for (key, value) in self.get_variables() {
             final_page = final_page.replace(&key, &value);
         }
-        final_page
+        for (key, value) in &self.custom_metadata {
+            if matches!(
+                value,
+                serde_yaml_ng::Value::Sequence(_)
+                    | serde_yaml_ng::Value::Mapping(_)
+                    | serde_yaml_ng::Value::Tagged(_)
+            ) && final_page.contains(&format!("$GENERETO['{key}']"))
+            {
+                anyhow::bail!("Structured metadata '{key}' cannot be substituted into a marker; use a Jinja template");
+            }
+        }
+        Ok(final_page)
     }
 }
 
@@ -548,6 +588,9 @@ mod test {
             cover_image: None,
             url: None,
             template_file: None,
+            permalink: None,
+            content_format: None,
+            last_modified_date: None,
             custom_metadata: HashMap::new(),
         };
 
@@ -594,10 +637,10 @@ mod test {
     #[test]
     fn test_custom_metadata() {
         let mut custom_metadata = HashMap::new();
-        custom_metadata.insert("co_authors".to_string(), "John Doe, Jane Smith".to_string());
+        custom_metadata.insert("co_authors".to_string(), "John Doe, Jane Smith".into());
         custom_metadata.insert(
             "project_url".to_string(),
-            "https://github.com/example".to_string(),
+            "https://github.com/example".into(),
         );
 
         let metadata = PageMetadata {
@@ -616,6 +659,7 @@ mod test {
             article_url: None,
             website_url: "https://fponzi.me".to_string(),
             template_file: None,
+            permalink: None,
             custom_metadata,
         };
 
@@ -630,7 +674,7 @@ mod test {
 
         // Test variable replacement
         let template = "Authors: $GENERETO['co_authors']\nProject: $GENERETO['project_url']";
-        let result = metadata.apply(template.to_string());
+        let result = metadata.apply(template.to_string()).unwrap();
         assert_eq!(
             result,
             "Authors: John Doe, Jane Smith\nProject: https://github.com/example"
@@ -650,7 +694,7 @@ project_url: https://github.com/example
         assert_eq!(metadata.title, "Test Page");
         assert_eq!(
             metadata.custom_metadata.get("co_authors"),
-            Some(&"John Doe, Jane Smith".to_string()),
+            Some(&serde_yaml_ng::Value::from("John Doe, Jane Smith")),
             "Failed to deserialize custom metadata: {:?}",
             metadata.custom_metadata
         );
@@ -673,6 +717,9 @@ project_url: https://github.com/example
             cover_image: None,
             url: None,
             template_file: None,
+            permalink: None,
+            content_format: None,
+            last_modified_date: None,
             custom_metadata: HashMap::new(),
         };
 
@@ -739,6 +786,9 @@ project_url: https://github.com/example
             cover_image: None,
             url: Some("https://external-link.com".to_string()),
             template_file: None,
+            permalink: None,
+            content_format: None,
+            last_modified_date: None,
             custom_metadata: HashMap::new(),
         };
         let path = std::path::PathBuf::from("/tmp/test.md");
@@ -759,8 +809,7 @@ project_url: https://github.com/example
         assert!(
             variables
                 .iter()
-                .any(|(k, v)| *k == "$GENERETO['article_url']"
-                    && v == "https://external-link.com"),
+                .any(|(k, v)| *k == "$GENERETO['article_url']" && v == "https://external-link.com"),
             "article_url should be the frontmatter url"
         );
     }

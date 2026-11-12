@@ -37,8 +37,9 @@ pub struct PageContext {
     pub read_time_minutes: String,
     pub last_modified_date: String,
     pub url: String,
+    pub permalink: String,
     #[serde(flatten)]
-    pub custom_metadata: HashMap<String, String>,
+    pub custom_metadata: HashMap<String, serde_yaml_ng::Value>,
 }
 
 impl PageContext {
@@ -55,6 +56,10 @@ impl PageContext {
             read_time_minutes: metadata.reading_time_mins.clone(),
             last_modified_date: metadata.last_modified_date.clone(),
             url: metadata.article_url.clone().unwrap_or_default(),
+            permalink: metadata
+                .permalink
+                .clone()
+                .unwrap_or_else(|| metadata.file_name.clone()),
             custom_metadata: metadata.custom_metadata.clone(),
         }
     }
@@ -128,6 +133,7 @@ mod tests {
             read_time_minutes: "5".to_string(),
             last_modified_date: "2024-01-20".to_string(),
             url: "".to_string(),
+            permalink: "test-page.html".to_string(),
             custom_metadata: HashMap::new(),
         }
     }
@@ -206,9 +212,9 @@ mod tests {
         let site = create_test_site_context();
         let mut page = create_test_page_context();
         page.custom_metadata
-            .insert("author".to_string(), "John Doe".to_string());
+            .insert("author".to_string(), "John Doe".into());
         page.custom_metadata
-            .insert("category".to_string(), "Tech".to_string());
+            .insert("category".to_string(), "Tech".into());
 
         let result = render_page(template, &site, &page, "").unwrap();
         assert!(result.contains("Author: John Doe"));
@@ -244,6 +250,7 @@ mod tests {
                 read_time_minutes: "3".to_string(),
                 last_modified_date: "".to_string(),
                 url: "".to_string(),
+                permalink: "first-post.html".to_string(),
                 custom_metadata: HashMap::new(),
             },
             PageContext {
@@ -258,6 +265,7 @@ mod tests {
                 read_time_minutes: "5".to_string(),
                 last_modified_date: "".to_string(),
                 url: "".to_string(),
+                permalink: "second-post.html".to_string(),
                 custom_metadata: HashMap::new(),
             },
         ];

@@ -130,6 +130,7 @@ pub fn compile_page_phase_2(
     website_url: &str,
     site_context: Option<&SiteContext>,
 ) -> anyhow::Result<(String, PageMetadata)> {
+    let is_html = metadata_raw.content_format.as_deref() == Some("html");
     let metadata = PageMetadata::new(
         metadata_raw,
         &content,
@@ -138,9 +139,17 @@ pub fn compile_page_phase_2(
         website_url,
     );
 
-    // If add_title is true, add an H1 with the page title at the top of the content
     let content_with_title = if metadata.add_title {
-        format!("# {}\n\n{}", metadata.title, content)
+        if is_html {
+            let title = metadata
+                .title
+                .replace('&', "&amp;")
+                .replace('<', "&lt;")
+                .replace('>', "&gt;");
+            format!("<h1>{title}</h1>\n\n{content}")
+        } else {
+            format!("# {}\n\n{}", metadata.title, content)
+        }
     } else {
         content
     };
@@ -150,7 +159,13 @@ pub fn compile_page_phase_2(
     let content_with_title =
         content_with_title.replace("$GENERETO['page_name']", &metadata.page_name);
 
-    let html_content = compile_markdown_to_html(&filter_out_comments(&content_with_title));
+    let html_content = if is_html {
+        // HTML imports are already sanitized by the importer, not by Genereto.
+        // Keep the body verbatim instead of interpreting Markdown or comments.
+        content_with_title
+    } else {
+        compile_markdown_to_html(&filter_out_comments(&content_with_title))
+    };
 
     let final_page = if let Some(site) = site_context {
         // Use Jinja2 template rendering
@@ -170,7 +185,7 @@ pub fn compile_page_phase_2(
         })?;
 
         final_page.replace_range(start..end + END_PATTERN.len(), &html_content);
-        let final_page = metadata.apply(final_page);
+        let final_page = metadata.apply(final_page)?;
         final_page.replace("&amp;#36;", "$")
     };
 
@@ -190,10 +205,9 @@ pub fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, Pag
             return Err(anyhow::anyhow!("Failed to find metadata in page"));
         }
         let (_, metadata, content) = (fields.remove(0), fields.remove(0), fields.remove(0));
-        let content = add_ids_to_headings(content);
-
         let metadata: PageMetadataRaw = serde_yaml_ng::from_str(metadata)
             .context(format!("Failed to deserialize metadata, did you remember to put the metadata section? Metadata: '{}'", metadata))?;
+        let content = prepare_body(content, &metadata)?;
         Ok((content, metadata))
     } else {
         // Legacy format: metadata\n---\ncontent
@@ -203,11 +217,26 @@ pub fn compile_page_phase_1(source_content: &str) -> anyhow::Result<(String, Pag
             return Err(anyhow::anyhow!("Failed to find metadata in page"));
         }
         let (metadata, content) = (fields.remove(0), fields.remove(0));
-        let content = add_ids_to_headings(content);
-
         let metadata: PageMetadataRaw = serde_yaml_ng::from_str(metadata)
             .context(format!("Failed to deserialize metadata, did you remember to put the metadata section? Metadata: '{}'", metadata))?;
+        let content = prepare_body(content, &metadata)?;
         Ok((content, metadata))
+    }
+}
+
+fn prepare_body(content: &str, metadata: &PageMetadataRaw) -> anyhow::Result<String> {
+    if let Some(date) = &metadata.last_modified_date {
+        let parsed = chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d")
+            .context("last_modified_date must be YYYY-MM-DD")?;
+        anyhow::ensure!(
+            parsed.format("%Y-%m-%d").to_string() == *date,
+            "last_modified_date must be YYYY-MM-DD"
+        );
+    }
+    match metadata.content_format.as_deref() {
+        Some("html") => Ok(content.to_string()),
+        None | Some("markdown") => Ok(add_ids_to_headings(content)),
+        Some(format) => anyhow::bail!("Unsupported content_format '{format}'"),
     }
 }
 
@@ -399,6 +428,9 @@ some code!!
             cover_image: None,
             url: None,
             template_file: None,
+            permalink: None,
+            content_format: None,
+            last_modified_date: None,
             custom_metadata: HashMap::new(),
         };
         let entry_path = Path::new("2026-03-29-a-pretty-printer-for-tlaplus.md");
