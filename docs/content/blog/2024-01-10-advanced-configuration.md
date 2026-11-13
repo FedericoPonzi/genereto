@@ -23,6 +23,23 @@ blog:
 
 Add any custom fields to your content metadata and access them in templates using `&#36;GENERETO['field_name']`.
 
+## Root Static Files
+
+Non-Markdown files directly under `content/` are ignored unless explicitly
+listed in `root_files`:
+
+```yaml
+root_files:
+  - robots.txt
+  - sitemap.xml
+```
+
+These files are copied unchanged to the output root. Entries must be existing
+regular, non-`.md` files with literal root-level filenames, not paths or encoded
+names. Symlinks, duplicate entries and collisions with generated pages, feeds
+or other copied assets fail before output cleanup. The default list is empty;
+existing asset directories keep their normal recursive-copy behavior.
+
 ## Public Routes and Archives
 
 A page or article can set `permalink: /nested/example/` independently of its

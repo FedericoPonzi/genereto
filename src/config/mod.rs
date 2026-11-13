@@ -29,6 +29,7 @@ pub struct GeneretoConfig {
     pub description: String,
     /// Enable Jinja2 template processing with minijinja
     pub enable_jinja: bool,
+    pub root_files: Vec<PathBuf>,
     pub blog: GeneretoConfigBlog,
 }
 
@@ -103,6 +104,7 @@ impl GeneretoConfig {
             url: raw_config.url,
             description: raw_config.description,
             enable_jinja: raw_config.enable_jinja,
+            root_files: raw_config.root_files,
             blog,
         })
     }

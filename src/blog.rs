@@ -590,6 +590,7 @@ entries:
             url: "test.com".into(),
             description: "Test description".into(),
             enable_jinja: false,
+            root_files: Vec::new(),
 
             blog: GeneretoConfigBlog {
                 base_template: "blog-index.html".into(),

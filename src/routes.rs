@@ -4,6 +4,32 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
+pub(crate) fn root_files(config: &GeneretoConfig) -> anyhow::Result<Vec<(PathBuf, PathBuf)>> {
+    config
+        .root_files
+        .iter()
+        .map(|path| {
+            ensure!(
+                path.components().count() == 1
+                    && matches!(path.components().next(), Some(Component::Normal(_)))
+                    && !path.extension().is_some_and(|ext| ext == "md"),
+                "root_files requires non-Markdown content-root filenames: {}",
+                path.display()
+            );
+            let name = path.to_str().context("Root filename must be UTF-8")?;
+            ensure!(
+                name == decode_segment(name)?,
+                "Root filenames must be literal"
+            );
+            let source = config.content_path.join(path);
+            ensure!(source.is_file(), "Missing root file: {}", source.display());
+            let destination = config.output_dir_path.join(path);
+            safe_output_path(config, &destination)?;
+            Ok((source, destination))
+        })
+        .collect()
+}
+
 /// Decode filesystem components once while preserving the original public URI
 /// in metadata. Reject anything that could become routing syntax after decoding.
 fn decode_segment(segment: &str) -> anyhow::Result<String> {
@@ -259,6 +285,9 @@ pub(crate) fn validate(config: &GeneretoConfig, drafts: &DraftsOptions) -> anyho
     reject_symlinks(&config.content_path)?;
     reject_symlinks(&config.template_dir_path)?;
     let mut outputs = Outputs::default();
+    for (source, destination) in root_files(config)? {
+        outputs.file(&destination, &source)?;
+    }
     let blog_path = config.content_path.join("blog");
     let has_blog = blog_path.exists() || config.content_path.join("blog.yml").exists();
     let mut article_count = 0usize;

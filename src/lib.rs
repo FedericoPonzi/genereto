@@ -124,6 +124,14 @@ fn compile_pages(
         if entry_path.file_name().is_some_and(|name| name == "blog") {
             continue;
         }
+        if entry_path.file_name().is_some_and(|name| {
+            genereto_config
+                .root_files
+                .iter()
+                .any(|file| file.as_os_str() == name)
+        }) {
+            continue;
+        }
         let bundle = entry_path.is_dir() && entry_path.join("index.md").is_file();
         if bundle {
             entry_path = entry_path.join("index.md");
@@ -197,6 +205,10 @@ fn compile_pages(
         }
     }
 
+    for (source, destination) in routes::root_files(genereto_config)? {
+        fs::copy(&source, &destination)
+            .with_context(|| format!("Failed to copy root file {source:?}"))?;
+    }
     Ok(())
 }
 

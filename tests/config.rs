@@ -44,6 +44,7 @@ fn test_load_config_without_blog() {
         url: "XXXXXXXXXXXXXXXX".into(),
         description: "Test description".into(),
         enable_jinja: false,
+        root_files: Vec::new(),
         blog: GeneretoConfigBlog {
             base_template: "blog-index.html".into(),
             index_name: "blog.html".into(),
@@ -69,6 +70,7 @@ fn test_load_config_without_blog() {
         url: "XXXXXXXXXXXXXXXX".into(),
         description: "Test description".into(),
         enable_jinja: false,
+        root_files: Vec::new(),
         blog: GeneretoConfigBlog {
             base_template: "index.html".into(),
             index_name: "index.html".into(),

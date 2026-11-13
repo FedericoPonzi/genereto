@@ -75,6 +75,8 @@ pub(crate) struct GeneretoConfigRaw {
     /// Enable Jinja2 template processing with minijinja
     #[serde(default)]
     pub enable_jinja: bool,
+    #[serde(default)]
+    pub root_files: Vec<PathBuf>,
 
     #[serde(default)]
     // this is not an option because there is a default choice for each BlogConfig field
@@ -124,6 +126,7 @@ mod tests {
             url: "XXXXXXXXXXXXXXXX".into(),
             description: "Test description".into(),
             enable_jinja: false,
+            root_files: Vec::new(),
             blog: GeneretoConfigBlogRaw {
                 base_template: "blog-index.html".into(),
                 index_name: "blog.html".into(),
@@ -145,6 +148,7 @@ mod tests {
             url: "XXXXXXXXXXXXXXXX".into(),
             description: "Test description".into(),
             enable_jinja: false,
+            root_files: Vec::new(),
             blog: GeneretoConfigBlogRaw {
                 base_template: "index.html".into(),
                 index_name: "index.html".into(),
