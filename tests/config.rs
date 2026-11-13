@@ -52,6 +52,9 @@ fn test_load_config_without_blog() {
             generate_single_pages: false,
             title: Some("Custom Blog Title".into()),
             max_entries_per_page: None,
+            pagination_path: None,
+            archives_file: None,
+            sort_by: None,
         },
     };
 
@@ -74,6 +77,9 @@ fn test_load_config_without_blog() {
             title: None,
             default_cover_image: Some("".into()),
             max_entries_per_page: None,
+            pagination_path: None,
+            archives_file: None,
+            sort_by: None,
         },
     };
 

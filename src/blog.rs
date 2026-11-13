@@ -125,8 +125,17 @@ pub(crate) fn generate_blog_validated(
 
     let mut metadatas = build_articles(genereto_config, drafts_options, site_context.as_ref())?;
 
-    // sort by published date
-    metadatas.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    if let Some(field) = &genereto_config.blog.sort_by {
+        metadatas.sort_by(|a, b| {
+            b.custom_metadata[field]
+                .as_str()
+                .cmp(&a.custom_metadata[field].as_str())
+                .then_with(|| a.permalink.cmp(&b.permalink))
+                .then_with(|| a.file_name.cmp(&b.file_name))
+        });
+    } else {
+        metadatas.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    }
 
     let template_index_page =
         fs::read_to_string(&genereto_config.blog.base_template).context(format!(
@@ -143,66 +152,101 @@ pub(crate) fn generate_blog_validated(
         .filter(|el| !el.is_draft || drafts_options.is_dev())
         .collect();
 
-    if let Some(max_per_page) = genereto_config.blog.max_entries_per_page {
-        // Paginated output
-        let chunks: Vec<&[&PageMetadata]> = filtered_articles.chunks(max_per_page).collect();
-        let total_pages = chunks.len().max(1);
-
-        for (page_idx, chunk) in chunks.iter().enumerate() {
-            let page_number = page_idx + 1;
-            let page_filename = get_page_filename(&genereto_config.blog.index_name, page_number);
-            let destination_path = genereto_config.blog.destination.join(&page_filename);
-
-            let pagination = PaginationContext {
-                current_page: page_number,
-                total_pages,
-                has_prev: page_number > 1,
-                has_next: page_number < total_pages,
-                prev_url: if page_number > 1 {
-                    get_page_filename(&genereto_config.blog.index_name, page_number - 1)
-                        .to_string_lossy()
-                        .into_owned()
-                } else {
-                    String::new()
-                },
-                next_url: if page_number < total_pages {
-                    get_page_filename(&genereto_config.blog.index_name, page_number + 1)
-                        .to_string_lossy()
-                        .into_owned()
-                } else {
-                    String::new()
-                },
-            };
-
-            build_index_page(
-                template_index_page.clone(),
-                chunk,
-                &destination_path,
-                genereto_config,
-                site_context.as_ref(),
-                Some(&pagination),
-            )
-            .with_context(|| format!("Failed to build index page {}.", page_number))?;
-        }
-    } else {
-        // No pagination - single page with all articles
-        let destination_path = genereto_config
-            .blog
-            .destination
-            .join(&genereto_config.blog.index_name);
-
-        build_index_page(
-            template_index_page,
-            &filtered_articles,
-            &destination_path,
+    build_listing(
+        &template_index_page,
+        &filtered_articles,
+        genereto_config,
+        site_context.as_ref(),
+        None,
+    )?;
+    let indexed: std::collections::HashMap<_, _> = filtered_articles
+        .iter()
+        .enumerate()
+        .filter_map(|(rank, md)| md.permalink.as_ref().map(|url| (url.as_str(), (rank, *md))))
+        .collect();
+    for archive in crate::collections::load(genereto_config)? {
+        let mut members = archive
+            .articles
+            .iter()
+            .map(|url| {
+                indexed.get(url.as_str()).copied().with_context(|| {
+                    format!(
+                        "Archive {} references unavailable article {url}",
+                        archive.permalink
+                    )
+                })
+            })
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        members.sort_by_key(|(rank, _)| *rank);
+        let members: Vec<_> = members.into_iter().map(|(_, md)| md).collect();
+        build_listing(
+            &template_index_page,
+            &members,
             genereto_config,
             site_context.as_ref(),
-            None,
-        )
-        .context("Failed to build index page.")?;
+            Some(&archive),
+        )?;
     }
 
     Ok(Some(metadatas))
+}
+
+fn build_listing(
+    template: &str,
+    articles: &[&PageMetadata],
+    config: &GeneretoConfig,
+    site: Option<&SiteContext>,
+    archive: Option<&crate::collections::Archive>,
+) -> anyhow::Result<()> {
+    let routes = crate::collections::pages(config, articles.len(), archive)?;
+    let max = config
+        .blog
+        .max_entries_per_page
+        .unwrap_or(articles.len().max(1));
+    let pages = routes.len();
+    for (index, route) in routes.iter().enumerate() {
+        let start = (index * max).min(articles.len());
+        let end = (start + max).min(articles.len());
+        let pagination = config.blog.max_entries_per_page.map(|_| PaginationContext {
+            current_page: index + 1,
+            total_pages: pages,
+            has_prev: index > 0,
+            has_next: index + 1 < pages,
+            prev_url: if index > 0 {
+                routes[index - 1].navigation_url.clone()
+            } else {
+                String::new()
+            },
+            next_url: routes
+                .get(index + 1)
+                .map(|r| r.navigation_url.clone())
+                .unwrap_or_default(),
+        });
+        let listing = crate::collections::ListingContext {
+            title: archive
+                .map(|a| &a.title)
+                .or(config.blog.title.as_ref())
+                .unwrap_or(&config.title)
+                .clone(),
+            description: archive
+                .map(|a| &a.description)
+                .unwrap_or(&config.description)
+                .clone(),
+            permalink: route.permalink.clone(),
+            is_archive: archive.is_some(),
+        };
+        build_index_page(
+            template.to_owned(),
+            &articles[start..end],
+            &route.destination,
+            config,
+            site,
+            pagination.as_ref(),
+            Some(&listing),
+        )
+        .with_context(|| format!("Failed to build listing {}", route.permalink))?;
+    }
+    Ok(())
 }
 
 fn build_index_page(
@@ -212,6 +256,7 @@ fn build_index_page(
     genereto_config: &GeneretoConfig,
     site_context: Option<&SiteContext>,
     pagination: Option<&PaginationContext>,
+    listing: Option<&crate::collections::ListingContext>,
 ) -> anyhow::Result<()> {
     let final_content = if let Some(site) = site_context {
         // Use Jinja2 template rendering
@@ -219,7 +264,13 @@ fn build_index_page(
             .iter()
             .map(|md| PageContext::from_page_metadata(md))
             .collect();
-        crate::jinja_processor::render_blog_index(&template_view, site, &page_contexts, pagination)?
+        crate::jinja_processor::render_listing(
+            &template_view,
+            site,
+            &page_contexts,
+            pagination,
+            listing,
+        )?
     } else {
         // Use traditional marker-based rendering
         let mut template_view = template_view;
@@ -274,6 +325,7 @@ fn build_index_page(
         template_view
     };
 
+    fs::create_dir_all(destination_path.parent().context("Listing has no parent")?)?;
     fs::write(destination_path, final_content).context("Failed writing to output page")?;
     Ok(())
 }
@@ -349,24 +401,11 @@ fn build_articles(
                 metadata_raw.permalink.as_deref(),
             )?;
             if bundle {
-                if metadata_raw.permalink.is_none() {
-                    metadata_raw.permalink = Some(crate::routes::bundle_permalink(
-                        genereto_config,
-                        &destination_path,
-                    )?);
-                }
-                if let Some(cover) = &mut metadata_raw.cover_image {
-                    if !cover.is_empty() && !cover.starts_with('/') && !cover.starts_with("http") {
-                        let directory = metadata_raw
-                            .permalink
-                            .as_ref()
-                            .unwrap()
-                            .rsplit_once('/')
-                            .unwrap()
-                            .0;
-                        *cover = format!("{directory}/{cover}");
-                    }
-                }
+                crate::routes::apply_bundle_metadata(
+                    genereto_config,
+                    &destination_path,
+                    &mut metadata_raw,
+                )?;
             }
 
             // Use custom template if specified, otherwise use default
@@ -408,11 +447,10 @@ fn build_articles(
             if bundle {
                 let parent = destination_path.parent().unwrap();
                 fs::create_dir_all(parent)?;
-                for asset in fs::read_dir(entry_path.parent().unwrap())? {
-                    let asset = asset?;
-                    if asset.file_name() != "index.md" {
-                        copy_directory_recursively(&asset.path(), &parent.join(asset.file_name()))?;
-                    }
+                for (source, destination) in
+                    crate::routes::bundle_assets(&entry_path, &destination_path)?
+                {
+                    copy_directory_recursively(&source, &destination)?;
                 }
             }
 
@@ -561,6 +599,9 @@ entries:
                 title: Some("Custom Blog Title".into()),
                 default_cover_image: Some("cover.jpg".into()),
                 max_entries_per_page: None,
+                pagination_path: None,
+                archives_file: None,
+                sort_by: None,
             },
         };
 
@@ -571,6 +612,7 @@ entries:
             &config,
             None, // No jinja mode
             None, // No pagination
+            None,
         )?;
 
         let output_content = fs::read_to_string(&output_path)?;
@@ -590,6 +632,7 @@ entries:
             &config,
             None, // No jinja mode
             None, // No pagination
+            None,
         )?;
 
         let output_content = fs::read_to_string(&output_path)?;

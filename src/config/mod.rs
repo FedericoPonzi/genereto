@@ -41,6 +41,9 @@ pub struct GeneretoConfigBlog {
     pub title: Option<String>,
     pub default_cover_image: Option<String>,
     pub max_entries_per_page: Option<usize>,
+    pub pagination_path: Option<String>,
+    pub archives_file: Option<PathBuf>,
+    pub sort_by: Option<String>,
 }
 impl GeneretoConfigBlog {
     fn new_from_raw(
@@ -61,6 +64,9 @@ impl GeneretoConfigBlog {
             title: raw_config.blog.title.clone(),
             default_cover_image: Option::from(raw_config.blog.default_cover_image.clone()),
             max_entries_per_page: raw_config.blog.max_entries_per_page,
+            pagination_path: raw_config.blog.pagination_path.clone(),
+            archives_file: raw_config.blog.archives_file.clone(),
+            sort_by: raw_config.blog.sort_by.clone(),
         }
     }
 }

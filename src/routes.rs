@@ -92,12 +92,73 @@ pub(crate) fn bundle_permalink(
     config: &GeneretoConfig,
     destination: &Path,
 ) -> anyhow::Result<String> {
-    let path = destination.strip_prefix(&config.output_dir_path)?;
-    let path = path.to_str().context("Non-UTF-8 bundle route")?;
-    Ok(format!(
-        "/{}",
-        path.strip_suffix("index.html").unwrap_or(path)
-    ))
+    let relative = destination.strip_prefix(&config.output_dir_path)?;
+    let path = relative.to_str().context("Non-UTF-8 bundle route")?;
+    let path = if relative
+        .file_name()
+        .is_some_and(|name| name == "index.html")
+    {
+        path.strip_suffix("index.html").unwrap()
+    } else {
+        path
+    };
+    Ok(format!("/{path}"))
+}
+
+pub(crate) fn page_destination(
+    config: &GeneretoConfig,
+    source: &Path,
+    bundle: bool,
+    permalink: Option<&str>,
+) -> anyhow::Result<PathBuf> {
+    if let Some(permalink) = permalink {
+        Ok(config.output_dir_path.join(permalink_path(permalink)?))
+    } else if bundle {
+        Ok(config
+            .get_dest_path(source.parent().context("Bundle has no parent")?)
+            .join("index.html"))
+    } else {
+        Ok(config.get_dest_path(source))
+    }
+}
+
+pub(crate) fn apply_bundle_metadata(
+    config: &GeneretoConfig,
+    destination: &Path,
+    metadata: &mut crate::page_metadata::PageMetadataRaw,
+) -> anyhow::Result<()> {
+    if metadata.permalink.is_none() {
+        metadata.permalink = Some(bundle_permalink(config, destination)?);
+    }
+    if let Some(cover) = &mut metadata.cover_image {
+        if !cover.is_empty() && !cover.starts_with('/') && !cover.starts_with("http") {
+            let directory = metadata
+                .permalink
+                .as_ref()
+                .unwrap()
+                .rsplit_once('/')
+                .unwrap()
+                .0;
+            *cover = format!("{directory}/{cover}");
+        }
+    }
+    Ok(())
+}
+
+pub(crate) fn bundle_assets(
+    source: &Path,
+    destination: &Path,
+) -> anyhow::Result<Vec<(PathBuf, PathBuf)>> {
+    let source_directory = source.parent().context("Bundle has no parent")?;
+    let output_directory = destination.parent().context("Output has no parent")?;
+    let mut assets = Vec::new();
+    for entry in fs::read_dir(source_directory)? {
+        let entry = entry?;
+        if entry.file_name() != "index.md" {
+            assets.push((entry.path(), output_directory.join(entry.file_name())));
+        }
+    }
+    Ok(assets)
 }
 
 #[derive(Default)]
@@ -201,12 +262,26 @@ pub(crate) fn validate(config: &GeneretoConfig, drafts: &DraftsOptions) -> anyho
     let blog_path = config.content_path.join("blog");
     let has_blog = blog_path.exists() || config.content_path.join("blog.yml").exists();
     let mut article_count = 0usize;
+    let mut available = HashSet::new();
     if let Some(entries) =
         crate::blog::BlogEntries::load_from_path(&config.content_path.join("blog.yml"))?
     {
         for entry in entries.entries {
+            if let Some(field) = &config.blog.sort_by {
+                ensure!(
+                    entry
+                        .custom_metadata
+                        .get(field)
+                        .and_then(|v| v.as_str())
+                        .is_some(),
+                    "Blog entry must provide string sort metadata '{field}'"
+                );
+            }
             if !entry.is_effective_draft("") || drafts.is_dev() {
                 article_count += 1;
+                if let Some(url) = &entry.permalink {
+                    available.insert(url.clone());
+                }
             }
             if let Some(permalink) = entry.permalink {
                 permalink_path(&permalink)?;
@@ -232,10 +307,29 @@ pub(crate) fn validate(config: &GeneretoConfig, drafts: &DraftsOptions) -> anyho
                     article_destination(config, &article, bundle, metadata.permalink.as_deref())?;
                 safe_output_path(config, &destination)?;
                 let is_draft = metadata.is_effective_draft(&body);
+                if let Some(field) = &config.blog.sort_by {
+                    ensure!(
+                        metadata
+                            .custom_metadata
+                            .get(field)
+                            .and_then(|v| v.as_str())
+                            .is_some(),
+                        "Article {} must provide string sort metadata '{field}'",
+                        article.display()
+                    );
+                }
                 if (!is_draft || drafts.is_dev())
                     && article.file_stem().is_some_and(|name| name != "error")
                 {
                     article_count += 1;
+                    if metadata.permalink.is_some() || bundle {
+                        available.insert(
+                            metadata
+                                .permalink
+                                .clone()
+                                .unwrap_or(bundle_permalink(config, &destination)?),
+                        );
+                    }
                 }
                 if is_draft && drafts.is_hide() {
                     continue;
@@ -244,14 +338,8 @@ pub(crate) fn validate(config: &GeneretoConfig, drafts: &DraftsOptions) -> anyho
                     outputs.file(&destination, &article)?;
                 }
                 if bundle {
-                    for asset in fs::read_dir(&source)? {
-                        let asset = asset?;
-                        if asset.file_name() != "index.md" {
-                            outputs.copied_tree(
-                                &asset.path(),
-                                &destination.parent().unwrap().join(asset.file_name()),
-                            )?;
-                        }
+                    for (source, destination) in bundle_assets(&article, &destination)? {
+                        outputs.copied_tree(&source, &destination)?;
                     }
                 }
             } else if source.is_dir() {
@@ -260,20 +348,20 @@ pub(crate) fn validate(config: &GeneretoConfig, drafts: &DraftsOptions) -> anyho
         }
     }
     if has_blog {
-        let pages = if let Some(max) = config.blog.max_entries_per_page {
-            ensure!(max > 0, "max_entries_per_page must be greater than zero");
-            article_count.div_ceil(max).max(1)
-        } else {
-            1
-        };
-        for number in 1..=pages {
-            outputs.file(
-                &config.blog.destination.join(crate::blog::get_page_filename(
-                    &config.blog.index_name,
-                    number,
-                )),
-                &blog_path,
-            )?;
+        for page in crate::collections::pages(config, article_count, None)? {
+            outputs.file(&page.destination, &blog_path)?;
+        }
+    }
+    for archive in crate::collections::load(config)? {
+        for article in &archive.articles {
+            ensure!(
+                available.contains(article),
+                "Archive {} references unavailable article {article}",
+                archive.permalink
+            );
+        }
+        for page in crate::collections::pages(config, archive.articles.len(), Some(&archive))? {
+            outputs.file(&page.destination, &blog_path)?;
         }
     }
     for entry in fs::read_dir(&config.content_path)? {
@@ -281,10 +369,28 @@ pub(crate) fn validate(config: &GeneretoConfig, drafts: &DraftsOptions) -> anyho
         if source.file_name().is_some_and(|n| n == "blog") {
             continue;
         }
-        if source.is_dir() {
+        let bundle = source.is_dir() && source.join("index.md").is_file();
+        if bundle || source.extension().is_some_and(|e| e == "md") {
+            let article = if bundle {
+                source.join("index.md")
+            } else {
+                source.clone()
+            };
+            let (body, metadata) = parser::compile_page_phase_1(&fs::read_to_string(&article)?)?;
+            if metadata.is_effective_draft(&body) && drafts.is_hide() {
+                continue;
+            }
+            let destination =
+                page_destination(config, &article, bundle, metadata.permalink.as_deref())?;
+            safe_output_path(config, &destination)?;
+            outputs.file(&destination, &article)?;
+            if bundle {
+                for (source, destination) in bundle_assets(&article, &destination)? {
+                    outputs.copied_tree(&source, &destination)?;
+                }
+            }
+        } else if source.is_dir() {
             outputs.copied_tree(&source, &config.get_dest_path(&source))?;
-        } else if source.extension().is_some_and(|e| e == "md") {
-            outputs.file(&config.get_dest_path(&source), &source)?;
         }
     }
     for entry in fs::read_dir(&config.template_dir_path)? {

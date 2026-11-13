@@ -74,6 +74,9 @@ fn test_blog_generation_with_single_pages_disabled() {
             default_cover_image: Some("Something.jpg".into()),
             title: None,
             max_entries_per_page: None,
+            pagination_path: None,
+            archives_file: None,
+            sort_by: None,
         },
     };
 

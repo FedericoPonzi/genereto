@@ -20,6 +20,12 @@ pub(crate) struct GeneretoConfigBlogRaw {
     pub(crate) default_cover_image: String,
     #[serde(default)]
     pub(crate) max_entries_per_page: Option<usize>,
+    #[serde(default)]
+    pub(crate) pagination_path: Option<String>,
+    #[serde(default)]
+    pub(crate) archives_file: Option<PathBuf>,
+    #[serde(default)]
+    pub(crate) sort_by: Option<String>,
 }
 
 fn index_html() -> PathBuf {
@@ -43,6 +49,9 @@ impl Default for GeneretoConfigBlogRaw {
             title: None,
             default_cover_image: String::new(),
             max_entries_per_page: None,
+            pagination_path: None,
+            archives_file: None,
+            sort_by: None,
         }
     }
 }
@@ -123,6 +132,9 @@ mod tests {
                 title: None,
                 default_cover_image: "Something.jpg".into(),
                 max_entries_per_page: None,
+                pagination_path: None,
+                archives_file: None,
+                sort_by: None,
             },
         };
 
@@ -141,6 +153,9 @@ mod tests {
                 title: None,
                 default_cover_image: String::new(),
                 max_entries_per_page: None,
+                pagination_path: None,
+                archives_file: None,
+                sort_by: None,
             },
         };
 

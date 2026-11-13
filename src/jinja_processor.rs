@@ -101,6 +101,16 @@ pub fn render_blog_index(
     articles: &[PageContext],
     pagination: Option<&PaginationContext>,
 ) -> anyhow::Result<String> {
+    render_listing(template, site, articles, pagination, None)
+}
+
+pub(crate) fn render_listing(
+    template: &str,
+    site: &SiteContext,
+    articles: &[PageContext],
+    pagination: Option<&PaginationContext>,
+    listing: Option<&crate::collections::ListingContext>,
+) -> anyhow::Result<String> {
     let mut env = Environment::new();
     env.add_template("index", template)?;
     let tmpl = env.get_template("index")?;
@@ -108,6 +118,7 @@ pub fn render_blog_index(
         site => site,
         articles => articles,
         pagination => pagination,
+        listing => listing,
     })?;
     Ok(result)
 }
